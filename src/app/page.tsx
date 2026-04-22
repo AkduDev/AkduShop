@@ -23,6 +23,11 @@ import { AdminLogin } from '@/components/store/admin-login'
 import { AdminPanel } from '@/components/store/admin-panel'
 import { useCartStore } from '@/store/cart'
 
+interface Category {
+  id: string
+  name: string
+}
+
 interface Product {
   id: string
   name: string
@@ -30,13 +35,14 @@ interface Product {
   price: number
   imageUrl: string
   category: string
+  categoryId: string
   stock: number
   featured: boolean
 }
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -48,26 +54,28 @@ export default function Home() {
   const items = useCartStore((state) => state.items)
   const getTotal = useCartStore((state) => state.getTotal)
   
-  const fetchProducts = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const res = await fetch('/api/products')
-      const data = await res.json()
-      setProducts(data)
-      
-      const uniqueCategories = [...new Set(data.map((p: Product) => p.category))]
-      setCategories(uniqueCategories)
+      const [productsRes, categoriesRes] = await Promise.all([
+        fetch('/api/products'),
+        fetch('/api/categories')
+      ])
+      const productsData = await productsRes.json()
+      const categoriesData = await categoriesRes.json()
+      setProducts(productsData)
+      setCategories(categoriesData)
     } catch (error) {
-      console.error('Error fetching products:', error)
+      console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
     }
   }, [])
   
   useEffect(() => {
-    fetchProducts()
+    fetchData()
     checkAuth()
     fetch('/api/seed')
-  }, [fetchProducts])
+  }, [fetchData])
   
   const checkAuth = async () => {
     try {
@@ -130,7 +138,11 @@ Total: $${getTotal().toFixed(2)}
   
   const filteredProducts = selectedCategory === 'all' 
     ? products 
-    : products.filter(p => p.category === selectedCategory)
+    : products.filter(p => p.categoryId === selectedCategory)
+  
+  const selectedCategoryName = selectedCategory === 'all' 
+    ? 'all' 
+    : categories.find(c => c.id === selectedCategory)?.name || 'all'
   
   const featuredProducts = products.filter(p => p.featured)
   
@@ -159,12 +171,12 @@ Total: $${getTotal().toFixed(2)}
               </Button>
               {categories.map(category => (
                 <Button
-                  key={category}
-                  variant={selectedCategory === category ? 'default' : 'ghost'}
-                  onClick={() => setSelectedCategory(category)}
+                  key={category.id}
+                  variant={selectedCategory === category.id ? 'default' : 'ghost'}
+                  onClick={() => setSelectedCategory(category.id)}
                   className="rounded-full"
                 >
-                  {category}
+                  {category.name}
                 </Button>
               ))}
             </nav>
@@ -201,16 +213,16 @@ Total: $${getTotal().toFixed(2)}
                 </Button>
                 {categories.map(category => (
                   <Button
-                    key={category}
-                    variant={selectedCategory === category ? 'default' : 'outline'}
+                    key={category.id}
+                    variant={selectedCategory === category.id ? 'default' : 'outline'}
                     size="sm"
                     className="rounded-full"
                     onClick={() => {
-                      setSelectedCategory(category)
+                      setSelectedCategory(category.id)
                       setMobileMenuOpen(false)
                     }}
                   >
-                    {category}
+                    {category.name}
                   </Button>
                 ))}
               </div>
@@ -319,7 +331,7 @@ Total: $${getTotal().toFixed(2)}
             <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4">
               <div>
                 <h3 className="text-2xl md:text-3xl font-bold">
-                  {selectedCategory === 'all' ? 'Toda la Colección' : selectedCategory}
+                  {selectedCategoryName === 'all' ? 'Toda la Colección' : selectedCategoryName}
                 </h3>
                 <p className="text-muted-foreground mt-1">
                   {filteredProducts.length} {filteredProducts.length === 1 ? 'producto' : 'productos'}
@@ -359,7 +371,7 @@ Total: $${getTotal().toFixed(2)}
         {isAdmin && (
           <section className="py-8 bg-muted/30">
             <div className="container mx-auto px-4">
-              <AdminPanel onProductChange={fetchProducts} />
+              <AdminPanel onProductChange={fetchData} />
             </div>
           </section>
         )}

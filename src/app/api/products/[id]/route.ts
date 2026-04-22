@@ -10,7 +10,10 @@ export async function GET(
   try {
     const { id } = await params
     const product = await db.product.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        category: true
+      }
     })
     
     if (!product) {
@@ -20,7 +23,19 @@ export async function GET(
       )
     }
     
-    return NextResponse.json(product)
+    return NextResponse.json({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      category: product.category.name,
+      categoryId: product.categoryId,
+      stock: product.stock,
+      featured: product.featured,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt
+    })
   } catch (error) {
     console.error('Error fetching product:', error)
     return NextResponse.json(
@@ -55,13 +70,28 @@ export async function PUT(
         description: data.description,
         price: parseFloat(data.price),
         imageUrl: data.imageUrl,
-        category: data.category,
+        categoryId: data.categoryId,
         stock: parseInt(data.stock) || 0,
         featured: data.featured || false
+      },
+      include: {
+        category: true
       }
     })
     
-    return NextResponse.json(product)
+    return NextResponse.json({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      category: product.category.name,
+      categoryId: product.categoryId,
+      stock: product.stock,
+      featured: product.featured,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt
+    })
   } catch (error) {
     console.error('Error updating product:', error)
     return NextResponse.json(

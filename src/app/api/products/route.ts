@@ -6,9 +6,28 @@ import { getSession } from '@/lib/auth'
 export async function GET() {
   try {
     const products = await db.product.findMany({
+      include: {
+        category: true
+      },
       orderBy: { createdAt: 'desc' }
     })
-    return NextResponse.json(products)
+    
+    // Transformar para mantener compatibilidad con el frontend
+    const formattedProducts = products.map(p => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      price: p.price,
+      imageUrl: p.imageUrl,
+      category: p.category.name,
+      categoryId: p.categoryId,
+      stock: p.stock,
+      featured: p.featured,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt
+    }))
+    
+    return NextResponse.json(formattedProducts)
   } catch (error) {
     console.error('Error fetching products:', error)
     return NextResponse.json(
@@ -38,13 +57,28 @@ export async function POST(request: NextRequest) {
         description: data.description,
         price: parseFloat(data.price),
         imageUrl: data.imageUrl,
-        category: data.category,
+        categoryId: data.categoryId,
         stock: parseInt(data.stock) || 0,
         featured: data.featured || false
+      },
+      include: {
+        category: true
       }
     })
     
-    return NextResponse.json(product, { status: 201 })
+    return NextResponse.json({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      category: product.category.name,
+      categoryId: product.categoryId,
+      stock: product.stock,
+      featured: product.featured,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt
+    }, { status: 201 })
   } catch (error) {
     console.error('Error creating product:', error)
     return NextResponse.json(
