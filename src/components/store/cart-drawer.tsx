@@ -23,6 +23,7 @@ interface CartDrawerProps {
 export function CartDrawer({ onCheckout }: CartDrawerProps) {
   const [open, setOpen] = useState(false)
   const { items, removeItem, updateQuantity, getTotal, getTotalItems, clearCart } = useCartStore()
+  const count = getTotalItems()
   
   const handleCheckout = () => {
     onCheckout()
@@ -34,9 +35,12 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
       <SheetTrigger asChild>
         <Button variant="outline" size="icon" className="relative rounded-full border-border/50 hover:border-[var(--gold)] hover:text-[var(--gold)]">
           <ShoppingCart className="h-5 w-5" />
-          {getTotalItems() > 0 && (
-            <span className="absolute -top-1 -right-1 bg-[var(--gold)] text-primary text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-              {getTotalItems()}
+          {count > 0 && (
+            <span 
+              className="absolute -top-1 -right-1 bg-[var(--gold)] text-primary text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+              suppressHydrationWarning
+            >
+              {count}
             </span>
           )}
         </Button>

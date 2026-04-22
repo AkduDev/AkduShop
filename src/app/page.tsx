@@ -145,10 +145,7 @@ Total: $${getTotal().toFixed(2)}
               <div className="relative w-12 h-12 rounded-full bg-primary flex items-center justify-center">
                 <ShoppingBag className="h-6 w-6 text-primary-foreground" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">Bolsos Lesly</h1>
-                <p className="text-xs text-[var(--gold)] tracking-widest uppercase font-medium">Estilo & Elegancia</p>
-              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">Bolsos Lesly</h1>
             </div>
             
             {/* Desktop Navigation */}
@@ -233,7 +230,7 @@ Total: $${getTotal().toFixed(2)}
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-[var(--gold)]/30 mb-6">
                 <Sparkles className="w-4 h-4 text-[var(--gold)]" />
-                <span className="text-sm font-medium tracking-wide">Nueva Colección 2024</span>
+                <span className="text-sm font-medium tracking-wide">Nueva Colección 2026</span>
               </div>
               
               <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
@@ -438,10 +435,7 @@ Total: $${getTotal().toFixed(2)}
               <div className="w-10 h-10 rounded-full bg-[var(--gold)] flex items-center justify-center">
                 <ShoppingBag className="h-5 w-5 text-primary" />
               </div>
-              <div>
-                <span className="font-bold text-lg text-primary-foreground">Bolsos Lesly</span>
-                <p className="text-xs text-primary-foreground/50">Estilo & Elegancia desde 2010</p>
-              </div>
+              <span className="font-bold text-lg text-primary-foreground">Bolsos Lesly</span>
             </div>
             
             <p className="text-sm text-primary-foreground/60">
