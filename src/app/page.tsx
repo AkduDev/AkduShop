@@ -7,17 +7,15 @@ import {
   MapPin, 
   Clock, 
   Phone, 
-  Instagram, 
   Menu,
   X,
   Sparkles,
-  Heart
+  Heart,
+  Star
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
 import { ProductCard } from '@/components/store/product-card'
 import { CartDrawer } from '@/components/store/cart-drawer'
 import { ProductDetailModal } from '@/components/store/product-detail-modal'
@@ -34,13 +32,6 @@ interface Product {
   category: string
   stock: number
   featured: boolean
-}
-
-interface User {
-  id: string
-  name: string
-  email: string
-  role: string
 }
 
 export default function Home() {
@@ -63,7 +54,6 @@ export default function Home() {
       const data = await res.json()
       setProducts(data)
       
-      // Extraer categorías únicas
       const uniqueCategories = [...new Set(data.map((p: Product) => p.category))]
       setCategories(uniqueCategories)
     } catch (error) {
@@ -76,8 +66,6 @@ export default function Home() {
   useEffect(() => {
     fetchProducts()
     checkAuth()
-    
-    // Inicializar base de datos
     fetch('/api/seed')
   }, [fetchProducts])
   
@@ -88,7 +76,6 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: '', password: '' })
       })
-      // Si hay una sesión válida, el servidor la mantendrá
     } catch {
       // No hay sesión
     }
@@ -148,25 +135,28 @@ Total: $${getTotal().toFixed(2)}
   const featuredProducts = products.filter(p => p.featured)
   
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="h-8 w-8 text-primary" />
+            <div className="flex items-center gap-3">
+              <div className="relative w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+                <ShoppingBag className="h-6 w-6 text-primary-foreground" />
+              </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight">Bolsos Lesly</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">Estilo y Elegancia</p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">Bolsos Lesly</h1>
+                <p className="text-xs text-[var(--gold)] tracking-widest uppercase font-medium">Estilo & Elegancia</p>
               </div>
             </div>
             
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
+            <nav className="hidden md:flex items-center gap-1">
               <Button
                 variant={selectedCategory === 'all' ? 'default' : 'ghost'}
                 onClick={() => setSelectedCategory('all')}
+                className="rounded-full"
               >
                 Todos
               </Button>
@@ -175,6 +165,7 @@ Total: $${getTotal().toFixed(2)}
                   key={category}
                   variant={selectedCategory === category ? 'default' : 'ghost'}
                   onClick={() => setSelectedCategory(category)}
+                  className="rounded-full"
                 >
                   {category}
                 </Button>
@@ -198,11 +189,12 @@ Total: $${getTotal().toFixed(2)}
           
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t">
+            <div className="md:hidden py-4 border-t border-border/50">
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant={selectedCategory === 'all' ? 'default' : 'outline'}
                   size="sm"
+                  className="rounded-full"
                   onClick={() => {
                     setSelectedCategory('all')
                     setMobileMenuOpen(false)
@@ -215,6 +207,7 @@ Total: $${getTotal().toFixed(2)}
                     key={category}
                     variant={selectedCategory === category ? 'default' : 'outline'}
                     size="sm"
+                    className="rounded-full"
                     onClick={() => {
                       setSelectedCategory(category)
                       setMobileMenuOpen(false)
@@ -230,127 +223,207 @@ Total: $${getTotal().toFixed(2)}
       </header>
       
       {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main className="flex-1">
         {/* Hero Section */}
-        <section className="mb-12">
-          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-background p-8 md:p-12">
-            <div className="relative z-10 max-w-2xl">
-              <Badge className="mb-4 bg-amber-500 hover:bg-amber-600">
-                <Sparkles className="w-3 h-3 mr-1" />
-                Nueva Colección
-              </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Descubre tu Estilo Perfecto
+        <section className="relative overflow-hidden bg-gradient-to-br from-[var(--champagne)] via-background to-[var(--champagne)]">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--gold-light)_0%,_transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--gold-light)_0%,_transparent_50%)]" />
+          
+          <div className="container mx-auto px-4 py-16 md:py-24 relative">
+            <div className="max-w-3xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-[var(--gold)]/30 mb-6">
+                <Sparkles className="w-4 h-4 text-[var(--gold)]" />
+                <span className="text-sm font-medium tracking-wide">Nueva Colección 2024</span>
+              </div>
+              
+              <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                Descubre la
+                <span className="block mt-2 bg-gradient-to-r from-primary via-[var(--gold)] to-primary bg-clip-text text-transparent">
+                  Elegancia Definida
+                </span>
               </h2>
-              <p className="text-lg text-muted-foreground mb-6">
-                Bolsos y carteras artesanales con la mejor calidad. 
-                Encuentra el complemento perfecto para cada ocasión.
+              
+              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
+                Bolsos y carteras artesanales confeccionados con los mejores materiales. 
+                Cada pieza cuenta una historia de calidad y distinción.
               </p>
-              <Button size="lg" onClick={() => document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })}>
-                Ver Productos
-              </Button>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  size="lg" 
+                  className="rounded-full px-8 bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary"
+                  onClick={() => document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Explorar Colección
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="rounded-full px-8 border-[var(--gold)]/50 hover:bg-[var(--gold)]/10"
+                  onClick={() => document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Contáctanos
+                </Button>
+              </div>
+              
+              {/* Trust indicators */}
+              <div className="flex items-center justify-center gap-8 mt-12 pt-8 border-t border-border/50">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-foreground">100%</p>
+                  <p className="text-sm text-muted-foreground">Cuero Genuino</p>
+                </div>
+                <div className="w-px h-12 bg-border" />
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-foreground">500+</p>
+                  <p className="text-sm text-muted-foreground">Clientes Felices</p>
+                </div>
+                <div className="w-px h-12 bg-border" />
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-[var(--gold)] text-[var(--gold)]" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Valoración</p>
+                </div>
+              </div>
             </div>
-            <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-primary/20 to-transparent" />
           </div>
         </section>
         
         {/* Featured Products */}
         {featuredProducts.length > 0 && selectedCategory === 'all' && (
-          <section className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <Heart className="h-5 w-5 text-rose-500" />
-              <h3 className="text-2xl font-bold">Productos Destacados</h3>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {featuredProducts.slice(0, 4).map(product => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
+          <section className="py-16 bg-muted/30">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center justify-center gap-3 mb-10">
+                <div className="h-px flex-1 max-w-24 bg-gradient-to-r from-transparent to-[var(--gold)]" />
+                <div className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-rose-500 fill-rose-500" />
+                  <h3 className="text-2xl md:text-3xl font-bold">Productos Destacados</h3>
+                </div>
+                <div className="h-px flex-1 max-w-24 bg-gradient-to-l from-transparent to-[var(--gold)]" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredProducts.slice(0, 4).map(product => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
+              </div>
             </div>
           </section>
         )}
         
         {/* Products Grid */}
-        <section id="productos">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold">
-              {selectedCategory === 'all' ? 'Todos los Productos' : selectedCategory}
-            </h3>
-            <Badge variant="secondary">
-              {filteredProducts.length} productos
-            </Badge>
+        <section id="productos" className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-4">
+              <div>
+                <h3 className="text-2xl md:text-3xl font-bold">
+                  {selectedCategory === 'all' ? 'Toda la Colección' : selectedCategory}
+                </h3>
+                <p className="text-muted-foreground mt-1">
+                  {filteredProducts.length} {filteredProducts.length === 1 ? 'producto' : 'productos'}
+                </p>
+              </div>
+              <Badge variant="outline" className="px-4 py-2 text-sm border-[var(--gold)]/30">
+                Envío a toda Cuba
+              </Badge>
+            </div>
+            
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="aspect-[4/5] bg-muted rounded-2xl animate-pulse" />
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-20">
+                <ShoppingBag className="h-20 w-20 mx-auto mb-6 text-muted-foreground/30" />
+                <p className="text-xl text-muted-foreground">No hay productos en esta categoría</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredProducts.map(product => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-          
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="aspect-[4/5] bg-muted rounded-lg animate-pulse" />
-              ))}
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <ShoppingBag className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">No hay productos en esta categoría</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map(product => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
-            </div>
-          )}
         </section>
         
         {/* Admin Panel */}
         {isAdmin && (
-          <AdminPanel onProductChange={fetchProducts} />
+          <section className="py-8 bg-muted/30">
+            <div className="container mx-auto px-4">
+              <AdminPanel onProductChange={fetchProducts} />
+            </div>
+          </section>
         )}
       </main>
       
       {/* Contact Info Section */}
-      <section className="bg-muted/50 py-12">
+      <section id="contacto" className="bg-primary text-primary-foreground py-20">
         <div className="container mx-auto px-4">
-          <h3 className="text-2xl font-bold text-center mb-8">Contáctanos</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <MapPin className="h-8 w-8 mx-auto mb-4 text-primary" />
-                <h4 className="font-semibold mb-2">Dirección</h4>
-                <p className="text-sm text-muted-foreground">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl md:text-4xl font-bold mb-3">Visítanos</h3>
+            <p className="text-primary-foreground/70 max-w-xl mx-auto">
+              Te invitamos a conocer nuestra tienda y descubrir personally la calidad de nuestros productos
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <Card className="bg-primary-foreground/5 border-primary-foreground/10 backdrop-blur">
+              <CardContent className="p-8 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
+                  <MapPin className="h-7 w-7 text-[var(--gold)]" />
+                </div>
+                <h4 className="font-semibold text-lg mb-2 text-primary-foreground">Dirección</h4>
+                <p className="text-primary-foreground/70 text-sm leading-relaxed">
                   Calle 140 # 4112 / 41 y 43<br />
-                  Marianao, Coco Solo
+                  Marianao, Coco Solo<br />
+                  La Habana, Cuba
                 </p>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <Clock className="h-8 w-8 mx-auto mb-4 text-primary" />
-                <h4 className="font-semibold mb-2">Horario</h4>
-                <p className="text-sm text-muted-foreground">
+            
+            <Card className="bg-primary-foreground/5 border-primary-foreground/10 backdrop-blur">
+              <CardContent className="p-8 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
+                  <Clock className="h-7 w-7 text-[var(--gold)]" />
+                </div>
+                <h4 className="font-semibold text-lg mb-2 text-primary-foreground">Horario</h4>
+                <p className="text-primary-foreground/70 text-sm leading-relaxed">
                   Lunes a Sábado<br />
-                  9:00 AM - 8:00 PM
+                  9:00 AM - 8:00 PM<br />
+                  <span className="text-[var(--gold)]">Domingos con cita previa</span>
                 </p>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <Phone className="h-8 w-8 mx-auto mb-4 text-primary" />
-                <h4 className="font-semibold mb-2">WhatsApp</h4>
+            
+            <Card className="bg-primary-foreground/5 border-primary-foreground/10 backdrop-blur">
+              <CardContent className="p-8 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
+                  <Phone className="h-7 w-7 text-[var(--gold)]" />
+                </div>
+                <h4 className="font-semibold text-lg mb-2 text-primary-foreground">WhatsApp</h4>
                 <a 
                   href="https://wa.me/5354133253" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline"
+                  className="text-[var(--gold)] hover:underline text-lg font-medium"
                 >
                   +53 5 413 3253
                 </a>
+                <p className="text-primary-foreground/50 text-xs mt-2">
+                  Respuesta inmediata
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -358,26 +431,32 @@ Total: $${getTotal().toFixed(2)}
       </section>
       
       {/* Footer */}
-      <footer className="bg-primary text-primary-foreground py-8">
+      <footer className="bg-primary border-t border-primary-foreground/10 py-8">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="h-6 w-6" />
-              <span className="font-bold text-lg">Bolsos Lesly</span>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[var(--gold)] flex items-center justify-center">
+                <ShoppingBag className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <span className="font-bold text-lg text-primary-foreground">Bolsos Lesly</span>
+                <p className="text-xs text-primary-foreground/50">Estilo & Elegancia desde 2010</p>
+              </div>
             </div>
-            <p className="text-sm text-primary-foreground/80">
+            
+            <p className="text-sm text-primary-foreground/60">
               © {new Date().getFullYear()} Bolsos Lesly. Todos los derechos reservados.
             </p>
-            <div className="flex gap-4">
-              <a 
-                href="https://wa.me/5354133253" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:opacity-80 transition-opacity"
-              >
-                <Phone className="h-5 w-5" />
-              </a>
-            </div>
+            
+            <a 
+              href="https://wa.me/5354133253" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--gold)] text-primary hover:bg-[var(--gold)]/90 transition-colors"
+            >
+              <Phone className="h-4 w-4" />
+              <span className="font-medium">Contáctanos</span>
+            </a>
           </div>
         </div>
       </footer>

@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { ShoppingCart, X } from 'lucide-react'
+import { ShoppingCart, X, Star, Check } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -41,12 +41,14 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="sr-only">Detalles del producto</DialogTitle>
+      <DialogContent className="sm:max-w-4xl p-0 overflow-hidden bg-card">
+        <DialogHeader className="sr-only">
+          <DialogTitle>{product.name}</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+        
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          {/* Image Section */}
+          <div className="relative aspect-square md:aspect-auto md:h-full bg-gradient-to-br from-muted to-muted/50">
             <Image
               src={product.imageUrl}
               alt={product.name}
@@ -54,51 +56,86 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
               className="object-cover"
             />
             {product.featured && (
-              <Badge className="absolute top-4 left-4 bg-amber-500 hover:bg-amber-600">
+              <Badge className="absolute top-4 left-4 bg-[var(--gold)] text-primary font-medium">
+                <Star className="w-3 h-3 mr-1 fill-primary" />
                 Destacado
               </Badge>
             )}
+            
+            {/* Close button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 rounded-full bg-background/80 backdrop-blur hover:bg-background"
+              onClick={() => onOpenChange(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
           
-          <div className="flex flex-col">
-            <Badge variant="outline" className="w-fit mb-2">
+          {/* Content Section */}
+          <div className="p-8 flex flex-col">
+            <Badge variant="outline" className="w-fit mb-3 border-[var(--gold)]/30">
               {product.category}
             </Badge>
-            <h2 className="text-2xl font-bold mb-2">{product.name}</h2>
-            <p className="text-3xl font-bold text-primary mb-4">
-              ${product.price.toFixed(2)}
-            </p>
-            <p className="text-muted-foreground mb-4 flex-1">
+            
+            <h2 className="text-3xl font-bold mb-3">{product.name}</h2>
+            
+            <div className="flex items-baseline gap-2 mb-6">
+              <span className="text-4xl font-bold text-foreground">
+                ${product.price.toFixed(2)}
+              </span>
+              <span className="text-muted-foreground">USD</span>
+            </div>
+            
+            <p className="text-muted-foreground leading-relaxed mb-6 flex-1">
               {product.description}
             </p>
             
-            <div className="flex items-center gap-2 mb-4">
+            {/* Stock Status */}
+            <div className="flex items-center gap-2 mb-6">
               {product.stock > 0 ? (
-                <Badge variant="default" className="bg-green-600 hover:bg-green-700">
-                  En Stock ({product.stock} disponibles)
-                </Badge>
+                <>
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                  <span className="text-sm text-green-600 font-medium">
+                    En Stock ({product.stock} disponibles)
+                  </span>
+                </>
               ) : (
-                <Badge variant="destructive">Agotado</Badge>
+                <>
+                  <div className="w-3 h-3 rounded-full bg-destructive" />
+                  <span className="text-sm text-destructive font-medium">
+                    Agotado
+                  </span>
+                </>
               )}
             </div>
             
-            <div className="flex gap-2">
-              <Button
-                className="flex-1"
-                onClick={handleAddToCart}
-                disabled={product.stock <= 0}
-              >
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Añadir al Carrito
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => onOpenChange(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            {/* Features */}
+            <div className="space-y-3 mb-8">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Check className="w-4 h-4 text-[var(--gold)]" />
+                <span>Envío a toda Cuba</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Check className="w-4 h-4 text-[var(--gold)]" />
+                <span>Garantía de calidad</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Check className="w-4 h-4 text-[var(--gold)]" />
+                <span>Pago contra entrega</span>
+              </div>
             </div>
+            
+            <Button
+              size="lg"
+              className="w-full h-14 text-lg rounded-full bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary"
+              onClick={handleAddToCart}
+              disabled={product.stock <= 0}
+            >
+              <ShoppingCart className="mr-2 h-5 w-5" />
+              Añadir al Carrito
+            </Button>
           </div>
         </div>
       </DialogContent>

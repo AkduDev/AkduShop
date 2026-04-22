@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Lock, LogOut } from 'lucide-react'
+import { Lock, LogOut, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -46,7 +46,11 @@ export function AdminLogin({ isAdmin, onLogin, onLogout }: AdminLoginProps) {
   
   if (isAdmin) {
     return (
-      <Button variant="outline" onClick={onLogout}>
+      <Button 
+        variant="outline" 
+        onClick={onLogout}
+        className="rounded-full border-border/50 hover:border-destructive hover:text-destructive"
+      >
         <LogOut className="mr-2 h-4 w-4" />
         Cerrar Sesión
       </Button>
@@ -56,16 +60,15 @@ export function AdminLogin({ isAdmin, onLogin, onLogout }: AdminLoginProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
-          <Lock className="mr-2 h-4 w-4" />
-          Admin
+        <Button variant="ghost" size="icon" className="rounded-full hover:bg-[var(--gold)]/10 hover:text-[var(--gold)]">
+          <Settings className="h-5 w-5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Acceso Administrador</DialogTitle>
+          <DialogTitle className="text-2xl text-center">Acceso Administrador</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           <div className="space-y-2">
             <Label htmlFor="email">Correo Electrónico</Label>
             <Input
@@ -75,6 +78,7 @@ export function AdminLogin({ isAdmin, onLogin, onLogout }: AdminLoginProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="h-12"
             />
           </div>
           <div className="space-y-2">
@@ -86,13 +90,21 @@ export function AdminLogin({ isAdmin, onLogin, onLogout }: AdminLoginProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="h-12"
             />
           </div>
           {error && (
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm text-destructive text-center bg-destructive/10 p-3 rounded-lg">
+              {error}
+            </p>
           )}
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+          <Button 
+            type="submit" 
+            className="w-full h-12 rounded-full bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary"
+            disabled={loading}
+          >
+            <Lock className="mr-2 h-4 w-4" />
+            {loading ? 'Verificando...' : 'Iniciar Sesión'}
           </Button>
         </form>
       </DialogContent>
