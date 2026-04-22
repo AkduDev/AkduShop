@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { ShoppingCart, Trash2, Plus, Minus, X, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,10 +20,30 @@ interface CartDrawerProps {
   onCheckout: () => void
 }
 
+function CartBadge() {
+  const getTotalItems = useCartStore((state) => state.getTotalItems)
+  const [hydrated, setHydrated] = useState(false)
+  
+  useEffect(() => {
+    // Defer hydration check to avoid SSR mismatch
+    const timer = setTimeout(() => setHydrated(true), 0)
+    return () => clearTimeout(timer)
+  }, [])
+  
+  const count = hydrated ? getTotalItems() : 0
+  
+  if (count === 0) return null
+  
+  return (
+    <span className="absolute -top-1 -right-1 bg-[var(--gold)] text-primary text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+      {count}
+    </span>
+  )
+}
+
 export function CartDrawer({ onCheckout }: CartDrawerProps) {
   const [open, setOpen] = useState(false)
-  const { items, removeItem, updateQuantity, getTotal, getTotalItems, clearCart } = useCartStore()
-  const count = getTotalItems()
+  const { items, removeItem, updateQuantity, getTotal, clearCart } = useCartStore()
   
   const handleCheckout = () => {
     onCheckout()
@@ -35,14 +55,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
       <SheetTrigger asChild>
         <Button variant="outline" size="icon" className="relative rounded-full border-border/50 hover:border-[var(--gold)] hover:text-[var(--gold)]">
           <ShoppingCart className="h-5 w-5" />
-          {count > 0 && (
-            <span 
-              className="absolute -top-1 -right-1 bg-[var(--gold)] text-primary text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
-              suppressHydrationWarning
-            >
-              {count}
-            </span>
-          )}
+          <CartBadge />
         </Button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg flex flex-col">
