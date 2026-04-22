@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { Plus, Pencil, Trash2, X, Save, Package, Star, StarOff } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Save, Package, Star, StarOff, Upload, ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -46,6 +46,9 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
   const [loading, setLoading] = useState(true)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string>('')
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -83,6 +86,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
       stock: '',
       featured: false
     })
+    setImagePreview('')
     setIsDialogOpen(true)
   }
   
@@ -97,11 +101,56 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
       stock: product.stock.toString(),
       featured: product.featured
     })
+    setImagePreview(product.imageUrl)
     setIsDialogOpen(true)
+  }
+  
+  // Convertir archivo a base64
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setIsUploading(true)
+    
+    try {
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor selecciona un archivo de imagen válido')
+        return
+      }
+      
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('La imagen debe ser menor a 5MB')
+        return
+      }
+      
+      // Convertir a base64
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string
+        setImagePreview(base64)
+        setFormData(prev => ({ ...prev, imageUrl: base64 }))
+        setIsUploading(false)
+      }
+      reader.onerror = () => {
+        alert('Error al leer el archivo')
+        setIsUploading(false)
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('Error processing image:', error)
+      setIsUploading(false)
+    }
   }
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!formData.imageUrl) {
+      alert('Por favor añade una imagen al producto')
+      return
+    }
     
     const url = editProduct ? `/api/products/${editProduct.id}` : '/api/products'
     const method = editProduct ? 'PUT' : 'POST'
@@ -207,6 +256,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
                           alt={product.name}
                           fill
                           className="object-cover"
+                          unoptimized
                         />
                       </div>
                     </TableCell>
@@ -277,6 +327,72 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+            {/* Image Upload Section */}
+            <div className="space-y-3">
+              <Label>Imagen del Producto</Label>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Preview */}
+                <div className="relative w-full sm:w-48 h-48 rounded-xl border-2 border-dashed border-border bg-muted/30 flex items-center justify-center overflow-hidden">
+                  {imagePreview ? (
+                    <Image
+                      src={imagePreview}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="text-center text-muted-foreground p-4">
+                      <ImageIcon className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Sin imagen</p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Upload Controls */}
+                <div className="flex-1 space-y-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-12 rounded-xl border-dashed"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                  >
+                    <Upload className="mr-2 h-5 w-5" />
+                    {isUploading ? 'Procesando...' : 'Subir Imagen desde Dispositivo'}
+                  </Button>
+                  
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  
+                  <div className="text-center text-xs text-muted-foreground">
+                    <p>O pega una URL de imagen:</p>
+                  </div>
+                  
+                  <Input
+                    type="url"
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    value={formData.imageUrl.startsWith('data:') ? '' : formData.imageUrl}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, imageUrl: e.target.value }))
+                      setImagePreview(e.target.value)
+                    }}
+                    className="h-12"
+                  />
+                  
+                  <p className="text-xs text-muted-foreground">
+                    Formatos: JPG, PNG, WebP. Máximo 5MB
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
                 <Label htmlFor="name">Nombre del Producto</Label>
@@ -313,7 +429,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
                 <Label htmlFor="price">Precio ($)</Label>
                 <Input
@@ -337,18 +453,6 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="imageUrl">URL de Imagen</Label>
-                <Input
-                  id="imageUrl"
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://..."
-                  className="h-12"
-                  required
-                />
-              </div>
             </div>
             
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
@@ -367,6 +471,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
               <Button 
                 type="submit" 
                 className="flex-1 h-12 rounded-full bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary"
+                disabled={isUploading}
               >
                 <Save className="mr-2 h-4 w-4" />
                 {editProduct ? 'Actualizar Producto' : 'Guardar Producto'}
