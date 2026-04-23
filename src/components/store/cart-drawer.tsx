@@ -69,7 +69,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
               <ShoppingCart className="h-10 w-10 opacity-50" />
             </div>
             <p className="text-lg font-medium">Tu carrito está vacío</p>
-            <p className="text-sm mt-1">Añade productos para continuar</p>
+            <p className="text-sm mt-1">Añade carteras para continuar</p>
           </div>
         ) : (
           <>

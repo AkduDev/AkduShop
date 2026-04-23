@@ -133,7 +133,7 @@ export default function Home() {
       .map(item => `• ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`)
       .join('\n')
     
-    const message = `¡Hola! Estoy interesado en los siguientes productos de Bolsos Lesly:
+    const message = `¡Hola! Estoy interesado en los siguientes productos de Carteras Lesly:
 
 ${itemsList}
 
@@ -170,7 +170,7 @@ Total: $${getTotal().toFixed(2)}
             <div className="flex items-center gap-3">
               <Image 
                 src="/logo-profesional.jpg" 
-                alt="Bolsos Lesly" 
+                alt="Carteras Lesly" 
                 width={180}
                 height={60}
                 className="h-12 w-auto object-contain logo-transparent"
@@ -279,7 +279,7 @@ Total: $${getTotal().toFixed(2)}
               </h2>
               
               <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-                Bolsos y carteras artesanales confeccionados con los mejores materiales. 
+                Carteras artesanales confeccionadas con los mejores materiales. 
                 Cada pieza cuenta una historia de calidad y distinción.
               </p>
               
@@ -483,7 +483,7 @@ Total: $${getTotal().toFixed(2)}
             <div className="flex items-center gap-3">
               <Image 
                 src="/logo-profesional.jpg" 
-                alt="Bolsos Lesly" 
+                alt="Carteras Lesly" 
                 width={120}
                 height={40}
                 className="h-10 w-auto object-contain logo-transparent"
@@ -491,7 +491,7 @@ Total: $${getTotal().toFixed(2)}
             </div>
             
             <p className="text-sm text-primary-foreground/60">
-              © {new Date().getFullYear()} Bolsos Lesly. Todos los derechos reservados.
+              © {new Date().getFullYear()} Carteras Lesly. Todos los derechos reservados.
             </p>
             
             <a 

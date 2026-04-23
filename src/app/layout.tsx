@@ -14,10 +14,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Bolsos Lesly - Elegancia y Estilo",
-  description: "Bolsos y carteras artesanales confeccionados con los mejores materiales. Cada pieza cuenta una historia de calidad y distinción.",
-  keywords: ["bolsos", "carteras", "cuero", "moda", "elegancia", "artesanal", "Cuba", "La Habana"],
-  authors: [{ name: "Bolsos Lesly" }],
+  title: "Carteras Lesly - Elegancia y Estilo",
+  description: "Carteras artesanales confeccionadas con los mejores materiales. Cada pieza cuenta una historia de calidad y distinción.",
+  keywords: ["carteras", "bolsos", "cuero", "moda", "elegancia", "artesanal", "Cuba", "La Habana"],
+  authors: [{ name: "Carteras Lesly" }],
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "32x32" },
@@ -26,16 +26,16 @@ export const metadata: Metadata = {
     apple: "/logo-profesional.jpg",
   },
   openGraph: {
-    title: "Bolsos Lesly - Elegancia y Estilo",
-    description: "Bolsos y carteras artesanales de alta calidad",
+    title: "Carteras Lesly - Elegancia y Estilo",
+    description: "Carteras artesanales de alta calidad",
     url: "http://localhost:3000",
-    siteName: "Bolsos Lesly",
+    siteName: "Carteras Lesly",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bolsos Lesly - Elegancia y Estilo",
-    description: "Bolsos y carteras artesanales de alta calidad",
+    title: "Carteras Lesly - Elegancia y Estilo",
+    description: "Carteras artesanales de alta calidad",
   },
 };
 
