@@ -2,15 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 
-// GET - Obtener todos los productos
-export async function GET() {
+// GET - Obtener todos los productos con paginación
+export async function GET(request: NextRequest) {
   try {
-    const products = await db.product.findMany({
-      include: {
-        category: true
-      },
-      orderBy: { createdAt: 'desc' }
-    })
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '12')
+    const categoryId = searchParams.get('categoryId')
+    
+    const skip = (page - 1) * limit
+    
+    const where = categoryId && categoryId !== 'all' 
+      ? { categoryId } 
+      : {}
+    
+    const [products, total] = await Promise.all([
+      db.product.findMany({
+        where,
+        include: {
+          category: true
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      db.product.count({ where })
+    ])
     
     // Transformar para mantener compatibilidad con el frontend
     const formattedProducts = products.map(p => ({
@@ -27,7 +44,17 @@ export async function GET() {
       updatedAt: p.updatedAt
     }))
     
-    return NextResponse.json(formattedProducts)
+    return NextResponse.json({
+      products: formattedProducts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1
+      }
+    })
   } catch (error) {
     console.error('Error fetching products:', error)
     return NextResponse.json(

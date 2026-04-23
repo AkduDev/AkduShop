@@ -21,6 +21,7 @@ import { CartDrawer } from '@/components/store/cart-drawer'
 import { ProductDetailModal } from '@/components/store/product-detail-modal'
 import { AdminLogin } from '@/components/store/admin-login'
 import { AdminPanel } from '@/components/store/admin-panel'
+import { Pagination } from '@/components/store/pagination'
 import { useCartStore } from '@/store/cart'
 
 interface Category {
@@ -49,30 +50,38 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pagination, setPagination] = useState({
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false
+  })
   
   const getTotalItems = useCartStore((state) => state.getTotalItems)
   const items = useCartStore((state) => state.items)
   const getTotal = useCartStore((state) => state.getTotal)
   
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (page = 1) => {
     try {
       const [productsRes, categoriesRes] = await Promise.all([
-        fetch('/api/products'),
+        fetch(`/api/products?page=${page}&limit=12&categoryId=${selectedCategory}`),
         fetch('/api/categories')
       ])
       const productsData = await productsRes.json()
       const categoriesData = await categoriesRes.json()
-      setProducts(productsData)
+      setProducts(productsData.products)
+      setPagination(productsData.pagination)
       setCategories(categoriesData)
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [selectedCategory])
   
   useEffect(() => {
-    fetchData()
+    setCurrentPage(1)
+    fetchData(1)
     checkAuth()
     fetch('/api/seed')
   }, [fetchData])
@@ -136,15 +145,20 @@ Total: $${getTotal().toFixed(2)}
     window.open(whatsappUrl, '_blank')
   }
   
-  const filteredProducts = selectedCategory === 'all' 
-    ? products 
-    : products.filter(p => p.categoryId === selectedCategory)
+  const filteredProducts = products
   
   const selectedCategoryName = selectedCategory === 'all' 
     ? 'all' 
     : categories.find(c => c.id === selectedCategory)?.name || 'all'
   
   const featuredProducts = products.filter(p => p.featured)
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    fetchData(page)
+    // Scroll to products section
+    document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })
+  }
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -168,7 +182,10 @@ Total: $${getTotal().toFixed(2)}
             <nav className="hidden md:flex items-center gap-1">
               <Button
                 variant={selectedCategory === 'all' ? 'default' : 'ghost'}
-                onClick={() => setSelectedCategory('all')}
+                onClick={() => {
+                  setSelectedCategory('all')
+                  setCurrentPage(1)
+                }}
                 className="rounded-full"
               >
                 Todos
@@ -177,7 +194,10 @@ Total: $${getTotal().toFixed(2)}
                 <Button
                   key={category.id}
                   variant={selectedCategory === category.id ? 'default' : 'ghost'}
-                  onClick={() => setSelectedCategory(category.id)}
+                  onClick={() => {
+                    setSelectedCategory(category.id)
+                    setCurrentPage(1)
+                  }}
                   className="rounded-full"
                 >
                   {category.name}
@@ -210,6 +230,7 @@ Total: $${getTotal().toFixed(2)}
                   className="rounded-full"
                   onClick={() => {
                     setSelectedCategory('all')
+                    setCurrentPage(1)
                     setMobileMenuOpen(false)
                   }}
                 >
@@ -223,6 +244,7 @@ Total: $${getTotal().toFixed(2)}
                     className="rounded-full"
                     onClick={() => {
                       setSelectedCategory(category.id)
+                      setCurrentPage(1)
                       setMobileMenuOpen(false)
                     }}
                   >
@@ -358,15 +380,26 @@ Total: $${getTotal().toFixed(2)}
                 <p className="text-xl text-muted-foreground">No hay productos en esta categoría</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProducts.map(product => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filteredProducts.map(product => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onViewDetails={handleViewDetails}
+                    />
+                  ))}
+                </div>
+                
+                {/* Pagination */}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  hasNextPage={pagination.hasNextPage}
+                  hasPrevPage={pagination.hasPrevPage}
+                  onPageChange={handlePageChange}
+                />
+              </>
             )}
           </div>
         </section>
