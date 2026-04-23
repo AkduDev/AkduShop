@@ -19,7 +19,11 @@ export const metadata: Metadata = {
   keywords: ["bolsos", "carteras", "cuero", "moda", "elegancia", "artesanal", "Cuba", "La Habana"],
   authors: [{ name: "Bolsos Lesly" }],
   icons: {
-    icon: "/logo.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/logo-profesional.jpg", sizes: "any" },
+    ],
+    apple: "/logo-profesional.jpg",
   },
   openGraph: {
     title: "Bolsos Lesly - Elegancia y Estilo",

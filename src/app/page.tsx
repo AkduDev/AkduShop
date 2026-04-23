@@ -154,10 +154,14 @@ Total: $${getTotal().toFixed(2)}
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="relative w-12 h-12 rounded-full bg-primary flex items-center justify-center">
-                <ShoppingBag className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Bolsos Lesly</h1>
+              <Image 
+                src="/logo-profesional.jpg" 
+                alt="Bolsos Lesly" 
+                width={180}
+                height={60}
+                className="h-12 w-auto object-contain logo-transparent"
+                priority
+              />
             </div>
             
             {/* Desktop Navigation */}
@@ -444,10 +448,13 @@ Total: $${getTotal().toFixed(2)}
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[var(--gold)] flex items-center justify-center">
-                <ShoppingBag className="h-5 w-5 text-primary" />
-              </div>
-              <span className="font-bold text-lg text-primary-foreground">Bolsos Lesly</span>
+              <Image 
+                src="/logo-profesional.jpg" 
+                alt="Bolsos Lesly" 
+                width={120}
+                height={40}
+                className="h-10 w-auto object-contain logo-transparent"
+              />
             </div>
             
             <p className="text-sm text-primary-foreground/60">

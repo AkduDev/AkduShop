@@ -180,3 +180,20 @@
   outline: 2px solid oklch(0.70 0.14 75);
   outline-offset: 2px;
 }
+
+/* Logo con fondo transparente */
+.logo-transparent {
+  mix-blend-mode: multiply;
+  filter: contrast(1.1) brightness(1.05);
+}
+
+/* Para el header con fondo claro */
+header .logo-transparent {
+  mix-blend-mode: multiply;
+}
+
+/* Para el footer con fondo oscuro */
+footer .logo-transparent {
+  mix-blend-mode: screen;
+  filter: brightness(1.2) contrast(1.1);
+}
