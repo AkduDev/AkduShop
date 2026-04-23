@@ -279,8 +279,8 @@ Total: $${getTotal().toFixed(2)}
               </h2>
               
               <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-                Carteras artesanales confeccionadas con los mejores materiales. 
-                Cada pieza cuenta una historia de calidad y distinción.
+                Selección de carteras originales de marcas premium.
+                Diseños únicos que combinan sofisticación y calidad garantizada.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -334,11 +334,11 @@ Total: $${getTotal().toFixed(2)}
                 <div className="h-px flex-1 max-w-24 bg-gradient-to-r from-transparent to-[var(--gold)]" />
                 <div className="flex items-center gap-2">
                   <Heart className="h-5 w-5 text-rose-500 fill-rose-500" />
-                  <h3 className="text-2xl md:text-3xl font-bold">Productos Destacados</h3>
+                  <h3 className="text-2xl md:text-3xl font-bold">Carteras Destacadas</h3>
                 </div>
                 <div className="h-px flex-1 max-w-24 bg-gradient-to-l from-transparent to-[var(--gold)]" />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 {featuredProducts.slice(0, 4).map(product => (
                   <ProductCard
                     key={product.id}
@@ -369,7 +369,7 @@ Total: $${getTotal().toFixed(2)}
             </div>
             
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="aspect-[4/5] bg-muted rounded-2xl animate-pulse" />
                 ))}
@@ -377,11 +377,11 @@ Total: $${getTotal().toFixed(2)}
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-20">
                 <ShoppingBag className="h-20 w-20 mx-auto mb-6 text-muted-foreground/30" />
-                <p className="text-xl text-muted-foreground">No hay productos en esta categoría</p>
+                <p className="text-xl text-muted-foreground">No hay carteras en esta categoría</p>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                   {filteredProducts.map(product => (
                     <ProductCard
                       key={product.id}
