@@ -45,7 +45,6 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
             alt={product.name}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-110"
-            unoptimized
           />
           
           {/* Overlay on hover */}

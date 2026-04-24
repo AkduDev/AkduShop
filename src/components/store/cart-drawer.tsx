@@ -83,7 +83,6 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                         alt={item.name}
                         fill
                         className="object-cover"
-                        unoptimized
                       />
                     </div>
                     <div className="flex-1 min-w-0">

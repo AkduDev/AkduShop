@@ -141,7 +141,6 @@ export function ProductFormDialog({
                     alt="Preview"
                     fill
                     className="object-cover"
-                    unoptimized
                   />
                   <button
                     onClick={() => {

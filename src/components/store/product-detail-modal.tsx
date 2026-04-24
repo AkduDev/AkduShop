@@ -54,7 +54,6 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
               alt={product.name}
               fill
               className="object-cover"
-              unoptimized
             />
             {product.featured && (
               <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-[var(--gold)] text-primary font-medium text-xs sm:text-sm">

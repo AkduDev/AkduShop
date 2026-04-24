@@ -47,7 +47,6 @@ export function ProductsTable({ products, onEdit, onDelete, onToggleFeatured }: 
                     alt={product.name}
                     fill
                     className="object-cover"
-                    unoptimized
                   />
                 </div>
               </TableCell>
