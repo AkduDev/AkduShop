@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Package, Folder } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Tabs,
   TabsContent,
@@ -18,6 +19,8 @@ import { CategoriesTable } from './admin/categories-table'
 import { CategoriesCards } from './admin/categories-cards'
 import { ProductFormDialog } from './admin/product-form-dialog'
 import { CategoryFormDialog } from './admin/category-form-dialog'
+import { StatsCardsSkeleton } from '@/components/ui/skeletons/stats-cards-skeleton'
+import { TableSkeleton } from '@/components/ui/skeletons/table-skeleton'
 import { useProducts } from '@/hooks/use-products'
 import { useCategories } from '@/hooks/use-categories'
 import { Product, Category, ProductFormData, CategoryFormData, DashboardStats } from '@/types'
@@ -228,8 +231,14 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="m-0 space-y-4 sm:space-y-6">
-            <StatsCards stats={stats} />
-            <DashboardWelcome stats={stats} />
+            {loading ? (
+              <StatsCardsSkeleton />
+            ) : (
+              <>
+                <StatsCards stats={stats} />
+                <DashboardWelcome stats={stats} />
+              </>
+            )}
           </TabsContent>
 
           {/* Products Tab */}
@@ -259,25 +268,54 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                {/* Desktop view */}
-                <div className="hidden md:block">
-                  <ProductsTable
-                    products={products}
-                    onEdit={handleEditProduct}
-                    onDelete={handleDeleteProduct}
-                    onToggleFeatured={handleToggleFeatured}
-                  />
-                </div>
-                
-                {/* Mobile view */}
-                <div className="md:hidden">
-                  <ProductsCards
-                    products={products}
-                    onEdit={handleEditProduct}
-                    onDelete={handleDeleteProduct}
-                    onToggleFeatured={handleToggleFeatured}
-                  />
-                </div>
+                {loading ? (
+                  <>
+                    {/* Desktop view */}
+                    <div className="hidden md:block">
+                      <TableSkeleton rows={5} columns={7} />
+                    </div>
+                    
+                    {/* Mobile view */}
+                    <div className="md:hidden space-y-3">
+                      {[...Array(4)].map((_, i) => (
+                        <Card key={i} className="border-border/50">
+                          <CardContent className="p-4">
+                            <div className="flex gap-3">
+                              <Skeleton className="w-20 h-20 rounded-lg" />
+                              <div className="flex-1 space-y-2">
+                                <Skeleton className="h-5 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                                <Skeleton className="h-6 w-24" />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Desktop view */}
+                    <div className="hidden md:block">
+                      <ProductsTable
+                        products={products}
+                        onEdit={handleEditProduct}
+                        onDelete={handleDeleteProduct}
+                        onToggleFeatured={handleToggleFeatured}
+                      />
+                    </div>
+                    
+                    {/* Mobile view */}
+                    <div className="md:hidden">
+                      <ProductsCards
+                        products={products}
+                        onEdit={handleEditProduct}
+                        onDelete={handleDeleteProduct}
+                        onToggleFeatured={handleToggleFeatured}
+                      />
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -310,23 +348,49 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                {/* Desktop view */}
-                <div className="hidden md:block">
-                  <CategoriesTable
-                    categories={categories}
-                    onEdit={handleEditCategory}
-                    onDelete={handleDeleteCategory}
-                  />
-                </div>
-                
-                {/* Mobile view */}
-                <div className="md:hidden">
-                  <CategoriesCards
-                    categories={categories}
-                    onEdit={handleEditCategory}
-                    onDelete={handleDeleteCategory}
-                  />
-                </div>
+                {loading ? (
+                  <>
+                    {/* Desktop view */}
+                    <div className="hidden md:block">
+                      <TableSkeleton rows={5} columns={4} />
+                    </div>
+                    
+                    {/* Mobile view */}
+                    <div className="md:hidden space-y-3">
+                      {[...Array(3)].map((_, i) => (
+                        <Card key={i} className="border-border/50">
+                          <CardContent className="p-4">
+                            <div className="space-y-2">
+                              <Skeleton className="h-5 w-3/4" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-6 w-20" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Desktop view */}
+                    <div className="hidden md:block">
+                      <CategoriesTable
+                        categories={categories}
+                        onEdit={handleEditCategory}
+                        onDelete={handleDeleteCategory}
+                      />
+                    </div>
+                    
+                    {/* Mobile view */}
+                    <div className="md:hidden">
+                      <CategoriesCards
+                        categories={categories}
+                        onEdit={handleEditCategory}
+                        onDelete={handleDeleteCategory}
+                      />
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

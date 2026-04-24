@@ -31,6 +31,7 @@ import { Product, Category } from '@/types'
 import { HeroSection } from '@/components/store/layout/hero-section'
 import { ContactSection } from '@/components/store/layout/contact-section'
 import { Footer } from '@/components/store/layout/footer'
+import { ProductCardSkeleton } from '@/components/ui/skeletons/product-card-skeleton'
 import { WHATSAPP_NUMBER } from '@/lib/constants'
 
 export default function Home() {
@@ -288,7 +289,7 @@ export default function Home() {
             {loading ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                 {[...Array(8)].map((_, i) => (
-                  <div key={i} className="aspect-[4/5] bg-muted rounded-2xl animate-pulse" />
+                  <ProductCardSkeleton key={i} />
                 ))}
               </div>
             ) : filteredProducts.length === 0 ? (
