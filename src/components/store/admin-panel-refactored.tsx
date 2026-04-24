@@ -16,6 +16,8 @@ import { ProductsTable } from './admin/products-table'
 import { ProductsCards } from './admin/products-cards'
 import { CategoriesTable } from './admin/categories-table'
 import { CategoriesCards } from './admin/categories-cards'
+import { ProductFormDialog } from './admin/product-form-dialog'
+import { CategoryFormDialog } from './admin/category-form-dialog'
 import { useProducts } from '@/hooks/use-products'
 import { useCategories } from '@/hooks/use-categories'
 import { Product, Category, ProductFormData, CategoryFormData, DashboardStats } from '@/types'
@@ -330,6 +332,33 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Product Form Dialog */}
+      <ProductFormDialog
+        open={showProductForm}
+        onOpenChange={setShowProductForm}
+        product={editingProduct}
+        categories={categories}
+        formData={productFormData}
+        onChange={setProductFormData}
+        onSubmit={editingProduct ? handleUpdateProduct : handleCreateProduct}
+        onCancel={resetProductForm}
+      />
+
+      {/* Category Form Dialog */}
+      <CategoryFormDialog
+        open={showCategoryForm}
+        onOpenChange={setShowCategoryForm}
+        category={editingCategory}
+        formData={categoryFormData}
+        onChange={setCategoryFormData}
+        onSubmit={editingCategory ? handleUpdateCategory : handleCreateCategory}
+        onCancel={() => {
+          setCategoryFormData({ name: '', description: '' })
+          setEditingCategory(null)
+          setShowCategoryForm(false)
+        }}
+      />
     </div>
   )
 }
