@@ -28,6 +28,9 @@ import { useProducts } from '@/hooks/use-products'
 import { useCategories } from '@/hooks/use-categories'
 import { useCartCheckout } from '@/hooks/use-cart-checkout'
 import { Product, Category } from '@/types'
+import { HeroSection } from '@/components/store/layout/hero-section'
+import { ContactSection } from '@/components/store/layout/contact-section'
+import { Footer } from '@/components/store/layout/footer'
 import { WHATSAPP_NUMBER } from '@/lib/constants'
 
 export default function Home() {
@@ -186,71 +189,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[var(--champagne)] via-background to-[var(--champagne)]">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--gold-light)_0%,_transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--gold-light)_0%,_transparent_50%)]" />
-          
-          <div className="container mx-auto px-4 py-16 md:py-24 relative">
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-[var(--gold)]/30 mb-6">
-                <Sparkles className="w-4 h-4 text-[var(--gold)]" />
-                <span className="text-sm font-medium tracking-wide">Nueva Colección 2026</span>
-              </div>
-              
-              <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                Descubre la
-                <span className="block mt-2 bg-gradient-to-r from-primary via-[var(--gold)] to-primary bg-clip-text text-transparent">
-                  Elegancia Definida
-                </span>
-              </h2>
-              
-              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-                Selección de carteras originales de marcas premium.
-                Diseños únicos que combinan sofisticación y calidad garantizada.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  size="lg" 
-                  className="rounded-full px-8 bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary"
-                  onClick={() => document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  Explorar Colección
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="rounded-full px-8 border-[var(--gold)]/50 hover:bg-[var(--gold)]/10"
-                  onClick={() => document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  Contáctanos
-                </Button>
-              </div>
-              
-              {/* Trust indicators */}
-              <div className="flex items-center justify-center gap-8 mt-12 pt-8 border-t border-border/50">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-foreground">100%</p>
-                  <p className="text-sm text-muted-foreground">Cuero Genuino</p>
-                </div>
-                <div className="w-px h-12 bg-border" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-foreground">500+</p>
-                  <p className="text-sm text-muted-foreground">Clientes Felices</p>
-                </div>
-                <div className="w-px h-12 bg-border" />
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-[var(--gold)] text-[var(--gold)]" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground">Valoración</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <HeroSection />
         
         {/* Featured Products */}
         {featuredProducts.length > 0 && selectedCategory === 'all' && (
@@ -341,97 +280,10 @@ export default function Home() {
       </main>
       
       {/* Contact Info Section */}
-      <section id="contacto" className="bg-primary text-primary-foreground py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl md:text-4xl font-bold mb-3">Visítanos</h3>
-            <p className="text-primary-foreground/70 max-w-xl mx-auto">
-              Te invitamos a conocer nuestra tienda y descubrir personally la calidad de nuestros productos
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <Card className="bg-primary-foreground/5 border-primary-foreground/10 backdrop-blur">
-              <CardContent className="p-8 text-center">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
-                  <MapPin className="h-7 w-7 text-[var(--gold)]" />
-                </div>
-                <h4 className="font-semibold text-lg mb-2 text-primary-foreground">Dirección</h4>
-                <p className="text-primary-foreground/70 text-sm leading-relaxed">
-                  Calle 140 # 4112 / 41 y 43<br />
-                  Marianao, Coco Solo<br />
-                  La Habana, Cuba
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-primary-foreground/5 border-primary-foreground/10 backdrop-blur">
-              <CardContent className="p-8 text-center">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
-                  <Clock className="h-7 w-7 text-[var(--gold)]" />
-                </div>
-                <h4 className="font-semibold text-lg mb-2 text-primary-foreground">Horario</h4>
-                <p className="text-primary-foreground/70 text-sm leading-relaxed">
-                  Lunes a Sábado<br />
-                  9:00 AM - 8:00 PM<br />
-                  <span className="text-[var(--gold)]">Domingos con cita previa</span>
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-primary-foreground/5 border-primary-foreground/10 backdrop-blur">
-              <CardContent className="p-8 text-center">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
-                  <Phone className="h-7 w-7 text-[var(--gold)]" />
-                </div>
-                <h4 className="font-semibold text-lg mb-2 text-primary-foreground">WhatsApp</h4>
-                <a 
-                  href="https://wa.me/5354133253" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-[var(--gold)] hover:underline text-lg font-medium"
-                >
-                  +53 5 413 3253
-                </a>
-                <p className="text-primary-foreground/50 text-xs mt-2">
-                  Respuesta inmediata
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      <ContactSection />
       
       {/* Footer */}
-      <footer className="bg-primary border-t border-primary-foreground/10 py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <Image 
-                src="/logo-profesional.jpg" 
-                alt="Carteras Lesly" 
-                width={120}
-                height={40}
-                className="h-10 w-auto object-contain logo-transparent"
-              />
-            </div>
-            
-            <p className="text-sm text-primary-foreground/60">
-              © {new Date().getFullYear()} Carteras Lesly. Todos los derechos reservados.
-            </p>
-            
-            <a 
-              href="https://wa.me/5354133253" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--gold)] text-primary hover:bg-[var(--gold)]/90 transition-colors"
-            >
-              <Phone className="h-4 w-4" />
-              <span className="font-medium">Contáctanos</span>
-            </a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
       
       {/* Product Detail Modal */}
       <ProductDetailModal
