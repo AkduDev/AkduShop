@@ -206,22 +206,25 @@ export default function Home() {
         
         {/* Featured Products */}
         {featuredProducts.length > 0 && selectedCategory === 'all' && (
-          <section className="py-16 bg-muted/30">
+          <section className="py-12 bg-gradient-to-b from-muted/20 to-muted/40">
             <div className="container mx-auto px-4">
-              <div className="flex items-center justify-center gap-3 mb-10">
-                <div className="h-px flex-1 max-w-24 bg-gradient-to-r from-transparent to-[var(--gold)]" />
+              <div className="flex items-center justify-center gap-3 mb-8">
+                <div className="h-px flex-1 max-w-32 bg-gradient-to-r from-transparent via-[var(--gold)]/50 to-[var(--gold)]" />
                 <div className="flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-rose-500 fill-rose-500" />
-                  <h3 className="text-2xl md:text-3xl font-bold">Carteras Destacadas</h3>
+                  <Heart className="h-5 w-5 text-rose-500 fill-rose-500 animate-pulse" />
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-[var(--gold)] to-[var(--gold)]/70 bg-clip-text text-transparent">
+                    Carteras Destacadas
+                  </h3>
                 </div>
-                <div className="h-px flex-1 max-w-24 bg-gradient-to-l from-transparent to-[var(--gold)]" />
+                <div className="h-px flex-1 max-w-32 bg-gradient-to-l from-transparent via-[var(--gold)]/50 to-[var(--gold)]" />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-                {featuredProducts.slice(0, 4).map(product => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
+                {featuredProducts.slice(0, 5).map(product => (
                   <ProductCard
                     key={product.id}
                     product={product}
                     onViewDetails={handleViewDetails}
+                    variant="featured"
                   />
                 ))}
               </div>

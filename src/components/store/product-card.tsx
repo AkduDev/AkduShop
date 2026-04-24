@@ -22,10 +22,12 @@ interface Product {
 interface ProductCardProps {
   product: Product
   onViewDetails?: (product: Product) => void
+  variant?: 'default' | 'featured'
 }
 
-export function ProductCard({ product, onViewDetails }: ProductCardProps) {
+export function ProductCard({ product, onViewDetails, variant = 'default' }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem)
+  const isFeatured = variant === 'featured'
    
   const handleAddToCart = () => {
     addItem({
@@ -37,9 +39,9 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
   }
    
   return (
-    <Card className="group overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-2 border-border/50 bg-card">
+    <Card className="group overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 border-border/50 bg-card">
       <CardHeader className="p-0 relative">
-        <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+        <div className={`relative overflow-hidden bg-gradient-to-br from-muted to-muted/50 ${isFeatured ? 'aspect-[4/5]' : 'aspect-square'}`}>
           <Image
             src={product.imageUrl}
             alt={product.name}
@@ -47,12 +49,14 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
             className="object-cover transition-transform duration-700 group-hover:scale-110"
           />
           
-          {/* Overlay on hover */}
-          <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors duration-300" />
+          {/* Enhanced overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           {product.featured && (
-            <Badge className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-[var(--gold)] text-primary hover:bg-[var(--gold)]/90 font-medium text-xs sm:text-sm">
-              Destacado
+            <Badge className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-gradient-to-r from-[var(--gold)] to-[var(--gold)]/90 text-primary hover:from-[var(--gold)]/90 hover:to-[var(--gold)] font-medium text-[10px] sm:text-xs shadow-lg backdrop-blur-sm px-2 py-0.5">
+              <span className="flex items-center gap-1">
+                ⭐ Destacado
+              </span>
             </Badge>
           )}
           
@@ -64,41 +68,45 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
         </div>
       </CardHeader>
       
-      <CardContent className="p-1 sm:p-2">
-        <Badge variant="outline" className="mb-1 text-[10px] sm:text-xs border-[var(--gold)]/30 text-muted-foreground">
+      <CardContent className={isFeatured ? 'p-2 sm:p-3' : 'p-1 sm:p-2'}>
+        <Badge variant="outline" className={`mb-1 border-[var(--gold)]/30 text-muted-foreground ${isFeatured ? 'text-[9px] sm:text-xs' : 'text-[10px] sm:text-xs'}`}>
           {product.category}
         </Badge>
-        <h3 className="text-sm sm:text-lg font-semibold line-clamp-1 text-foreground group-hover:text-[var(--gold)] transition-colors">
+        <h3 className={`font-semibold line-clamp-1 text-foreground group-hover:text-[var(--gold)] transition-colors ${isFeatured ? 'text-xs sm:text-sm' : 'text-sm sm:text-lg'}`}>
           {product.name}
         </h3>
-        <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2 line-clamp-2 leading-relaxed hidden sm:block">
-          {product.description}
-        </p>
+        {!isFeatured && (
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2 line-clamp-2 leading-relaxed hidden sm:block">
+            {product.description}
+          </p>
+        )}
       </CardContent>
       
-      <CardFooter className="p-1 sm:p-2 pt-0 flex items-center justify-between gap-1.5">
+      <CardFooter className={`pt-0 flex items-center justify-between gap-1.5 ${isFeatured ? 'p-2' : 'p-1 sm:p-2'}`}>
         <div className="flex-1 min-w-0">
-          <span className="text-lg sm:text-2xl font-bold text-foreground">
+          <span className={`font-bold text-foreground ${isFeatured ? 'text-sm sm:text-lg' : 'text-lg sm:text-2xl'}`}>
             ${product.price.toFixed(2)}
           </span>
-          <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">USD</p>
+          {!isFeatured && (
+            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">USD</p>
+          )}
         </div>
         <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
           <Button
             variant="outline"
             size="icon"
-            className="rounded-full border-border/50 hover:border-[var(--gold)] hover:text-[var(--gold)] h-7 w-7 sm:h-9 sm:w-9"
+            className={`rounded-full border-border/50 hover:border-[var(--gold)] hover:text-[var(--gold)] ${isFeatured ? 'h-6 w-6 sm:h-7 sm:w-7' : 'h-7 w-7 sm:h-9 sm:w-9'}`}
             onClick={() => onViewDetails?.(product)}
           >
-            <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+            <Eye className={isFeatured ? 'h-2.5 w-2.5 sm:h-3 sm:w-3' : 'h-2.5 w-2.5 sm:h-3 sm:w-3'} />
           </Button>
           <Button
             size="icon"
-            className="rounded-full bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary h-7 w-7 sm:h-9 sm:w-9"
+            className={`rounded-full bg-gradient-to-r from-[var(--gold)] to-[var(--gold)]/90 hover:from-[var(--gold)]/90 hover:to-[var(--gold)] text-primary shadow-md hover:shadow-lg transition-all ${isFeatured ? 'h-6 w-6 sm:h-7 sm:w-7' : 'h-7 w-7 sm:h-9 sm:w-9'}`}
             onClick={handleAddToCart}
             disabled={product.stock <= 0}
           >
-            <ShoppingCart className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+            <ShoppingCart className={isFeatured ? 'h-2.5 w-2.5 sm:h-3 sm:w-3' : 'h-2.5 w-2.5 sm:h-3 sm:w-3'} />
           </Button>
         </div>
       </CardFooter>
