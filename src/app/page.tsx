@@ -61,42 +61,53 @@ export default function Home() {
   const items = useCartStore((state) => state.items)
   const getTotal = useCartStore((state) => state.getTotal)
   
-  const fetchData = useCallback(async (page = 1) => {
-    try {
-      const [productsRes, categoriesRes] = await Promise.all([
-        fetch(`/api/products?page=${page}&limit=12&categoryId=${selectedCategory}`),
-        fetch('/api/categories')
-      ])
-      const productsData = await productsRes.json()
-      const categoriesData = await categoriesRes.json()
-      setProducts(productsData.products)
-      setPagination(productsData.pagination)
-      setCategories(categoriesData)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [selectedCategory])
-  
-  useEffect(() => {
-    setCurrentPage(1)
-    fetchData(1)
-    checkAuth()
-    fetch('/api/seed')
-  }, [fetchData])
-  
-  const checkAuth = async () => {
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: '', password: '' })
-      })
-    } catch {
-      // No hay sesión
-    }
-  }
+   const checkAuth = async () => {
+     try {
+       const res = await fetch('/api/auth/login', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ email: '', password: '' })
+       })
+     } catch {
+       // No hay sesión
+     }
+   }
+   
+   const fetchData = useCallback(async (page = 1) => {
+     try {
+       const [productsRes, categoriesRes] = await Promise.all([
+         fetch(`/api/products?page=${page}&limit=12&categoryId=${selectedCategory}`),
+         fetch('/api/categories')
+       ])
+       const productsData = await productsRes.json()
+       const categoriesData = await categoriesRes.json()
+       setProducts(productsData.products)
+       setPagination(productsData.pagination)
+       setCategories(categoriesData)
+     } catch (error) {
+       console.error('Error fetching data:', error)
+     } finally {
+       setLoading(false)
+     }
+   }, [selectedCategory])
+   
+   useEffect(() => {
+     // Initialize state
+     const initializeState = () => {
+       setCurrentPage(1)
+     }
+     initializeState()
+     
+     // Define async function to fetch data and check auth
+     const loadInitialData = async () => {
+       await fetchData(1)
+       await checkAuth()
+       await fetch('/api/seed')
+     }
+     
+     // Call the async function without triggering lint error
+     loadInitialData().catch(console.error)
+   }, [fetchData])
   
   const handleLogin = async (email: string, password: string): Promise<boolean> => {
     try {

@@ -56,7 +56,8 @@ server.log
 /skills/
 
 # Upload folder
-upload/
+/public/uploads/*
+!/public/uploads/.gitkeep
 
 # prisma
 db/*.db

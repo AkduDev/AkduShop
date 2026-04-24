@@ -26,7 +26,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onViewDetails }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem)
-  
+   
   const handleAddToCart = () => {
     addItem({
       id: product.id,
@@ -35,7 +35,7 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
       imageUrl: product.imageUrl
     })
   }
-  
+   
   return (
     <Card className="group overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-2 border-border/50 bg-card">
       <CardHeader className="p-0 relative">
@@ -65,8 +65,8 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
         </div>
       </CardHeader>
       
-      <CardContent className="p-3 sm:p-5">
-        <Badge variant="outline" className="mb-2 text-[10px] sm:text-xs border-[var(--gold)]/30 text-muted-foreground">
+      <CardContent className="p-1 sm:p-2">
+        <Badge variant="outline" className="mb-1 text-[10px] sm:text-xs border-[var(--gold)]/30 text-muted-foreground">
           {product.category}
         </Badge>
         <h3 className="text-sm sm:text-lg font-semibold line-clamp-1 text-foreground group-hover:text-[var(--gold)] transition-colors">
@@ -77,29 +77,29 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
         </p>
       </CardContent>
       
-      <CardFooter className="p-3 sm:p-5 pt-0 flex items-center justify-between gap-2">
+      <CardFooter className="p-1 sm:p-2 pt-0 flex items-center justify-between gap-1.5">
         <div className="flex-1 min-w-0">
           <span className="text-lg sm:text-2xl font-bold text-foreground">
             ${product.price.toFixed(2)}
           </span>
           <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">USD</p>
         </div>
-        <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+        <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
           <Button
             variant="outline"
             size="icon"
-            className="rounded-full border-border/50 hover:border-[var(--gold)] hover:text-[var(--gold)] h-8 w-8 sm:h-10 sm:w-10"
+            className="rounded-full border-border/50 hover:border-[var(--gold)] hover:text-[var(--gold)] h-7 w-7 sm:h-9 sm:w-9"
             onClick={() => onViewDetails?.(product)}
           >
-            <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           </Button>
           <Button
             size="icon"
-            className="rounded-full bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary h-8 w-8 sm:h-10 sm:w-10"
+            className="rounded-full bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary h-7 w-7 sm:h-9 sm:w-9"
             onClick={handleAddToCart}
             disabled={product.stock <= 0}
           >
-            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
+            <ShoppingCart className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           </Button>
         </div>
       </CardFooter>
