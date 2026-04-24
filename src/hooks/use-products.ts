@@ -4,6 +4,7 @@ import { Product, ProductsResponse, PaginationData } from '@/types'
 export function useProducts(selectedCategory: string = 'all') {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [pagination, setPagination] = useState<PaginationData>({
     totalPages: 1,
     hasNextPage: false,
@@ -14,15 +15,23 @@ export function useProducts(selectedCategory: string = 'all') {
   const fetchProducts = useCallback(async (page: number = 1) => {
     try {
       setLoading(true)
+      setError(null)
       const res = await fetch(
         `/api/products?page=${page}&limit=12&categoryId=${selectedCategory}`
       )
+      
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: ${res.statusText}`)
+      }
+      
       const data: ProductsResponse = await res.json()
       
       setProducts(data.products)
       setPagination(data.pagination)
     } catch (error) {
-      console.error('Error fetching products:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('Error fetching products:', errorMessage)
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -106,6 +115,7 @@ export function useProducts(selectedCategory: string = 'all') {
   return {
     products,
     loading,
+    error,
     pagination,
     fetchProducts,
     createProduct,
