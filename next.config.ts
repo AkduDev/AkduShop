@@ -2,11 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  reactStrictMode: false,
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
@@ -15,6 +11,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Optimizaciones para producción
+  poweredByHeader: false,
+  compress: true,
 };
 
 export default nextConfig;

@@ -14,6 +14,7 @@ interface Product {
   price: number
   imageUrl: string
   category: string
+  categoryId: string
   stock: number
   featured: boolean
 }
