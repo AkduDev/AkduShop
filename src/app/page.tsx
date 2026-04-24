@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { 
   ShoppingBag, 
@@ -23,140 +23,56 @@ import { AdminLogin } from '@/components/store/admin-login'
 import { AdminPanel } from '@/components/store/admin-panel'
 import { Pagination } from '@/components/store/pagination'
 import { useCartStore } from '@/store/cart'
-
-interface Category {
-  id: string
-  name: string
-}
-
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  imageUrl: string
-  category: string
-  categoryId: string
-  stock: number
-  featured: boolean
-}
+import { useAuth } from '@/hooks/use-auth'
+import { useProducts } from '@/hooks/use-products'
+import { useCategories } from '@/hooks/use-categories'
+import { useCartCheckout } from '@/hooks/use-cart-checkout'
+import { Product, Category } from '@/types'
+import { WHATSAPP_NUMBER } from '@/lib/constants'
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [loading, setLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [pagination, setPagination] = useState({
-    totalPages: 1,
-    hasNextPage: false,
-    hasPrevPage: false
-  })
   
+  // Hooks personalizados
+  const { isAdmin, checkAuth, login, logout } = useAuth()
+  const { products, loading, pagination, fetchProducts } = useProducts(selectedCategory)
+  const { categories, fetchCategories } = useCategories()
+  const { handleWhatsAppCheckout } = useCartCheckout()
+  
+  // Zustand store
   const getTotalItems = useCartStore((state) => state.getTotalItems)
   const items = useCartStore((state) => state.items)
   const getTotal = useCartStore((state) => state.getTotal)
   
-   const checkAuth = async () => {
-     try {
-       const res = await fetch('/api/auth/login', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ email: '', password: '' })
-       })
-     } catch {
-       // No hay sesión
-     }
-   }
-   
-   const fetchData = useCallback(async (page = 1) => {
-     try {
-       const [productsRes, categoriesRes] = await Promise.all([
-         fetch(`/api/products?page=${page}&limit=12&categoryId=${selectedCategory}`),
-         fetch('/api/categories')
-       ])
-       const productsData = await productsRes.json()
-       const categoriesData = await categoriesRes.json()
-       setProducts(productsData.products)
-       setPagination(productsData.pagination)
-       setCategories(categoriesData)
-     } catch (error) {
-       console.error('Error fetching data:', error)
-     } finally {
-       setLoading(false)
-     }
-   }, [selectedCategory])
-   
    useEffect(() => {
-     // Initialize state
-     const initializeState = () => {
+     const initializeApp = async () => {
        setCurrentPage(1)
-     }
-     initializeState()
-     
-     // Define async function to fetch data and check auth
-     const loadInitialData = async () => {
-       await fetchData(1)
-       await checkAuth()
-       await fetch('/api/seed')
+       await Promise.all([
+         fetchProducts(1),
+         fetchCategories(),
+         checkAuth()
+       ])
      }
      
-     // Call the async function without triggering lint error
-     loadInitialData().catch(console.error)
-   }, [fetchData])
+     initializeApp()
+   }, [selectedCategory, fetchProducts, fetchCategories, checkAuth])
   
   const handleLogin = async (email: string, password: string): Promise<boolean> => {
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-      
-      if (res.ok) {
-        setIsAdmin(true)
-        return true
-      }
-      return false
-    } catch {
-      return false
-    }
+    return await login(email, password)
   }
   
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    setIsAdmin(false)
+    await logout()
   }
   
   const handleViewDetails = (product: Product) => {
     setSelectedProduct(product)
     setIsDetailOpen(true)
   }
-  
-  const handleWhatsAppCheckout = () => {
-    const phoneNumber = '5354133253'
-    
-    const itemsList = items
-      .map(item => `• ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`)
-      .join('\n')
-    
-    const message = `¡Hola! Estoy interesado en los siguientes productos de Carteras Lesly:
-
-${itemsList}
-
-Total: $${getTotal().toFixed(2)}
-
-¡Gracias!`
-    
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, '_blank')
-  }
-  
-  const filteredProducts = products
   
   const selectedCategoryName = selectedCategory === 'all' 
     ? 'all' 
@@ -166,8 +82,7 @@ Total: $${getTotal().toFixed(2)}
   
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    fetchData(page)
-    // Scroll to products section
+    fetchProducts(page)
     document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })
   }
   
@@ -371,7 +286,7 @@ Total: $${getTotal().toFixed(2)}
                   {selectedCategoryName === 'all' ? 'Toda la Colección' : selectedCategoryName}
                 </h3>
                 <p className="text-muted-foreground mt-1">
-                  {filteredProducts.length} {filteredProducts.length === 1 ? 'producto' : 'productos'}
+                  {products.length} {products.length === 1 ? 'producto' : 'productos'}
                 </p>
               </div>
               <Badge variant="outline" className="px-4 py-2 text-sm border-[var(--gold)]/30">
@@ -385,7 +300,7 @@ Total: $${getTotal().toFixed(2)}
                   <div key={i} className="aspect-[4/5] bg-muted rounded-2xl animate-pulse" />
                 ))}
               </div>
-            ) : filteredProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               <div className="text-center py-20">
                 <ShoppingBag className="h-20 w-20 mx-auto mb-6 text-muted-foreground/30" />
                 <p className="text-xl text-muted-foreground">No hay carteras en esta categoría</p>
@@ -393,7 +308,7 @@ Total: $${getTotal().toFixed(2)}
             ) : (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-                  {filteredProducts.map(product => (
+                  {products.map(product => (
                     <ProductCard
                       key={product.id}
                       product={product}
@@ -419,7 +334,7 @@ Total: $${getTotal().toFixed(2)}
         {isAdmin && (
           <section className="py-8 bg-muted/30">
             <div className="container mx-auto px-4">
-              <AdminPanel onProductChange={fetchData} />
+              <AdminPanel onProductChange={() => fetchProducts(currentPage)} />
             </div>
           </section>
         )}
