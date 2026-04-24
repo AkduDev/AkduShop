@@ -1,10 +1,16 @@
 import { db } from '@/lib/db'
 import { cookies } from 'next/headers'
 import { SignJWT, jwtVerify } from 'jose'
+import { randomBytes, scrypt as _scrypt, timingSafeEqual } from 'crypto'
+import { promisify } from 'util'
 
 const SECRET_KEY = new TextEncoder().encode(
   process.env.JWT_SECRET || 'bolsos-lesly-secret-key-2024'
 )
+
+const scrypt = promisify(_scrypt)
+const SALT_LENGTH = 16
+const KEY_LENGTH = 64
 
 export interface SessionUser {
   id: string
@@ -41,15 +47,45 @@ export async function getSession(): Promise<SessionUser | null> {
   return verifySession(token)
 }
 
+export async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(SALT_LENGTH)
+  const derivedKey = (await scrypt(password, salt, KEY_LENGTH)) as Buffer
+  return `${salt.toString('hex')}:${derivedKey.toString('hex')}`
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  const [saltHex, keyHex] = hash.split(':')
+  if (!saltHex || !keyHex) return false
+
+  const salt = Buffer.from(saltHex, 'hex')
+  const derivedKey = await scrypt(password, salt, KEY_LENGTH) as Buffer
+  const originalKey = Buffer.from(keyHex, 'hex')
+
+  if (derivedKey.length !== originalKey.length) return false
+  return timingSafeEqual(derivedKey, originalKey)
+}
+
 export async function authenticateUser(email: string, password: string): Promise<SessionUser | null> {
   const user = await db.user.findUnique({
     where: { email }
   })
   
   if (!user) return null
+
+  const isHashedPassword = typeof user.password === 'string' && /^[0-9a-f]{32}:[0-9a-f]{128}$/.test(user.password)
+  const isValidPassword = isHashedPassword
+    ? await verifyPassword(password, user.password)
+    : user.password === password
   
-  // Simple password comparison (in production use bcrypt)
-  if (user.password !== password) return null
+  if (!isValidPassword) return null
+
+  if (!isHashedPassword) {
+    const hashed = await hashPassword(password)
+    await db.user.update({
+      where: { id: user.id },
+      data: { password: hashed }
+    })
+  }
   
   return {
     id: user.id,

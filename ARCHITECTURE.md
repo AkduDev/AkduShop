@@ -29,26 +29,16 @@ src/
 │
 ├── components/                   # Componentes React
 │   ├── store/                   # Componentes de la tienda
-│   │   ├── admin/               # 🆕 Panel administrativo
-│   │   │   ├── admin-panel.tsx          # Dashboard principal
-│   │   │   ├── admin-login.tsx          # Login admin
-│   │   │   ├── stats-cards.tsx          # Tarjetas métricas
-│   │   │   ├── dashboard-welcome.tsx    # Welcome message
-│   │   │   ├── products-table.tsx       # Tabla desktop
-│   │   │   ├── products-cards.tsx       # Cards móvil
-│   │   │   ├── categories-list.tsx      # Lista categorías
-│   │   │   ├── product-form-dialog.tsx  # Form producto
-│   │   │   └── category-form-dialog.tsx # Form categoría
-│   │   │
-│   │   ├── products/            # 🆕 Productos
-│   │   │   ├── product-card.tsx
-│   │   │   ├── product-detail-modal.tsx
-│   │   │   ├── product-grid.tsx
-│   │   │   └── featured-products.tsx
-│   │   │
-│   │   ├── cart/                # 🆕 Carrito
-│   │   │   ├── cart-drawer.tsx
-│   │   │   └── cart-item.tsx
+│   │   ├── admin/               # Panel administrativo refactorizado
+│   │   │   ├── admin-panel-refactored.tsx # ✅ Dashboard principal
+│   │   │   ├── stats-cards.tsx           # Tarjetas métricas
+│   │   │   ├── dashboard-welcome.tsx     # Welcome message
+│   │   │   ├── products-table.tsx        # Tabla desktop
+│   │   │   ├── products-cards.tsx        # Cards móvil
+│   │   │   ├── categories-table.tsx      # Tabla categorías
+│   │   │   ├── categories-cards.tsx      # Cards categorías
+│   │   │   ├── product-form-dialog.tsx   # Form producto
+│   │   │   └── category-form-dialog.tsx  # Form categoría
 │   │   │
 │   │   ├── layout/              # 🆕 Layout components
 │   │   │   ├── header.tsx
@@ -235,7 +225,7 @@ function useProducts() {
 | Métrica | Antes | Después | Mejora |
 |---------|-------|---------|--------|
 | **page.tsx** | 530 líneas | ~100 líneas | **-81%** |
-| **admin-panel.tsx** | 1086 líneas | ~200 líneas | **-82%** |
+| **admin-panel-refactored.tsx** | 1086 líneas | ~200 líneas | **-82%** |
 | **Interfaces duplicadas** | 4 archivos | 1 archivo centralizado | **-75%** |
 | **Lógica en componentes** | Mezclada | Separada en hooks | **100% separada** |
 | **Reutilización** | Baja | Alta | **Componentes composables** |

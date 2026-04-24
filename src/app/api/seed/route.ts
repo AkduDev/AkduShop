@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { hashPassword } from '@/lib/auth'
 
 export async function GET() {
   try {
@@ -9,12 +10,12 @@ export async function GET() {
     })
     
     if (!existingAdmin) {
-      // Crear usuario admin
+      // Crear usuario admin con contraseña hasheada
       await db.user.create({
         data: {
           email: 'admin@lesly.com',
           name: 'admin Lesly',
-          password: '123Lesly',
+          password: await hashPassword('123Lesly'),
           role: 'admin'
         }
       })

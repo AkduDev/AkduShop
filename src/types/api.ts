@@ -7,8 +7,10 @@ export interface PaginationData {
   hasPrevPage: boolean
 }
 
+import type { Product } from './product'
+
 export interface ProductsResponse {
-  products: any[]
+  products: Product[]
   pagination: PaginationData
 }
 

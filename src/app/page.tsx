@@ -53,18 +53,24 @@ export default function Home() {
   const items = useCartStore((state) => state.items)
   const getTotal = useCartStore((state) => state.getTotal)
   
-   useEffect(() => {
-     const initializeApp = async () => {
-       setCurrentPage(1)
-       await Promise.all([
-         fetchProducts(1),
-         fetchCategories(),
-         checkAuth()
-       ])
-     }
-     
-     initializeApp()
-   }, [selectedCategory, fetchProducts, fetchCategories, checkAuth])
+    useEffect(() => {
+      setCurrentPage(1)
+    }, [selectedCategory])
+
+    useEffect(() => {
+      const initializeApp = async () => {
+        await Promise.all([
+          fetchProducts(1),
+          fetchCategories()
+        ])
+      }
+
+      initializeApp()
+    }, [selectedCategory, fetchProducts, fetchCategories])
+
+    useEffect(() => {
+      checkAuth()
+    }, [checkAuth])
   
   const handleLogin = async (email: string, password: string): Promise<boolean> => {
     return await login(email, password)
@@ -81,12 +87,12 @@ export default function Home() {
   
   const selectedCategoryName = selectedCategory === 'all' 
     ? 'all' 
-    : categories.find(c => c.id === selectedCategory)?.name || 'all'
+    : categories?.find(c => c.id === selectedCategory)?.name || 'all'
   
-  const featuredProducts = products.filter(p => p.featured)
+  const featuredProducts = products?.filter(p => p.featured) ?? []
   
   // Filtrar productos por búsqueda
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = products?.filter(product => {
     if (!searchQuery) return true
     const query = searchQuery.toLowerCase()
     return (
@@ -94,7 +100,7 @@ export default function Home() {
       product.description.toLowerCase().includes(query) ||
       product.category.toLowerCase().includes(query)
     )
-  })
+  }) ?? []
   
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -132,7 +138,7 @@ export default function Home() {
               >
                 Todos
               </Button>
-              {categories.map(category => (
+              {(categories ?? []).map(category => (
                 <Button
                   key={category.id}
                   variant={selectedCategory === category.id ? 'default' : 'ghost'}
@@ -178,7 +184,7 @@ export default function Home() {
                 >
                   Todos
                 </Button>
-                {categories.map(category => (
+                {(categories ?? []).map(category => (
                   <Button
                     key={category.id}
                     variant={selectedCategory === category.id ? 'default' : 'outline'}

@@ -1,78 +1,55 @@
-import { useState, useCallback } from 'react'
-import { Category } from '@/types'
+import { useCallback } from 'react'
+import { Category, CategoryFormData } from '@/types'
+import { useCrud } from './use-crud'
 
 export function useCategories() {
-  const [categories, setCategories] = useState<Category[]>([])
+  const {
+    items: categories,
+    loading,
+    error,
+    fetchItems,
+    createItem,
+    updateItem,
+    deleteItem,
+    setItems
+  } = useCrud<Category, CategoryFormData, CategoryFormData>({ endpoint: '/api/categories' })
 
   const fetchCategories = useCallback(async () => {
-    try {
-      const res = await fetch('/api/categories')
-      const data = await res.json()
-      setCategories(data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }, [])
+    return await fetchItems()
+  }, [fetchItems])
 
-  const createCategory = useCallback(async (categoryData: any): Promise<boolean> => {
-    try {
-      const res = await fetch('/api/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(categoryData)
-      })
-      
-      if (res.ok) {
-        await fetchCategories()
-        return true
-      }
-      return false
-    } catch (error) {
-      console.error('Error creating category:', error)
-      return false
+  const createCategory = useCallback(async (categoryData: CategoryFormData): Promise<boolean> => {
+    const success = await createItem(categoryData)
+    if (success) {
+      await fetchCategories()
     }
-  }, [fetchCategories])
+    return success
+  }, [createItem, fetchCategories])
 
-  const updateCategory = useCallback(async (id: string, categoryData: any): Promise<boolean> => {
-    try {
-      const res = await fetch(`/api/categories/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(categoryData)
-      })
-      
-      if (res.ok) {
-        await fetchCategories()
-        return true
-      }
-      return false
-    } catch (error) {
-      console.error('Error updating category:', error)
-      return false
+  const updateCategory = useCallback(async (id: string, categoryData: CategoryFormData): Promise<boolean> => {
+    const success = await updateItem(id, categoryData)
+    if (success) {
+      await fetchCategories()
     }
-  }, [fetchCategories])
+    return success
+  }, [fetchCategories, updateItem])
 
   const deleteCategory = useCallback(async (id: string): Promise<boolean> => {
-    try {
-      const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' })
-      
-      if (res.ok) {
-        await fetchCategories()
-        return true
-      }
-      return false
-    } catch (error) {
-      console.error('Error deleting category:', error)
-      return false
+    const success = await deleteItem(id)
+    if (success) {
+      await fetchCategories()
     }
-  }, [fetchCategories])
+    return success
+  }, [deleteItem, fetchCategories])
 
   return {
     categories,
+    loading,
+    error,
     fetchCategories,
     createCategory,
     updateCategory,
     deleteCategory,
-    setCategories
+    setItems
   }
 }

@@ -19,6 +19,7 @@ import { CategoriesTable } from './admin/categories-table'
 import { CategoriesCards } from './admin/categories-cards'
 import { ProductFormDialog } from './admin/product-form-dialog'
 import { CategoryFormDialog } from './admin/category-form-dialog'
+import { AdminSection } from './admin/admin-section'
 import { StatsCardsSkeleton } from '@/components/ui/skeletons/stats-cards-skeleton'
 import { TableSkeleton } from '@/components/ui/skeletons/table-skeleton'
 import { useProducts } from '@/hooks/use-products'
@@ -76,18 +77,12 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
     fetchData()
   }, [fetchProducts, fetchCategories])
 
-  useEffect(() => {
-    if (products.length > 0 || categories.length > 0) {
-      calculateStats(products, categories)
-    }
-  }, [products, categories])
-
   const calculateStats = (productsList: Product[], categoriesList: Category[]) => {
     const totalStock = productsList.reduce((sum, p) => sum + p.stock, 0)
     const lowStockProducts = productsList.filter(p => p.stock < 5).length
     const featuredProducts = productsList.filter(p => p.featured).length
     const inventoryValue = productsList.reduce((sum, p) => sum + (p.price * p.stock), 0)
-    
+
     setStats({
       totalProducts: productsList.length,
       totalCategories: categoriesList.length,
@@ -97,6 +92,12 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
       inventoryValue
     })
   }
+
+  useEffect(() => {
+    if (products.length > 0 || categories.length > 0) {
+      calculateStats(products, categories)
+    }
+  }, [products, categories])
 
   // CRUD Productos
   const handleCreateProduct = async () => {
@@ -243,156 +244,112 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
 
           {/* Products Tab */}
           <TabsContent value="products" className="m-0">
-            <Card className="border-border/50">
-              <CardHeader className="pb-3 sm:pb-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <div>
-                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                      <Package className="h-5 w-5 text-[var(--gold)]" />
-                      Gestión de Productos
-                    </CardTitle>
-                    <CardDescription className="text-sm">
-                      {products.length} productos en total
-                    </CardDescription>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      resetProductForm()
-                      setShowProductForm(true)
-                    }}
-                    className="w-full sm:w-auto h-10"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nuevo Producto
-                  </Button>
+            <AdminSection
+              title="Gestión de Productos"
+              description={`${products.length} productos en total`}
+              icon={<Package className="h-5 w-5 text-[var(--gold)]" />}
+              action={
+                <Button
+                  onClick={() => {
+                    resetProductForm()
+                    setShowProductForm(true)
+                  }}
+                  className="w-full sm:w-auto h-10"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nuevo Producto
+                </Button>
+              }
+              loading={loading}
+              desktopView={
+                <ProductsTable
+                  products={products}
+                  onEdit={handleEditProduct}
+                  onDelete={handleDeleteProduct}
+                  onToggleFeatured={handleToggleFeatured}
+                />
+              }
+              mobileView={
+                <ProductsCards
+                  products={products}
+                  onEdit={handleEditProduct}
+                  onDelete={handleDeleteProduct}
+                  onToggleFeatured={handleToggleFeatured}
+                />
+              }
+              desktopSkeleton={<TableSkeleton rows={5} columns={7} />}
+              mobileSkeleton={
+                <div className="space-y-3">
+                  {[...Array(4)].map((_, i) => (
+                    <Card key={i} className="border-border/50">
+                      <CardContent className="p-4">
+                        <div className="flex gap-3">
+                          <Skeleton className="w-20 h-20 rounded-lg" />
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-5 w-3/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                            <Skeleton className="h-6 w-24" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <>
-                    {/* Desktop view */}
-                    <div className="hidden md:block">
-                      <TableSkeleton rows={5} columns={7} />
-                    </div>
-                    
-                    {/* Mobile view */}
-                    <div className="md:hidden space-y-3">
-                      {[...Array(4)].map((_, i) => (
-                        <Card key={i} className="border-border/50">
-                          <CardContent className="p-4">
-                            <div className="flex gap-3">
-                              <Skeleton className="w-20 h-20 rounded-lg" />
-                              <div className="flex-1 space-y-2">
-                                <Skeleton className="h-5 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                                <Skeleton className="h-6 w-24" />
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* Desktop view */}
-                    <div className="hidden md:block">
-                      <ProductsTable
-                        products={products}
-                        onEdit={handleEditProduct}
-                        onDelete={handleDeleteProduct}
-                        onToggleFeatured={handleToggleFeatured}
-                      />
-                    </div>
-                    
-                    {/* Mobile view */}
-                    <div className="md:hidden">
-                      <ProductsCards
-                        products={products}
-                        onEdit={handleEditProduct}
-                        onDelete={handleDeleteProduct}
-                        onToggleFeatured={handleToggleFeatured}
-                      />
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+              }
+            />
           </TabsContent>
 
           {/* Categories Tab */}
           <TabsContent value="categories" className="m-0">
-            <Card className="border-border/50">
-              <CardHeader className="pb-3 sm:pb-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <div>
-                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                      <Folder className="h-5 w-5 text-[var(--gold)]" />
-                      Gestión de Categorías
-                    </CardTitle>
-                    <CardDescription className="text-sm">
-                      {categories.length} categorías en total
-                    </CardDescription>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      setEditingCategory(null)
-                      setCategoryFormData({ name: '', description: '' })
-                      setShowCategoryForm(true)
-                    }}
-                    className="w-full sm:w-auto h-10"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nueva Categoría
-                  </Button>
+            <AdminSection
+              title="Gestión de Categorías"
+              description={`${categories.length} categorías en total`}
+              icon={<Folder className="h-5 w-5 text-[var(--gold)]" />}
+              action={
+                <Button
+                  onClick={() => {
+                    setEditingCategory(null)
+                    setCategoryFormData({ name: '', description: '' })
+                    setShowCategoryForm(true)
+                  }}
+                  className="w-full sm:w-auto h-10"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nueva Categoría
+                </Button>
+              }
+              loading={loading}
+              desktopView={
+                <CategoriesTable
+                  categories={categories}
+                  onEdit={handleEditCategory}
+                  onDelete={handleDeleteCategory}
+                />
+              }
+              mobileView={
+                <CategoriesCards
+                  categories={categories}
+                  onEdit={handleEditCategory}
+                  onDelete={handleDeleteCategory}
+                />
+              }
+              desktopSkeleton={<TableSkeleton rows={5} columns={4} />}
+              mobileSkeleton={
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => (
+                    <Card key={i} className="border-border/50">
+                      <CardContent className="p-4">
+                        <div className="space-y-2">
+                          <Skeleton className="h-5 w-3/4" />
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-6 w-20" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <>
-                    {/* Desktop view */}
-                    <div className="hidden md:block">
-                      <TableSkeleton rows={5} columns={4} />
-                    </div>
-                    
-                    {/* Mobile view */}
-                    <div className="md:hidden space-y-3">
-                      {[...Array(3)].map((_, i) => (
-                        <Card key={i} className="border-border/50">
-                          <CardContent className="p-4">
-                            <div className="space-y-2">
-                              <Skeleton className="h-5 w-3/4" />
-                              <Skeleton className="h-4 w-full" />
-                              <Skeleton className="h-6 w-20" />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* Desktop view */}
-                    <div className="hidden md:block">
-                      <CategoriesTable
-                        categories={categories}
-                        onEdit={handleEditCategory}
-                        onDelete={handleDeleteCategory}
-                      />
-                    </div>
-                    
-                    {/* Mobile view */}
-                    <div className="md:hidden">
-                      <CategoriesCards
-                        categories={categories}
-                        onEdit={handleEditCategory}
-                        onDelete={handleDeleteCategory}
-                      />
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+              }
+            />
           </TabsContent>
         </Tabs>
       </div>

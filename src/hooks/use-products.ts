@@ -1,127 +1,73 @@
-import { useState, useCallback } from 'react'
-import { Product, ProductsResponse, PaginationData } from '@/types'
+import { useCallback } from 'react'
+import { Product, ProductFormData, PaginationData } from '@/types'
+import { useCrud } from './use-crud'
+
+export type ProductPayload = Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'category'>
 
 export function useProducts(selectedCategory: string = 'all') {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [pagination, setPagination] = useState<PaginationData>({
-    totalPages: 1,
-    hasNextPage: false,
-    hasPrevPage: false,
-    total: 0
-  })
+  const {
+    items: products,
+    loading,
+    error,
+    pagination,
+    fetchItems,
+    createItem,
+    updateItem,
+    deleteItem,
+    setItems
+  } = useCrud<Product, ProductPayload, ProductPayload>({ endpoint: '/api/products' })
 
   const fetchProducts = useCallback(async (page: number = 1) => {
-    try {
-      setLoading(true)
-      setError(null)
-      const res = await fetch(
-        `/api/products?page=${page}&limit=12&categoryId=${selectedCategory}`
-      )
-      
-      if (!res.ok) {
-        throw new Error(`Error ${res.status}: ${res.statusText}`)
-      }
-      
-      const data: ProductsResponse = await res.json()
-      
-      setProducts(data.products)
-      setPagination(data.pagination)
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      console.error('Error fetching products:', errorMessage)
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }, [selectedCategory])
+    const query = `page=${page}&limit=12&categoryId=${selectedCategory}`
+    return await fetchItems(query)
+  }, [fetchItems, selectedCategory])
 
-  const createProduct = useCallback(async (productData: any): Promise<boolean> => {
-    try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData)
-      })
-      
-      if (res.ok) {
-        await fetchProducts()
-        return true
-      }
-      return false
-    } catch (error) {
-      console.error('Error creating product:', error)
-      return false
+  const createProduct = useCallback(async (productData: ProductPayload): Promise<boolean> => {
+    const success = await createItem(productData)
+    if (success) {
+      await fetchProducts()
     }
-  }, [fetchProducts])
+    return success
+  }, [createItem, fetchProducts])
 
-  const updateProduct = useCallback(async (id: string, productData: any): Promise<boolean> => {
-    try {
-      const res = await fetch(`/api/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData)
-      })
-      
-      if (res.ok) {
-        await fetchProducts()
-        return true
-      }
-      return false
-    } catch (error) {
-      console.error('Error updating product:', error)
-      return false
+  const updateProduct = useCallback(async (id: string, productData: ProductPayload): Promise<boolean> => {
+    const success = await updateItem(id, productData)
+    if (success) {
+      await fetchProducts()
     }
-  }, [fetchProducts])
+    return success
+  }, [fetchProducts, updateItem])
 
   const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
-    try {
-      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' })
-      
-      if (res.ok) {
-        await fetchProducts()
-        return true
-      }
-      return false
-    } catch (error) {
-      console.error('Error deleting product:', error)
-      return false
+    const success = await deleteItem(id)
+    if (success) {
+      await fetchProducts()
     }
-  }, [fetchProducts])
+    return success
+  }, [deleteItem, fetchProducts])
 
   const toggleFeatured = useCallback(async (product: Product): Promise<boolean> => {
-    try {
-      const res = await fetch(`/api/products/${product.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...product,
-          featured: !product.featured
-        })
-      })
-      
-      if (res.ok) {
-        await fetchProducts()
-        return true
-      }
-      return false
-    } catch (error) {
-      console.error('Error toggling featured:', error)
-      return false
+    const { category, ...payload } = product
+    const success = await updateItem(product.id, {
+      ...payload,
+      featured: !product.featured
+    })
+    if (success) {
+      await fetchProducts()
     }
-  }, [fetchProducts])
+    return success
+  }, [fetchProducts, updateItem])
 
   return {
     products,
     loading,
     error,
-    pagination,
+    pagination: pagination as PaginationData,
     fetchProducts,
     createProduct,
     updateProduct,
     deleteProduct,
     toggleFeatured,
-    setProducts
+    setItems
   }
 }
