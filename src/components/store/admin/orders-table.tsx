@@ -117,14 +117,15 @@ export function OrdersTable({ onStatusChange }: OrdersTableProps) {
 
   return (
     <div>
-      <div className="overflow-x-auto">
+      {/* Desktop Table */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border/50">
               <th className="text-left py-3 px-4 font-medium text-muted-foreground">Cliente</th>
-              <th className="text-left py-3 px-4 font-medium text-muted-foreground hidden sm:table-cell">Contacto</th>
+              <th className="text-left py-3 px-4 font-medium text-muted-foreground hidden md:table-cell">Contacto</th>
               <th className="text-left py-3 px-4 font-medium text-muted-foreground">Total</th>
-              <th className="text-left py-3 px-4 font-medium text-muted-foreground">Items</th>
+              <th className="text-left py-3 px-4 font-medium text-muted-foreground hidden lg:table-cell">Items</th>
               <th className="text-left py-3 px-4 font-medium text-muted-foreground hidden md:table-cell">Fecha</th>
               <th className="text-left py-3 px-4 font-medium text-muted-foreground">Estado</th>
             </tr>
@@ -138,7 +139,7 @@ export function OrdersTable({ onStatusChange }: OrdersTableProps) {
                     <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{order.notes}</div>
                   )}
                 </td>
-                <td className="py-3 px-4 hidden sm:table-cell">
+                <td className="py-3 px-4 hidden md:table-cell">
                   <div className="text-muted-foreground">
                     {order.customerPhone && (
                       <a
@@ -159,7 +160,7 @@ export function OrdersTable({ onStatusChange }: OrdersTableProps) {
                 <td className="py-3 px-4 font-medium">
                   ${order.total.toFixed(2)}
                 </td>
-                <td className="py-3 px-4 text-muted-foreground">
+                <td className="py-3 px-4 text-muted-foreground hidden lg:table-cell">
                   {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
                 </td>
                 <td className="py-3 px-4 text-muted-foreground hidden md:table-cell">
@@ -207,6 +208,72 @@ export function OrdersTable({ onStatusChange }: OrdersTableProps) {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="sm:hidden space-y-3 p-3 max-h-[500px] overflow-y-auto">
+        {orders.map((order) => (
+          <div key={order.id} className="border border-border/50 rounded-lg p-3 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="font-medium text-sm truncate">{order.customerName}</div>
+                {order.customerPhone && (
+                  <a
+                    href={`https://wa.me/${order.customerPhone.replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-muted-foreground flex items-center gap-1 hover:text-[var(--gold)]"
+                  >
+                    <MessageCircle className="h-3 w-3" />
+                    {order.customerPhone}
+                  </a>
+                )}
+              </div>
+              <span className="text-sm font-bold whitespace-nowrap">${order.total.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">
+                {new Date(order.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                {' · '}
+                {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+              </span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-6 gap-1 border-border/50 text-xs px-2">
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${ORDER_STATUS_COLORS[order.status]}`}>
+                      {ORDER_STATUS_LABELS[order.status]}
+                    </span>
+                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {statusFlow.map(status => (
+                    <DropdownMenuItem
+                      key={status}
+                      onClick={() => handleStatusChange(order.id, status)}
+                      className={order.status === status ? 'bg-muted' : ''}
+                    >
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${ORDER_STATUS_COLORS[status]}`}>
+                        {ORDER_STATUS_LABELS[status]}
+                      </span>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuItem
+                    onClick={() => handleStatusChange(order.id, 'cancelled')}
+                    className="text-destructive"
+                  >
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${ORDER_STATUS_COLORS.cancelled}`}>
+                      {ORDER_STATUS_LABELS.cancelled}
+                    </span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            {order.notes && (
+              <p className="text-xs text-muted-foreground line-clamp-1">{order.notes}</p>
+            )}
+          </div>
+        ))}
       </div>
 
       {pagination && pagination.totalPages > 1 && (

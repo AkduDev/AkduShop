@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Plus, Package, Folder, Settings, Home, LayoutDashboard, Box, Tag, ChevronLeft, ShoppingBag } from 'lucide-react'
+import { Plus, Package, Folder, Settings, LayoutDashboard, Box, Tag, ChevronLeft, ShoppingBag, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -35,6 +35,7 @@ interface AdminPanelProps {
 
 export function AdminPanel({ onProductChange }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
     totalCategories: 0,
@@ -221,87 +222,99 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
     setShowProductForm(false)
   }
 
+  const navItems = [
+    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: 'products', label: 'Productos', icon: Box },
+    { key: 'categories', label: 'Categorías', icon: Tag },
+    { key: 'orders', label: 'Órdenes', icon: ShoppingBag },
+    { key: 'settings', label: 'Configuración', icon: Settings },
+  ]
+
+  const handleNavClick = (key: string) => {
+    setActiveTab(key)
+    setMobileMenuOpen(false)
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            {/* Left: Back + Title */}
+            <div className="flex items-center gap-2 sm:gap-4">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 rounded-lg hover:bg-primary/10 transition-colors"
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg hover:bg-primary/10 transition-colors"
                 onClick={() => window.location.href = '/'}
                 title="Volver al inicio"
               >
-                <ChevronLeft className="h-5 w-5 text-foreground" />
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 text-foreground" />
               </Button>
               <div className="hidden sm:block w-px h-6 bg-border/50" />
               <div>
-                <h1 className="text-xl font-bold text-foreground">Panel de Administración</h1>
-                <p className="text-xs text-muted-foreground">Gestiona tu tienda</p>
+                <h1 className="text-base sm:text-xl font-bold text-foreground">Panel de Administración</h1>
+                <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Gestiona tu tienda</p>
               </div>
             </div>
-            <nav className="flex items-center gap-1" aria-label="Navegación principal">
-              <button
-                onClick={() => setActiveTab('dashboard')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'dashboard'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <LayoutDashboard className="h-4 w-4 inline-block mr-2" />
-                Dashboard
-              </button>
-              <button
-                onClick={() => setActiveTab('products')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'products'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <Box className="h-4 w-4 inline-block mr-2" />
-                Productos
-              </button>
-              <button
-                onClick={() => setActiveTab('categories')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'categories'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <Tag className="h-4 w-4 inline-block mr-2" />
-                Categorías
-              </button>
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'settings'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <Settings className="h-4 w-4 inline-block mr-2" />
-                Configuración
-              </button>
-              <button
-                onClick={() => setActiveTab('orders')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'orders'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <ShoppingBag className="h-4 w-4 inline-block mr-2" />
-                Órdenes
-              </button>
+
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-1" aria-label="Navegación principal">
+              {navItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => setActiveTab(item.key)}
+                  className={`px-3 lg:px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    activeTab === item.key
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  <item.icon className="h-4 w-4 inline-block mr-1.5" />
+                  {item.label}
+                </button>
+              ))}
             </nav>
+
+            {/* Mobile Hamburger */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden h-10 w-10 rounded-lg hover:bg-primary/10"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5 text-foreground" />
+              ) : (
+                <Menu className="h-5 w-5 text-foreground" />
+              )}
+            </Button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border/50 bg-background/98 backdrop-blur-sm">
+            <nav className="max-w-7xl mx-auto px-4 py-3 space-y-1" aria-label="Navegación móvil">
+              {navItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => handleNavClick(item.key)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                    activeTab === item.key
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  <item.icon className="h-5 w-5" />
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+        )}
       </header>
 
       <Separator className="border-border/30" />
