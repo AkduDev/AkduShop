@@ -35,11 +35,13 @@ export async function GET(request: NextRequest) {
       name: p.name,
       description: p.description,
       price: p.price,
+      discountPrice: p.discountPrice,
       imageUrl: p.imageUrl,
       category: p.category.name,
       categoryId: p.categoryId,
       stock: p.stock,
       featured: p.featured,
+      onSale: p.onSale,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt
     }))
@@ -83,10 +85,12 @@ export async function POST(request: NextRequest) {
         name: data.name,
         description: data.description,
         price: parseFloat(data.price),
+        discountPrice: data.discountPrice ? parseFloat(data.discountPrice) : null,
         imageUrl: data.imageUrl,
         categoryId: data.categoryId,
         stock: parseInt(data.stock) || 0,
-        featured: data.featured || false
+        featured: data.featured || false,
+        onSale: data.onSale || false
       },
       include: {
         category: true
@@ -98,11 +102,13 @@ export async function POST(request: NextRequest) {
       name: product.name,
       description: product.description,
       price: product.price,
+      discountPrice: product.discountPrice,
       imageUrl: product.imageUrl,
       category: product.category.name,
       categoryId: product.categoryId,
       stock: product.stock,
       featured: product.featured,
+      onSale: product.onSale,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt
     }, { status: 201 })

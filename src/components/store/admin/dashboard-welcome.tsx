@@ -14,7 +14,7 @@ export function DashboardWelcome({ stats }: DashboardWelcomeProps) {
       <CardHeader>
         <CardTitle>Bienvenido al Panel de Administración</CardTitle>
         <CardDescription>
-          Desde aquí puedes gestionar todos los aspectos de tu tienda de carteras
+          Desde aquí puedes gestionar todos los aspectos de tu tienda
         </CardDescription>
       </CardHeader>
       <CardContent>

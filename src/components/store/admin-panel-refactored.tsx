@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Plus, Package, Folder } from 'lucide-react'
+import { Plus, Package, Folder, Settings, Home, LayoutDashboard, Box, Tag, ChevronLeft, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -11,6 +11,7 @@ import {
   TabsTrigger
 } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import { StatsCards } from './admin/stats-cards'
 import { DashboardWelcome } from './admin/dashboard-welcome'
 import { ProductsTable } from './admin/products-table'
@@ -22,6 +23,8 @@ import { CategoryFormDialog } from './admin/category-form-dialog'
 import { AdminSection } from './admin/admin-section'
 import { StatsCardsSkeleton } from '@/components/ui/skeletons/stats-cards-skeleton'
 import { TableSkeleton } from '@/components/ui/skeletons/table-skeleton'
+import { SettingsPanel } from './admin/settings-panel'
+import { OrdersTable } from './admin/orders-table'
 import { useProducts } from '@/hooks/use-products'
 import { useCategories } from '@/hooks/use-categories'
 import { Product, Category, ProductFormData, CategoryFormData, DashboardStats } from '@/types'
@@ -38,6 +41,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
     totalStock: 0,
     lowStockProducts: 0,
     featuredProducts: 0,
+    onSaleProducts: 0,
     inventoryValue: 0
   })
 
@@ -54,10 +58,12 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
     name: '',
     description: '',
     price: '',
+    discountPrice: '',
     imageUrl: '',
     categoryId: '',
     stock: '',
-    featured: false
+    featured: false,
+    onSale: false
   })
   const [categoryFormData, setCategoryFormData] = useState<CategoryFormData>({
     name: '',
@@ -81,6 +87,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
     const totalStock = productsList.reduce((sum, p) => sum + p.stock, 0)
     const lowStockProducts = productsList.filter(p => p.stock < 5).length
     const featuredProducts = productsList.filter(p => p.featured).length
+    const onSaleProducts = productsList.filter(p => p.onSale).length
     const inventoryValue = productsList.reduce((sum, p) => sum + (p.price * p.stock), 0)
 
     setStats({
@@ -89,6 +96,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
       totalStock,
       lowStockProducts,
       featuredProducts,
+      onSaleProducts,
       inventoryValue
     })
   }
@@ -104,6 +112,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
     const success = await createProduct({
       ...productFormData,
       price: parseFloat(productFormData.price),
+      discountPrice: productFormData.discountPrice ? parseFloat(productFormData.discountPrice) : null,
       stock: parseInt(productFormData.stock)
     })
     
@@ -119,6 +128,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
     const success = await updateProduct(editingProduct.id, {
       ...productFormData,
       price: parseFloat(productFormData.price),
+      discountPrice: productFormData.discountPrice ? parseFloat(productFormData.discountPrice) : null,
       stock: parseInt(productFormData.stock)
     })
     
@@ -146,10 +156,12 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
       name: product.name,
       description: product.description,
       price: product.price.toString(),
+      discountPrice: product.discountPrice?.toString() || '',
       imageUrl: product.imageUrl,
       categoryId: product.categoryId,
       stock: product.stock.toString(),
-      featured: product.featured
+      featured: product.featured,
+      onSale: product.onSale
     })
     setImagePreview(product.imageUrl)
     setShowProductForm(true)
@@ -197,10 +209,12 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
       name: '',
       description: '',
       price: '',
+      discountPrice: '',
       imageUrl: '',
       categoryId: '',
       stock: '',
-      featured: false
+      featured: false,
+      onSale: false
     })
     setImagePreview(null)
     setEditingProduct(null)
@@ -208,27 +222,94 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[var(--gold)] to-[var(--gold-light)] bg-clip-text text-transparent">
-              Panel de Administración
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-              Gestiona tu tienda de carteras
-            </p>
+    <div className="min-h-screen bg-background">
+      {/* Top Navigation Bar */}
+      <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/95 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-lg hover:bg-primary/10 transition-colors"
+                onClick={() => window.location.href = '/'}
+                title="Volver al inicio"
+              >
+                <ChevronLeft className="h-5 w-5 text-foreground" />
+              </Button>
+              <div className="hidden sm:block w-px h-6 bg-border/50" />
+              <div>
+                <h1 className="text-xl font-bold text-foreground">Panel de Administración</h1>
+                <p className="text-xs text-muted-foreground">Gestiona tu tienda</p>
+              </div>
+            </div>
+            <nav className="flex items-center gap-1" aria-label="Navegación principal">
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === 'dashboard'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+              >
+                <LayoutDashboard className="h-4 w-4 inline-block mr-2" />
+                Dashboard
+              </button>
+              <button
+                onClick={() => setActiveTab('products')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === 'products'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+              >
+                <Box className="h-4 w-4 inline-block mr-2" />
+                Productos
+              </button>
+              <button
+                onClick={() => setActiveTab('categories')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === 'categories'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+              >
+                <Tag className="h-4 w-4 inline-block mr-2" />
+                Categorías
+              </button>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === 'settings'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+              >
+                <Settings className="h-4 w-4 inline-block mr-2" />
+                Configuración
+              </button>
+              <button
+                onClick={() => setActiveTab('orders')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === 'orders'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+              >
+                <ShoppingBag className="h-4 w-4 inline-block mr-2" />
+                Órdenes
+              </button>
+            </nav>
           </div>
         </div>
+      </header>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-muted/30 p-1">
-            <TabsTrigger value="dashboard" className="text-xs sm:text-sm">Dashboard</TabsTrigger>
-            <TabsTrigger value="products" className="text-xs sm:text-sm">Productos</TabsTrigger>
-            <TabsTrigger value="categories" className="text-xs sm:text-sm">Categorías</TabsTrigger>
-          </TabsList>
+      <Separator className="border-border/30" />
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="hidden" />
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="m-0 space-y-4 sm:space-y-6">
@@ -351,8 +432,33 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
               }
             />
           </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="m-0">
+            <SettingsPanel />
+          </TabsContent>
+
+          {/* Orders Tab */}
+          <TabsContent value="orders" className="m-0">
+            <div className="bg-card border border-border/50 rounded-lg overflow-hidden">
+              <div className="p-4 sm:p-6 border-b border-border/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/5">
+                    <ShoppingBag className="h-5 w-5 text-[var(--gold)]" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold">Órdenes de Compra</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Historial de pedidos de clientes
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <OrdersTable onStatusChange={async () => {}} />
+            </div>
+          </TabsContent>
         </Tabs>
-      </div>
+      </main>
 
       {/* Product Form Dialog */}
       <ProductFormDialog

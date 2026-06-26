@@ -34,6 +34,9 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
+.env.production.bak
 
 # vercel
 .vercel
@@ -52,6 +55,7 @@ test
 prompt
 
 server.log
+server.err
 # Skills directory
 /skills/
 
@@ -61,3 +65,7 @@ server.log
 
 # prisma
 db/*.db
+prisma/db/*.db
+
+# IDE
+.vscode/

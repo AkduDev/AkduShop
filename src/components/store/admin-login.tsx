@@ -46,21 +46,34 @@ export function AdminLogin({ isAdmin, onLogin, onLogout }: AdminLoginProps) {
   
   if (isAdmin) {
     return (
-      <Button 
-        variant="outline" 
-        onClick={onLogout}
-        className="rounded-full border-border/50 hover:border-destructive hover:text-destructive"
-      >
-        <LogOut className="mr-2 h-4 w-4" />
-        Cerrar Sesión
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button 
+          variant="ghost"
+          size="icon"
+          onClick={() => window.location.href = '/admin'}
+          className="rounded-full hover:bg-[var(--gold)]/10 hover:text-[var(--gold)]"
+          title="Panel de Administración"
+          aria-label="Ir al panel de administración"
+        >
+          <Settings className="h-5 w-5" />
+        </Button>
+        <Button 
+          variant="outline" 
+          onClick={onLogout}
+          className="rounded-full border-border/50 hover:border-destructive hover:text-destructive"
+          aria-label="Cerrar sesión de administrador"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Cerrar Sesión
+        </Button>
+      </div>
     )
   }
   
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full hover:bg-[var(--gold)]/10 hover:text-[var(--gold)]">
+        <Button variant="ghost" size="icon" className="rounded-full hover:bg-[var(--gold)]/10 hover:text-[var(--gold)]" aria-label="Acceso administrador">
           <Settings className="h-5 w-5" />
         </Button>
       </DialogTrigger>

@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { Pencil, Trash2, Star, StarOff } from 'lucide-react'
+import { Pencil, Trash2, Star, StarOff, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -33,6 +33,7 @@ export function ProductsTable({ products, onEdit, onDelete, onToggleFeatured }: 
             <TableHead>Categoría</TableHead>
             <TableHead className="text-right">Precio</TableHead>
             <TableHead className="text-center">Stock</TableHead>
+            <TableHead className="text-center">Oferta</TableHead>
             <TableHead className="text-center">Destacado</TableHead>
             <TableHead className="text-center">Acciones</TableHead>
           </TableRow>
@@ -66,6 +67,22 @@ export function ProductsTable({ products, onEdit, onDelete, onToggleFeatured }: 
                 >
                   {product.stock}
                 </Badge>
+              </TableCell>
+              <TableCell className="text-center">
+                {product.onSale ? (
+                  <div className="flex flex-col items-center gap-0.5">
+                    <Badge className="bg-red-500/90 text-white text-[10px] px-1.5 py-0">
+                      <Tag className="h-2.5 w-2.5 mr-0.5" />
+                      Oferta
+                    </Badge>
+                    <span className="text-xs text-red-500 font-medium line-through">${product.price.toFixed(2)}</span>
+                    {product.discountPrice != null && (
+                      <span className="text-xs font-bold text-green-600">${product.discountPrice.toFixed(2)}</span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground text-xs">—</span>
+                )}
               </TableCell>
               <TableCell className="text-center">
                 <Button

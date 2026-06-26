@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/auth'
+import { DEFAULT_SETTINGS } from '@/types'
 
 export async function GET() {
   try {
-    // Verificar si ya existe el admin
     const existingAdmin = await db.user.findUnique({
       where: { email: 'admin@lesly.com' }
     })
-    
+
     if (!existingAdmin) {
-      // Crear usuario admin con contraseña hasheada
       await db.user.create({
         data: {
           email: 'admin@lesly.com',
@@ -20,110 +19,105 @@ export async function GET() {
         }
       })
     }
-    
-    // Verificar si ya hay categorías
+
+    const existingSettings = await db.siteSetting.count()
+
+    if (existingSettings === 0) {
+      for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
+        await db.siteSetting.create({
+          data: { key, value }
+        })
+      }
+    }
+
     const existingCategories = await db.category.count()
-    
+
     if (existingCategories === 0) {
-      // Crear categorías por defecto
       const categories = await Promise.all([
         db.category.create({
-          data: {
-            name: 'Ejecutivos',
-            description: 'Bolsos y portafolios ejecutivos de cuero premium'
-          }
+          data: { name: 'Electrónicos', description: 'Dispositivos y accesorios electrónicos' }
         }),
         db.category.create({
-          data: {
-            name: 'Carteras',
-            description: 'Carteras elegantes para damas'
-          }
+          data: { name: 'Ropa y Accesorios', description: 'Prendas de vestir y accesorios de moda' }
         }),
         db.category.create({
-          data: {
-            name: 'Mochilas',
-            description: 'Mochilas modernas y funcionales'
-          }
+          data: { name: 'Hogar y Decoración', description: 'Artículos para el hogar y decoración' }
         }),
         db.category.create({
-          data: {
-            name: 'Playa',
-            description: 'Bolsos de playa artesanales'
-          }
+          data: { name: 'Deportes y Aire Libre', description: 'Equipamiento deportivo y actividades al aire libre' }
         }),
         db.category.create({
-          data: {
-            name: 'Casuales',
-            description: 'Bolsos casuales para el día a día'
-          }
-        })
+          data: { name: 'Salud y Belleza', description: 'Productos de cuidado personal y belleza' }
+        }),
+        db.category.create({
+          data: { name: 'Juguetes y Entretenimiento', description: 'Juguetes y artículos de entretenimiento' }
+        }),
       ])
-      
-      // Crear productos de ejemplo con las nuevas categorías
+
       const sampleProducts = [
         {
-          name: 'Bolso Ejecutivo Cuero Negro',
-          description: 'Elegante bolso ejecutivo de cuero genuino en color negro. Perfecto para reuniones de negocios y uso diario.',
-          price: 89.99,
-          imageUrl: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500',
-          categoryId: categories[0].id, // Ejecutivos
-          stock: 15,
-          featured: true
-        },
-        {
-          name: 'Cartera Clásica Mujer',
-          description: 'Cartera de cuero suave con múltiples compartimentos. Diseño clásico y elegante.',
-          price: 45.99,
-          imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500',
-          categoryId: categories[1].id, // Carteras
+          name: 'Auriculares Bluetooth Premium',
+          description: 'Auriculares inalámbricos con cancelación de ruido activa y 30 horas de batería.',
+          price: 79.99,
+          imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500',
+          categoryId: categories[0].id,
           stock: 25,
           featured: true
         },
         {
-          name: 'Mochila Urbana',
-          description: 'Mochila moderna con diseño urbano. Resistente al agua con múltiples bolsillos.',
-          price: 65.99,
-          imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500',
-          categoryId: categories[2].id, // Mochilas
-          stock: 20,
-          featured: false
-        },
-        {
-          name: 'Bolso Playa Trenzado',
-          description: 'Bolso de playa artesanal con diseño trenzado. Perfecto para el verano.',
-          price: 35.99,
-          imageUrl: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500',
-          categoryId: categories[3].id, // Playa
-          stock: 30,
-          featured: false
-        },
-        {
-          name: 'Portafolio Ejecutivo',
-          description: 'Portafolio de cuero premium para documentos y laptop. Diseño profesional.',
-          price: 129.99,
-          imageUrl: 'https://images.unsplash.com/photo-1559563458-527698bf5295?w=500',
-          categoryId: categories[0].id, // Ejecutivos
-          stock: 10,
+          name: 'Camiseta Algodón Premium',
+          description: 'Camiseta de algodón orgánico de alta calidad. Cómoda y duradera.',
+          price: 29.99,
+          imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500',
+          categoryId: categories[1].id,
+          stock: 50,
           featured: true
         },
         {
-          name: 'Bolso Cruzado Casual',
-          description: 'Bolso cruzado casual perfecto para el día a día. Ajustable y cómodo.',
-          price: 39.99,
-          imageUrl: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?w=500',
-          categoryId: categories[4].id, // Casuales
-          stock: 40,
+          name: 'Lámpara de Mesa Moderna',
+          description: 'Lámpara de escritorio con diseño minimalista. Luz LED regulable.',
+          price: 49.99,
+          imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057ab6fe?w=500',
+          categoryId: categories[2].id,
+          stock: 15,
           featured: false
-        }
+        },
+        {
+          name: 'Botella Deportiva Reutilizable',
+          description: 'Botella de acero inoxidable que mantiene la temperatura por 24 horas.',
+          price: 24.99,
+          imageUrl: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500',
+          categoryId: categories[3].id,
+          stock: 100,
+          featured: false
+        },
+        {
+          name: 'Set de Cuidado Facial',
+          description: 'Kit completo de cuidado facial con productos naturales y orgánicos.',
+          price: 39.99,
+          imageUrl: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=500',
+          categoryId: categories[4].id,
+          stock: 30,
+          featured: true
+        },
+        {
+          name: 'Rompecabezas 1000 Piezas',
+          description: 'Rompecabezas de alta calidad con diseño artístico. Horas de entretenimiento.',
+          price: 19.99,
+          imageUrl: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=500',
+          categoryId: categories[5].id,
+          stock: 45,
+          featured: false
+        },
       ]
-      
+
       for (const product of sampleProducts) {
         await db.product.create({ data: product })
       }
     }
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       message: 'Base de datos inicializada correctamente',
       admin: { email: 'admin@lesly.com', password: '123Lesly' }
     })

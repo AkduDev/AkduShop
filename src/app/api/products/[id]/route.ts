@@ -28,11 +28,13 @@ export async function GET(
       name: product.name,
       description: product.description,
       price: product.price,
+      discountPrice: product.discountPrice,
       imageUrl: product.imageUrl,
       category: product.category.name,
       categoryId: product.categoryId,
       stock: product.stock,
       featured: product.featured,
+      onSale: product.onSale,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt
     })
@@ -69,10 +71,12 @@ export async function PUT(
         name: data.name,
         description: data.description,
         price: parseFloat(data.price),
+        discountPrice: data.discountPrice ? parseFloat(data.discountPrice) : null,
         imageUrl: data.imageUrl,
         categoryId: data.categoryId,
         stock: parseInt(data.stock) || 0,
-        featured: data.featured || false
+        featured: data.featured || false,
+        onSale: data.onSale || false
       },
       include: {
         category: true
@@ -84,11 +88,13 @@ export async function PUT(
       name: product.name,
       description: product.description,
       price: product.price,
+      discountPrice: product.discountPrice,
       imageUrl: product.imageUrl,
       category: product.category.name,
       categoryId: product.categoryId,
       stock: product.stock,
       featured: product.featured,
+      onSale: product.onSale,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt
     })

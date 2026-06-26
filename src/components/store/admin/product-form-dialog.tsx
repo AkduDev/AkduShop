@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { X } from 'lucide-react'
+import { X, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -32,10 +32,12 @@ interface ProductFormDialogProps {
     name: string
     description: string
     price: string
+    discountPrice: string
     imageUrl: string
     categoryId: string
     stock: string
     featured: boolean
+    onSale: boolean
   }
   onChange: (data: any) => void
   onSubmit: () => void
@@ -107,6 +109,10 @@ export function ProductFormDialog({
 
     onSubmit()
   }
+
+  const discountPercent = formData.discountPrice && formData.price
+    ? Math.round((1 - parseFloat(formData.discountPrice) / parseFloat(formData.price)) * 100)
+    : 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -220,11 +226,58 @@ export function ProductFormDialog({
             </Select>
           </div>
 
+          {/* Sale Section */}
+          <div className="p-4 rounded-lg border border-border/50 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-primary" />
+                <div>
+                  <Label htmlFor="onSale">En rebaja</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Marcar como oferta para la sección de rebajas
+                  </p>
+                </div>
+              </div>
+              <Switch
+                id="onSale"
+                checked={formData.onSale}
+                onCheckedChange={(checked) => onChange({ ...formData, onSale: checked })}
+              />
+            </div>
+
+            {formData.onSale && (
+              <div className="space-y-2">
+                <Label htmlFor="discountPrice">Precio de oferta (USD)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="discountPrice"
+                    type="number"
+                    step="0.01"
+                    value={formData.discountPrice}
+                    onChange={(e) => onChange({ ...formData, discountPrice: e.target.value })}
+                    placeholder="0.00"
+                    className="flex-1"
+                  />
+                  {discountPercent > 0 && (
+                    <span className="text-sm font-medium text-green-600 bg-green-50 px-2 py-1 rounded">
+                      -{discountPercent}%
+                    </span>
+                  )}
+                </div>
+                {formData.discountPrice && formData.price && parseFloat(formData.discountPrice) >= parseFloat(formData.price) && (
+                  <p className="text-sm text-destructive">
+                    El precio de oferta debe ser menor al precio original
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex items-center justify-between p-4 rounded-lg border border-border/50">
             <div>
               <Label htmlFor="featured">Producto destacado</Label>
               <p className="text-sm text-muted-foreground">
-                Aparecerá en la sección principal
+                Aparecerá en la sección de destacados
               </p>
             </div>
             <Switch

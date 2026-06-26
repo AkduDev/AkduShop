@@ -5,7 +5,7 @@ import { randomBytes, scrypt as _scrypt, timingSafeEqual } from 'crypto'
 import { promisify } from 'util'
 
 const SECRET_KEY = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'bolsos-lesly-secret-key-2024'
+  process.env.JWT_SECRET ?? (() => { throw new Error('JWT_SECRET no está definido en .env') })()
 )
 
 const scrypt = promisify(_scrypt)
@@ -18,6 +18,8 @@ export interface SessionUser {
   name: string
   role: string
 }
+
+export type CustomerSessionUser = Omit<SessionUser, 'role'> & { role: 'customer' }
 
 export async function createSession(user: SessionUser): Promise<string> {
   const token = await new SignJWT({ user })
@@ -45,6 +47,18 @@ export async function getSession(): Promise<SessionUser | null> {
   if (!token) return null
   
   return verifySession(token)
+}
+
+export async function getCustomerSession(): Promise<CustomerSessionUser | null> {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('customer_session')?.value
+
+  if (!token) return null
+
+  const session = await verifySession(token)
+  if (!session || session.role !== 'customer') return null
+
+  return session as CustomerSessionUser
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -92,5 +106,23 @@ export async function authenticateUser(email: string, password: string): Promise
     email: user.email,
     name: user.name,
     role: user.role
+  }
+}
+
+export async function authenticateCustomer(email: string, password: string): Promise<CustomerSessionUser | null> {
+  const customer = await db.customer.findUnique({
+    where: { email }
+  })
+
+  if (!customer) return null
+
+  const isValid = await verifyPassword(password, customer.password)
+  if (!isValid) return null
+
+  return {
+    id: customer.id,
+    email: customer.email,
+    name: customer.name,
+    role: 'customer',
   }
 }

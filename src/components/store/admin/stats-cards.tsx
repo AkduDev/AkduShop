@@ -1,6 +1,6 @@
 'use client'
 
-import { Package, Folder, ShoppingCart, AlertTriangle, Star, DollarSign } from 'lucide-react'
+import { Package, Folder, ShoppingCart, AlertTriangle, Star, DollarSign, Tag } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { DashboardStats } from '@/types'
 
@@ -10,7 +10,7 @@ interface StatsCardsProps {
 
 export function StatsCards({ stats }: StatsCardsProps) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-3 sm:gap-4">
       <Card className="border-border/50">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
@@ -78,6 +78,22 @@ export function StatsCards({ stats }: StatsCardsProps) {
             </div>
             <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
               <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground">En Oferta</p>
+              <p className={`text-2xl font-bold ${stats.onSaleProducts > 0 ? 'text-red-500' : ''}`}>
+                {stats.onSaleProducts}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+              <Tag className="h-5 w-5 text-red-500" />
             </div>
           </div>
         </CardContent>

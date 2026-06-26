@@ -74,7 +74,7 @@ export const useCartStore = create<CartStore>()(
       }
     }),
     {
-      name: 'bolsos-lesly-cart'
+      name: 'ecommerce-cart'
     }
   )
 )

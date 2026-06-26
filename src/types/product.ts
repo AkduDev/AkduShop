@@ -3,11 +3,13 @@ export interface Product {
   name: string
   description: string
   price: number
+  discountPrice?: number | null
   imageUrl: string
   category: string
   categoryId: string
   stock: number
   featured: boolean
+  onSale: boolean
   createdAt?: Date
   updatedAt?: Date
 }
@@ -16,10 +18,12 @@ export interface ProductFormData {
   name: string
   description: string
   price: string
+  discountPrice: string
   imageUrl: string
   categoryId: string
   stock: string
   featured: boolean
+  onSale: boolean
 }
 
 export interface ProductCardProps {

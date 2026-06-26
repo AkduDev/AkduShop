@@ -1,73 +1,110 @@
-import { useCallback } from 'react'
-import { Product, ProductFormData, PaginationData } from '@/types'
-import { useCrud } from './use-crud'
+'use client'
+
+import { useCallback, useState, useMemo } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Product, PaginationData } from '@/types'
 
 export type ProductPayload = Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'category'>
 
 export function useProducts(selectedCategory: string = 'all') {
-  const {
-    items: products,
-    loading,
-    error,
-    pagination,
-    fetchItems,
-    createItem,
-    updateItem,
-    deleteItem,
-    setItems
-  } = useCrud<Product, ProductPayload, ProductPayload>({ endpoint: '/api/products' })
+  const queryClient = useQueryClient()
+  const [page, setPage] = useState(1)
 
-  const fetchProducts = useCallback(async (page: number = 1) => {
-    const query = `page=${page}&limit=12&categoryId=${selectedCategory}`
-    return await fetchItems(query)
-  }, [fetchItems, selectedCategory])
+  const queryKey = useMemo(() => ['products', selectedCategory, page], [selectedCategory, page])
 
-  const createProduct = useCallback(async (productData: ProductPayload): Promise<boolean> => {
-    const success = await createItem(productData)
-    if (success) {
-      await fetchProducts()
-    }
-    return success
-  }, [createItem, fetchProducts])
+  const { data, isLoading, isFetching, error } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const res = await fetch(`/api/products?page=${page}&limit=12&categoryId=${selectedCategory}`)
+      if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
+      const json = await res.json()
+      return {
+        products: json.products ?? json.items ?? [],
+        pagination: json.pagination ?? { total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false },
+      }
+    },
+    placeholderData: (previousData) => previousData,
+  })
 
-  const updateProduct = useCallback(async (id: string, productData: ProductPayload): Promise<boolean> => {
-    const success = await updateItem(id, productData)
-    if (success) {
-      await fetchProducts()
-    }
-    return success
-  }, [fetchProducts, updateItem])
+  const fetchProducts = useCallback(async (newPage?: number) => {
+    if (newPage) setPage(newPage)
+    return true
+  }, [])
+
+  const invalidate = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['products'] })
+  }, [queryClient])
+
+  const createMutation = useMutation({
+    mutationFn: async (payload: ProductPayload) => {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('Error al crear producto')
+      return true
+    },
+    onSuccess: () => invalidate(),
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: ProductPayload }) => {
+      const res = await fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('Error al actualizar producto')
+      return true
+    },
+    onSuccess: () => invalidate(),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Error al eliminar producto')
+      return true
+    },
+    onSuccess: () => invalidate(),
+  })
+
+  const createProduct = useCallback(async (payload: ProductPayload): Promise<boolean> => {
+    try { return await createMutation.mutateAsync(payload) }
+    catch { return false }
+  }, [createMutation])
+
+  const updateProduct = useCallback(async (id: string, payload: ProductPayload): Promise<boolean> => {
+    try { return await updateMutation.mutateAsync({ id, payload }) }
+    catch { return false }
+  }, [updateMutation])
 
   const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
-    const success = await deleteItem(id)
-    if (success) {
-      await fetchProducts()
-    }
-    return success
-  }, [deleteItem, fetchProducts])
+    try { return await deleteMutation.mutateAsync(id) }
+    catch { return false }
+  }, [deleteMutation])
 
   const toggleFeatured = useCallback(async (product: Product): Promise<boolean> => {
     const { category, ...payload } = product
-    const success = await updateItem(product.id, {
-      ...payload,
-      featured: !product.featured
-    })
-    if (success) {
-      await fetchProducts()
-    }
-    return success
-  }, [fetchProducts, updateItem])
+    try {
+      return await updateMutation.mutateAsync({
+        id: product.id,
+        payload: { ...payload, featured: !product.featured },
+      })
+    } catch { return false }
+  }, [updateMutation])
 
   return {
-    products,
-    loading,
-    error,
-    pagination: pagination as PaginationData,
+    products: data?.products ?? [],
+    loading: isLoading || isFetching,
+    error: error?.message ?? null,
+    pagination: data?.pagination as PaginationData,
     fetchProducts,
     createProduct,
     updateProduct,
     deleteProduct,
     toggleFeatured,
-    setItems
+    setItems: () => {},
   }
 }

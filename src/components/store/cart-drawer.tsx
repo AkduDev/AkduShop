@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { ShoppingCart, Trash2, Plus, Minus, X, MessageCircle } from 'lucide-react'
+import { ShoppingCart, Trash2, Plus, Minus, MessageCircle, Trash } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -10,11 +10,22 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetFooter
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { useCartStore } from '@/store/cart'
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
+import { useCustomerAuth } from '@/hooks/use-customer-auth'
+import { CustomerAuthModal } from '@/components/store/customer-auth-modal'
 
 interface CartDrawerProps {
   onCheckout: () => void
@@ -23,17 +34,16 @@ interface CartDrawerProps {
 function CartBadge() {
   const getTotalItems = useCartStore((state) => state.getTotalItems)
   const [hydrated, setHydrated] = useState(false)
-  
+
   useEffect(() => {
-    // Defer hydration check to avoid SSR mismatch
     const timer = setTimeout(() => setHydrated(true), 0)
     return () => clearTimeout(timer)
   }, [])
-  
+
   const count = hydrated ? getTotalItems() : 0
-  
+
   if (count === 0) return null
-  
+
   return (
     <span className="absolute -top-1 -right-1 bg-[var(--gold)] text-primary text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
       {count}
@@ -43,37 +53,82 @@ function CartBadge() {
 
 export function CartDrawer({ onCheckout }: CartDrawerProps) {
   const [open, setOpen] = useState(false)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCartStore()
-  
+  const { isLoggedIn } = useCustomerAuth()
+  const pendingCheckout = useRef(false)
+
+  useEffect(() => {
+    if (isLoggedIn && pendingCheckout.current) {
+      pendingCheckout.current = false
+      setAuthModalOpen(false)
+      onCheckout()
+      setOpen(false)
+    }
+  }, [isLoggedIn, onCheckout])
+
   const handleCheckout = () => {
+    if (!isLoggedIn) {
+      pendingCheckout.current = true
+      setAuthModalOpen(true)
+      return
+    }
     onCheckout()
     setOpen(false)
   }
-  
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative rounded-full border-border/50 hover:border-[var(--gold)] hover:text-[var(--gold)]">
+        <Button variant="outline" size="icon" className="relative rounded-full border-border/50 hover:border-[var(--gold)] hover:text-[var(--gold)]" aria-label="Abrir carrito de compras">
           <ShoppingCart className="h-5 w-5" />
           <CartBadge />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg flex flex-col">
-        <SheetHeader>
+      <SheetContent className="w-full sm:max-w-lg flex flex-col h-[90vh] max-h-[90vh]">
+        <SheetHeader className="flex items-center justify-between border-b p-4 bg-background sticky top-0 z-10">
           <SheetTitle className="text-2xl">Tu Carrito</SheetTitle>
+          {items.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+                  aria-label="Vaciar carrito"
+                >
+                  <Trash className="h-5 w-5" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="max-w-md">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Vaciar carrito?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Se eliminarán todos los {items.length} producto{items.length !== 1 ? 's' : ''} del carrito. Esta acción no se puede deshacer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={clearCart} className="bg-destructive hover:bg-destructive/90">
+                    Vaciar carrito
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </SheetHeader>
-        
+
         {items.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-6">
             <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
               <ShoppingCart className="h-10 w-10 opacity-50" />
             </div>
             <p className="text-lg font-medium">Tu carrito está vacío</p>
-            <p className="text-sm mt-1">Añade carteras para continuar</p>
+            <p className="text-sm mt-1">Añade productos para continuar</p>
           </div>
         ) : (
           <>
-            <ScrollArea className="flex-1 -mx-6 px-6 my-4">
+            <ScrollArea className="flex-1 overflow-y-auto -mx-6 px-6 py-4">
               <div className="space-y-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
@@ -96,15 +151,17 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                           size="icon"
                           className="h-8 w-8 rounded-full border-border/50"
                           onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
+                          aria-label={`Reducir cantidad de ${item.name}`}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                        <span className="w-8 text-center font-medium" aria-label={`Cantidad: ${item.quantity}`}>{item.quantity}</span>
                         <Button
                           variant="outline"
                           size="icon"
                           className="h-8 w-8 rounded-full border-border/50"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          aria-label={`Aumentar cantidad de ${item.name}`}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
@@ -113,6 +170,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                           size="icon"
                           className="h-8 w-8 ml-auto text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => removeItem(item.id)}
+                          aria-label={`Eliminar ${item.name} del carrito`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -122,35 +180,40 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                 ))}
               </div>
             </ScrollArea>
-            
-            <div className="space-y-4 pt-4">
-              <Separator />
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="text-2xl font-bold">${getTotal().toFixed(2)}</span>
+
+            <div className="border-t bg-background/95 backdrop-blur-sm p-4 sticky bottom-0 z-10">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-base">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-xl font-bold text-foreground">${getTotal().toFixed(2)}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    className="h-12 bg-[#25D366] hover:bg-[#25D366]/90 text-white rounded-full text-base"
+                    onClick={handleCheckout}
+                    aria-label="Enviar pedido por WhatsApp"
+                  >
+                    <MessageCircle className="mr-2 h-5 w-5" />
+                    Enviar Pedido
+                  </Button>
+                  <Button
+                    variant="default"
+                    className="h-12 bg-destructive hover:bg-destructive/90 text-white rounded-full text-base"
+                    onClick={clearCart}
+                    aria-label="Vaciar carrito de compras"
+                  >
+                    <Trash className="mr-2 h-4 w-4" />
+                    Vaciar Carrito
+                  </Button>
+                </div>
               </div>
-              
-              <SheetFooter className="flex-col gap-3 sm:flex-col">
-                <Button 
-                  className="w-full h-12 bg-[#25D366] hover:bg-[#25D366]/90 text-white rounded-full text-base"
-                  onClick={handleCheckout}
-                >
-                  <MessageCircle className="mr-2 h-5 w-5" />
-                  Enviar Pedido por WhatsApp
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full rounded-full border-border/50"
-                  onClick={clearCart}
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Vaciar Carrito
-                </Button>
-              </SheetFooter>
             </div>
           </>
         )}
       </SheetContent>
+
+      <CustomerAuthModal open={authModalOpen} onOpenChange={(v) => { setAuthModalOpen(v); if (!v) pendingCheckout.current = false }} />
     </Sheet>
   )
 }

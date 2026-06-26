@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { Pencil, Trash2, Star, StarOff } from 'lucide-react'
+import { Pencil, Trash2, Star, StarOff, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -50,13 +50,30 @@ export function ProductsCards({ products, onEdit, onDelete, onToggleFeatured }: 
                 </Badge>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold">${product.price.toFixed(2)}</span>
-                    <Badge 
-                      variant={product.stock > 0 ? 'default' : 'destructive'}
-                      className={product.stock > 0 ? 'bg-green-600 text-xs' : 'text-xs'}
-                    >
-                      Stock: {product.stock}
-                    </Badge>
+                    {product.onSale ? (
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-red-500 line-through">${product.price.toFixed(2)}</span>
+                        {product.discountPrice != null && (
+                          <span className="text-lg font-bold text-green-600">${product.discountPrice.toFixed(2)}</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-lg font-bold">${product.price.toFixed(2)}</span>
+                    )}
+                    <div className="flex flex-col gap-1">
+                      {product.onSale && (
+                        <Badge className="bg-red-500/90 text-white text-[10px] px-1.5 py-0 w-fit">
+                          <Tag className="h-2.5 w-2.5 mr-0.5" />
+                          Oferta
+                        </Badge>
+                      )}
+                      <Badge 
+                        variant={product.stock > 0 ? 'default' : 'destructive'}
+                        className={product.stock > 0 ? 'bg-green-600 text-xs' : 'text-xs'}
+                      >
+                        Stock: {product.stock}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               </div>

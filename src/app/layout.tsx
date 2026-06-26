@@ -3,6 +3,9 @@ import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { SettingsProvider } from "@/lib/settings-context";
+import { Providers } from "@/lib/providers";
+import { getSettings } from "@/lib/settings";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -14,31 +17,33 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Carteras Lesly - Elegancia y Estilo",
-  description: "Carteras artesanales confeccionadas con los mejores materiales. Cada pieza cuenta una historia de calidad y distinción.",
-  keywords: ["carteras", "bolsos", "cuero", "moda", "elegancia", "artesanal", "Cuba", "La Habana"],
-  authors: [{ name: "Carteras Lesly" }],
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "32x32" },
-      { url: "/logo-profesional.jpg", sizes: "any" },
-    ],
-    apple: "/logo-profesional.jpg",
-  },
-  openGraph: {
-    title: "Carteras Lesly - Elegancia y Estilo",
-    description: "Carteras artesanales de alta calidad",
-    url: "http://localhost:3000",
-    siteName: "Carteras Lesly",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Carteras Lesly - Elegancia y Estilo",
-    description: "Carteras artesanales de alta calidad",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings()
+
+  return {
+    title: `${settings.siteName} - ${settings.siteTagline}`,
+    description: settings.siteDescription,
+    authors: [{ name: settings.siteName }],
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "32x32" },
+        { url: settings.logoUrl, sizes: "any" },
+      ],
+      apple: settings.logoUrl,
+    },
+    openGraph: {
+      title: `${settings.siteName} - ${settings.siteTagline}`,
+      description: settings.siteDescription,
+      siteName: settings.siteName,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${settings.siteName} - ${settings.siteTagline}`,
+      description: settings.siteDescription,
+    },
+  }
+}
 
 export default function RootLayout({
   children,
@@ -51,7 +56,11 @@ export default function RootLayout({
         className={`${playfair.variable} ${inter.variable} antialiased bg-background text-foreground`}
       >
         <ErrorBoundary>
-          {children}
+          <Providers>
+            <SettingsProvider>
+              {children}
+            </SettingsProvider>
+          </Providers>
         </ErrorBoundary>
         <Toaster />
       </body>
