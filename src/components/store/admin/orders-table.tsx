@@ -213,65 +213,91 @@ export function OrdersTable({ onStatusChange }: OrdersTableProps) {
       {/* Mobile Cards */}
       <div className="sm:hidden space-y-3 p-3 max-h-[500px] overflow-y-auto">
         {orders.map((order) => (
-          <div key={order.id} className="border border-border/50 rounded-lg p-3 space-y-2">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="font-medium text-sm truncate">{order.customerName}</div>
-                {order.customerPhone && (
-                  <a
-                    href={`https://wa.me/${order.customerPhone.replace(/[^0-9]/g, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground flex items-center gap-1 hover:text-[var(--gold)]"
-                  >
-                    <MessageCircle className="h-3 w-3" />
-                    {order.customerPhone}
-                  </a>
-                )}
-              </div>
-              <span className="text-sm font-bold whitespace-nowrap">${order.total.toFixed(2)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground">
-                {new Date(order.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                {' · '}
-                {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+          <div
+            key={order.id}
+            className="border border-border/50 rounded-xl overflow-hidden hover:shadow-md transition-shadow"
+          >
+            {/* Status bar */}
+            <div className={`px-3 py-1.5 text-xs font-medium flex items-center justify-between ${
+              order.status === 'pending' ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400' :
+              order.status === 'confirmed' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400' :
+              order.status === 'shipped' ? 'bg-purple-500/10 text-purple-700 dark:text-purple-400' :
+              order.status === 'delivered' ? 'bg-green-500/10 text-green-700 dark:text-green-400' :
+              'bg-red-500/10 text-red-700 dark:text-red-400'
+            }`}>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${ORDER_STATUS_COLORS[order.status]}`}>
+                {ORDER_STATUS_LABELS[order.status]}
               </span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-6 gap-1 border-border/50 text-xs px-2">
-                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${ORDER_STATUS_COLORS[order.status]}`}>
-                      {ORDER_STATUS_LABELS[order.status]}
-                    </span>
-                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {statusFlow.map(status => (
-                    <DropdownMenuItem
-                      key={status}
-                      onClick={() => handleStatusChange(order.id, status)}
-                      className={order.status === status ? 'bg-muted' : ''}
+              <span className="opacity-70">
+                {new Date(order.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+              </span>
+            </div>
+
+            <div className="p-3 space-y-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="font-semibold text-sm truncate text-foreground">{order.customerName}</div>
+                  {order.customerPhone && (
+                    <a
+                      href={`https://wa.me/${order.customerPhone.replace(/[^0-9]/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground flex items-center gap-1 hover:text-green-600 transition-colors mt-0.5"
                     >
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${ORDER_STATUS_COLORS[status]}`}>
-                        {ORDER_STATUS_LABELS[status]}
+                      <MessageCircle className="h-3 w-3" />
+                      {order.customerPhone}
+                    </a>
+                  )}
+                  {order.customerAddress && (
+                    <p className="text-[11px] text-muted-foreground/70 mt-0.5 truncate">{order.customerAddress}</p>
+                  )}
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="text-base font-bold text-foreground">${order.total.toFixed(2)}</div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                  </div>
+                </div>
+              </div>
+
+              {order.notes && (
+                <p className="text-[11px] text-muted-foreground/70 italic line-clamp-1 border-l-2 border-primary/20 pl-2">
+                  {order.notes}
+                </p>
+              )}
+
+              <div className="pt-2 border-t border-border/30">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full h-8 gap-1.5 border-border/50 text-xs">
+                      Cambiar estado
+                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    {statusFlow.map(status => (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => handleStatusChange(order.id, status)}
+                        className={order.status === status ? 'bg-muted' : ''}
+                      >
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${ORDER_STATUS_COLORS[status]}`}>
+                          {ORDER_STATUS_LABELS[status]}
+                        </span>
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange(order.id, 'cancelled')}
+                      className="text-destructive"
+                    >
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${ORDER_STATUS_COLORS.cancelled}`}>
+                        {ORDER_STATUS_LABELS.cancelled}
                       </span>
                     </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuItem
-                    onClick={() => handleStatusChange(order.id, 'cancelled')}
-                    className="text-destructive"
-                  >
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${ORDER_STATUS_COLORS.cancelled}`}>
-                      {ORDER_STATUS_LABELS.cancelled}
-                    </span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-            {order.notes && (
-              <p className="text-xs text-muted-foreground line-clamp-1">{order.notes}</p>
-            )}
           </div>
         ))}
       </div>
