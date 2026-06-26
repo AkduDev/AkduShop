@@ -1,18 +1,26 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, Settings, Store, Phone, Palette, Layout, Tag, Globe, ShoppingBag } from 'lucide-react'
+import { Save, Settings, Store, Phone, Palette, Layout, Tag, Globe, ShoppingBag, MoreHorizontal, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import { useToast } from '@/hooks/use-toast'
 import { SiteSettings, DEFAULT_SETTINGS } from '@/types'
 
 interface SectionConfig {
   title: string
+  shortLabel: string
   description: string
   icon: React.ReactNode
   color: string
@@ -92,8 +100,9 @@ export function SettingsPanel() {
   const sections: SectionConfig[] = [
     {
       title: 'Información General',
+      shortLabel: 'General',
       description: 'Nombre y descripción de tu tienda',
-      icon: <Store className="h-5 w-5" />,
+      icon: <Store className="h-4 w-4" />,
       color: 'text-blue-600 dark:text-blue-400',
       bgColor: 'bg-blue-500/10',
       fields: [
@@ -104,8 +113,9 @@ export function SettingsPanel() {
     },
     {
       title: 'Moneda',
+      shortLabel: 'Moneda',
       description: 'Configuración de precios y moneda',
-      icon: <Globe className="h-5 w-5" />,
+      icon: <Globe className="h-4 w-4" />,
       color: 'text-emerald-600 dark:text-emerald-400',
       bgColor: 'bg-emerald-500/10',
       fields: [
@@ -115,8 +125,9 @@ export function SettingsPanel() {
     },
     {
       title: 'Contacto',
+      shortLabel: 'Contacto',
       description: 'Datos de contacto y WhatsApp',
-      icon: <Phone className="h-5 w-5" />,
+      icon: <Phone className="h-4 w-4" />,
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-500/10',
       fields: [
@@ -128,8 +139,9 @@ export function SettingsPanel() {
     },
     {
       title: 'Hero Section',
+      shortLabel: 'Hero',
       description: 'Sección principal de la página',
-      icon: <Layout className="h-5 w-5" />,
+      icon: <Layout className="h-4 w-4" />,
       color: 'text-purple-600 dark:text-purple-400',
       bgColor: 'bg-purple-500/10',
       fields: [
@@ -142,8 +154,9 @@ export function SettingsPanel() {
     },
     {
       title: 'Productos & Tienda',
+      shortLabel: 'Productos',
       description: 'Textos de la sección de productos',
-      icon: <Tag className="h-5 w-5" />,
+      icon: <Tag className="h-4 w-4" />,
       color: 'text-amber-600 dark:text-amber-400',
       bgColor: 'bg-amber-500/10',
       fields: [
@@ -156,8 +169,9 @@ export function SettingsPanel() {
     },
     {
       title: 'Sección de Contacto',
+      shortLabel: 'Footer',
       description: 'Textos del footer y contacto',
-      icon: <ShoppingBag className="h-5 w-5" />,
+      icon: <ShoppingBag className="h-4 w-4" />,
       color: 'text-rose-600 dark:text-rose-400',
       bgColor: 'bg-rose-500/10',
       fields: [
@@ -168,8 +182,9 @@ export function SettingsPanel() {
     },
     {
       title: 'Personalización Visual',
+      shortLabel: 'Visual',
       description: 'Colores y branding de la tienda',
-      icon: <Palette className="h-5 w-5" />,
+      icon: <Palette className="h-4 w-4" />,
       color: 'text-pink-600 dark:text-pink-400',
       bgColor: 'bg-pink-500/10',
       fields: [
@@ -179,6 +194,12 @@ export function SettingsPanel() {
       ],
     },
   ]
+
+  // First 3 sections shown as tabs, rest in hamburger menu
+  const mainTabs = sections.slice(0, 3)
+  const moreSections = sections.slice(3)
+
+  const currentSection = sections.find((s) => s.title === activeSection)
 
   return (
     <div className="space-y-4">
@@ -199,91 +220,163 @@ export function SettingsPanel() {
         </div>
       </Card>
 
-      {/* Section Tabs - Mobile scroll */}
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-        {sections.map((section) => (
-          <button
-            key={section.title}
-            onClick={() => setActiveSection(activeSection === section.title ? null : section.title)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-              activeSection === section.title
-                ? `${section.bgColor} ${section.color} ring-1 ring-current/20`
-                : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-            }`}
-          >
-            {section.icon}
-            <span className="hidden sm:inline">{section.title}</span>
-          </button>
-        ))}
-      </div>
+      {/* Navigation Tabs */}
+      <Card className="border-border/50">
+        <CardContent className="p-2 sm:p-3">
+          <div className="flex items-center gap-1.5">
+            {/* Main visible tabs */}
+            {mainTabs.map((section) => (
+              <button
+                key={section.title}
+                onClick={() => setActiveSection(activeSection === section.title ? null : section.title)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                  activeSection === section.title
+                    ? `${section.bgColor} ${section.color} shadow-sm`
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+              >
+                {section.icon}
+                <span className="hidden sm:inline">{section.shortLabel}</span>
+              </button>
+            ))}
 
-      {/* Sections */}
-      {sections.map((section, index) => {
-        const isOpen = activeSection === null || activeSection === section.title
+            {/* Divider */}
+            <div className="w-px h-6 bg-border/50 mx-1" />
 
-        return (
-          <Card
-            key={section.title}
-            className={`border-border/50 overflow-hidden transition-all duration-200 ${
-              !isOpen ? 'opacity-50' : ''
-            }`}
-          >
-            <button
-              onClick={() => setActiveSection(activeSection === section.title ? null : section.title)}
-              className="w-full"
-            >
-              <CardHeader className="pb-3 cursor-pointer hover:bg-muted/20 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${section.bgColor} ${section.color}`}>
-                    {section.icon}
-                  </div>
-                  <div className="text-left flex-1">
-                    <CardTitle className="text-base">{section.title}</CardTitle>
-                    <CardDescription className="text-xs">{section.description}</CardDescription>
-                  </div>
-                  <div className={`text-xs font-medium ${section.color}`}>
-                    {isOpen ? '−' : '+'}
-                  </div>
-                </div>
-              </CardHeader>
-            </button>
-
-            {isOpen && (
-              <CardContent className="pt-0">
-                <Separator className="mb-4" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {section.fields.map(({ key, label, type, placeholder }) => (
-                    <div key={key} className="space-y-1.5">
-                      <Label htmlFor={key} className="text-xs font-medium text-muted-foreground">
-                        {label}
-                      </Label>
-                      {key === 'address' || key === 'heroSubtitle' || key === 'contactSubtitle' ? (
-                        <Textarea
-                          id={key}
-                          value={form[key]}
-                          onChange={(e) => handleChange(key, e.target.value)}
-                          rows={2}
-                          placeholder={placeholder}
-                          className="text-sm resize-none"
-                        />
-                      ) : (
-                        <Input
-                          id={key}
-                          type={type || 'text'}
-                          value={form[key]}
-                          onChange={(e) => handleChange(key, e.target.value)}
-                          placeholder={placeholder}
-                          className="text-sm"
-                        />
-                      )}
+            {/* Hamburger for more sections */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`h-9 gap-1.5 px-3 text-xs sm:text-sm font-medium ${
+                    moreSections.some((s) => s.title === activeSection)
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="hidden sm:inline">Más</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {moreSections.map((section) => (
+                  <DropdownMenuItem
+                    key={section.title}
+                    onClick={() => setActiveSection(activeSection === section.title ? null : section.title)}
+                    className={`flex items-center gap-3 py-2.5 cursor-pointer ${
+                      activeSection === section.title ? 'bg-muted' : ''
+                    }`}
+                  >
+                    <span className={`${section.color}`}>{section.icon}</span>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{section.shortLabel}</div>
+                      <div className="text-[11px] text-muted-foreground">{section.description}</div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
+                    {activeSection === section.title && (
+                      <Check className="h-4 w-4 text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Clear filter */}
+            {activeSection && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveSection(null)}
+                className="h-9 px-3 text-xs text-muted-foreground hover:text-foreground ml-auto"
+              >
+                Ver todo
+              </Button>
             )}
-          </Card>
-        )
-      })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sections Content */}
+      {activeSection === null ? (
+        // Show all sections collapsed when no filter
+        <div className="space-y-3">
+          {sections.map((section) => (
+            <Card key={section.title} className="border-border/50 overflow-hidden hover:shadow-md transition-shadow">
+              <button
+                onClick={() => setActiveSection(section.title)}
+                className="w-full"
+              >
+                <CardHeader className="pb-3 cursor-pointer hover:bg-muted/20 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${section.bgColor} ${section.color}`}>
+                      {section.icon}
+                    </div>
+                    <div className="text-left flex-1">
+                      <CardTitle className="text-sm sm:text-base">{section.title}</CardTitle>
+                      <CardDescription className="text-xs">{section.description}</CardDescription>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {section.fields.length} campo{section.fields.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </CardHeader>
+              </button>
+            </Card>
+          ))}
+        </div>
+      ) : currentSection ? (
+        // Show filtered section expanded
+        <Card className="border-border/50 overflow-hidden">
+          <div className={`${currentSection.bgColor} border-b border-border/30`}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg bg-white/80 shadow-sm ${currentSection.color}`}>
+                  {currentSection.icon}
+                </div>
+                <div>
+                  <CardTitle className="text-base">{currentSection.title}</CardTitle>
+                  <CardDescription className="text-xs">{currentSection.description}</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </div>
+          <CardContent className="pt-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {currentSection.fields.map(({ key, label, type, placeholder }) => (
+                <div key={key} className="space-y-1.5">
+                  <Label htmlFor={key} className="text-xs font-medium text-muted-foreground">
+                    {label}
+                  </Label>
+                  {key === 'address' || key === 'heroSubtitle' || key === 'contactSubtitle' ? (
+                    <Textarea
+                      id={key}
+                      value={form[key]}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      rows={2}
+                      placeholder={placeholder}
+                      className="text-sm resize-none"
+                    />
+                  ) : (
+                    <Input
+                      id={key}
+                      type={type || 'text'}
+                      value={form[key]}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      placeholder={placeholder}
+                      className="text-sm"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end mt-5 pt-4 border-t">
+              <Button onClick={() => setActiveSection(null)} variant="ghost" size="sm" className="text-xs">
+                ← Volver a todas
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {/* Save Button */}
       <Card className="border-border/50">
