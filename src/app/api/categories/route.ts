@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { getSession } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,6 +45,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession()
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const data = await request.json()
 
     const category = await db.category.create({

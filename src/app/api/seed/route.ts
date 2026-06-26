@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { hashPassword } from '@/lib/auth'
+import { hashPassword, getSession } from '@/lib/auth'
 import { DEFAULT_SETTINGS } from '@/types'
 
-export async function GET() {
+export async function POST() {
   try {
+    const session = await getSession()
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const existingAdmin = await db.user.findUnique({
       where: { email: 'admin@lesly.com' }
     })
@@ -118,8 +123,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      message: 'Base de datos inicializada correctamente',
-      admin: { email: 'admin@lesly.com', password: '123Lesly' }
+      message: 'Base de datos inicializada correctamente'
     })
   } catch (error) {
     console.error('Seed error:', error)

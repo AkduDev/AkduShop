@@ -23,11 +23,47 @@ export async function POST(request: Request) {
       )
     }
 
-    const total = items.reduce(
-      (sum: number, item: { quantity: number; unitPrice: number }) =>
-        sum + item.quantity * item.unitPrice,
-      0
-    )
+    // Validate prices and stock server-side
+    const validatedItems: { productId: string; name: string; quantity: number; unitPrice: number }[] = []
+    let total = 0
+
+    for (const item of items) {
+      if (!item.productId || !item.quantity || item.quantity < 1) {
+        return NextResponse.json(
+          { error: 'Item inválido: productId y quantity requeridos' },
+          { status: 400 }
+        )
+      }
+
+      const product = await db.product.findUnique({
+        where: { id: item.productId },
+        select: { id: true, name: true, price: true, discountPrice: true, onSale: true, stock: true }
+      })
+
+      if (!product) {
+        return NextResponse.json(
+          { error: `Producto no encontrado: ${item.productId}` },
+          { status: 400 }
+        )
+      }
+
+      if (product.stock < item.quantity) {
+        return NextResponse.json(
+          { error: `Stock insuficiente para "${product.name}": disponible ${product.stock}, solicitado ${item.quantity}` },
+          { status: 400 }
+        )
+      }
+
+      const unitPrice = product.onSale && product.discountPrice ? product.discountPrice : product.price
+      total += unitPrice * item.quantity
+
+      validatedItems.push({
+        productId: product.id,
+        name: product.name,
+        quantity: item.quantity,
+        unitPrice,
+      })
+    }
 
     const order = await db.order.create({
       data: {
@@ -38,8 +74,8 @@ export async function POST(request: Request) {
         notes: notes || null,
         total,
         items: {
-          create: items.map((item: { productId?: string; name: string; quantity: number; unitPrice: number }) => ({
-            productId: item.productId || null,
+          create: validatedItems.map((item) => ({
+            productId: item.productId,
             name: item.name,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
