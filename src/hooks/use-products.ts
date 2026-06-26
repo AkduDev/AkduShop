@@ -1,21 +1,27 @@
 'use client'
 
-import { useCallback, useState, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Product, PaginationData } from '@/types'
 
 export type ProductPayload = Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'category'>
 
-export function useProducts(selectedCategory: string = 'all') {
+interface UseProductsOptions {
+  category?: string
+  limit?: number
+}
+
+export function useProducts(options: UseProductsOptions = {}) {
+  const { category: selectedCategory = 'all', limit = 12 } = options
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
 
-  const queryKey = useMemo(() => ['products', selectedCategory, page], [selectedCategory, page])
+  const queryKey = useMemo(() => ['products', selectedCategory, page, limit], [selectedCategory, page, limit])
 
   const { data, isLoading, isFetching, error } = useQuery({
     queryKey,
     queryFn: async () => {
-      const res = await fetch(`/api/products?page=${page}&limit=12&categoryId=${selectedCategory}`)
+      const res = await fetch(`/api/products?page=${page}&limit=${limit}&categoryId=${selectedCategory}`)
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
       const json = await res.json()
       return {
@@ -100,6 +106,8 @@ export function useProducts(selectedCategory: string = 'all') {
     loading: isLoading || isFetching,
     error: error?.message ?? null,
     pagination: data?.pagination as PaginationData,
+    page,
+    setPage,
     fetchProducts,
     createProduct,
     updateProduct,

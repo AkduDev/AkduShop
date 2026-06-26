@@ -1,20 +1,28 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Category, CategoryFormData } from '@/types'
+import { Category, CategoryFormData, PaginationData } from '@/types'
 
 export function useCategories() {
   const queryClient = useQueryClient()
+  const [page, setPage] = useState(1)
+
+  const queryKey = useMemo(() => ['categories', page], [page])
 
   const { data, isLoading, isFetching, error } = useQuery({
-    queryKey: ['categories'],
+    queryKey,
     queryFn: async () => {
-      const res = await fetch('/api/categories')
+      const res = await fetch(`/api/categories?page=${page}&limit=50`)
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
       const json = await res.json()
-      return json.categories ?? json.items ?? json ?? []
+      // Support both paginated { categories: [] } and flat array [] formats
+      const items = json.categories ?? json.items ?? (Array.isArray(json) ? json : [])
+      const pagination = json.pagination ?? { total: items.length, totalPages: 1, hasNextPage: false, hasPrevPage: false }
+      return { categories: items, pagination }
     },
+    placeholderData: (previousData) => previousData,
+    staleTime: 60_000, // Categories rarely change, cache 60s
   })
 
   const invalidate = useCallback(() => {
@@ -76,9 +84,12 @@ export function useCategories() {
   }, [deleteMutation])
 
   return {
-    categories: Array.isArray(data) ? data : [],
+    categories: data?.categories ?? [],
+    pagination: data?.pagination as PaginationData,
     loading: isLoading || isFetching,
     error: error?.message ?? null,
+    page,
+    setPage,
     fetchCategories,
     createCategory,
     updateCategory,

@@ -46,9 +46,10 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
     inventoryValue: 0
   })
 
-  // Hooks personalizados
-  const { products, loading, fetchProducts, createProduct, updateProduct, deleteProduct, toggleFeatured } = useProducts()
-  const { categories, fetchCategories, createCategory, updateCategory, deleteCategory } = useCategories()
+  // Hooks personalizados — admin carga todos los items (límite alto)
+  const { products, loading: productsLoading, pagination: productsPagination, page: productPage, setPage: setProductPage, fetchProducts, createProduct, updateProduct, deleteProduct, toggleFeatured } = useProducts({ limit: 100 })
+  const { categories, loading: categoriesLoading, pagination: categoriesPagination, page: categoryPage, setPage: setCategoryPage, fetchCategories, createCategory, updateCategory, deleteCategory } = useCategories()
+  const loading = productsLoading || categoriesLoading
 
   // Estados para diálogos
   const [showProductForm, setShowProductForm] = useState(false)
@@ -340,7 +341,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
           <TabsContent value="products" className="m-0">
             <AdminSection
               title="Gestión de Productos"
-              description={`${products.length} productos en total`}
+              description={`${productsPagination?.total ?? products.length} productos en total`}
               icon={<Package className="h-5 w-5 text-[var(--gold)]" />}
               action={
                 <Button
@@ -358,6 +359,8 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
               desktopView={
                 <ProductsTable
                   products={products}
+                  pagination={productsPagination}
+                  onPageChange={(p) => setProductPage(p)}
                   onEdit={handleEditProduct}
                   onDelete={handleDeleteProduct}
                   onToggleFeatured={handleToggleFeatured}
@@ -397,7 +400,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
           <TabsContent value="categories" className="m-0">
             <AdminSection
               title="Gestión de Categorías"
-              description={`${categories.length} categorías en total`}
+              description={`${categoriesPagination?.total ?? categories.length} categorías en total`}
               icon={<Folder className="h-5 w-5 text-[var(--gold)]" />}
               action={
                 <Button
@@ -416,6 +419,8 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
               desktopView={
                 <CategoriesTable
                   categories={categories}
+                  pagination={categoriesPagination}
+                  onPageChange={(p) => setCategoryPage(p)}
                   onEdit={handleEditCategory}
                   onDelete={handleDeleteCategory}
                 />

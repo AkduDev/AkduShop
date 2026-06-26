@@ -24,7 +24,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1)
 
   const { isAdmin, login, logout } = useAuth()
-  const { products, loading, pagination, fetchProducts } = useProducts(selectedCategory)
+  const { products, loading, pagination, fetchProducts } = useProducts({ category: selectedCategory })
   const { categories, fetchCategories } = useCategories()
   const { handleWhatsAppCheckout } = useCartCheckout()
 
