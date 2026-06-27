@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import { v2 as cloudinary } from 'cloudinary'
 
 export const runtime = 'nodejs'
 
@@ -31,12 +30,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    cloudinary.config({
-      cloud_name: cloudName,
-      api_key: apiKey,
-      api_secret: apiSecret,
-    })
-
     const formData = await request.formData()
     const file = formData.get('file') as File
 
@@ -65,24 +58,49 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer())
     const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
 
-    const result = await cloudinary.uploader.upload(base64, {
-      folder: 'akdushop/products',
-      resource_type: 'image',
-      transformation: [
-        { width: 1200, height: 1200, crop: 'limit', quality: 'auto', fetch_format: 'auto' }
-      ],
-    })
+    const timestamp = Math.round(Date.now() / 1000)
+    const folder = 'akdushop/products'
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}&resource_type=image`
+    const crypto = await import('crypto')
+    const signature = crypto
+      .createHmac('sha256', apiSecret)
+      .update(paramsToSign)
+      .digest('hex')
+
+    const uploadForm = new FormData()
+    uploadForm.append('file', base64)
+    uploadForm.append('api_key', apiKey)
+    uploadForm.append('timestamp', String(timestamp))
+    uploadForm.append('folder', folder)
+    uploadForm.append('resource_type', 'image')
+    uploadForm.append('signature', signature)
+    uploadForm.append('transformation', 'c_limit,w_1200,h_1200,q_auto,f_auto')
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: 'POST', body: uploadForm }
+    )
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      console.error('Cloudinary error:', result)
+      return NextResponse.json(
+        { error: `Cloudinary: ${result.error?.message || JSON.stringify(result)}` },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       url: result.secure_url,
-      fileName: result.secure_url.split('/').pop() || '',
+      fileName: result.public_id.split('/').pop() || '',
       size: file.size
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Error uploading file:', error)
+    console.error('Error uploading file:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
     return NextResponse.json(
-      { error: `Error al subir la imagen: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { error: `Error al subir la imagen: ${String(error)}` },
       { status: 500 }
     )
   }
