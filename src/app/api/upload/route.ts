@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import crypto from 'crypto'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+
+export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +12,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
+      )
+    }
+
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+
+    if (!blobToken) {
+      console.error('BLOB_READ_WRITE_TOKEN no está configurado. Linka el Blob Store en Vercel Dashboard → Settings → Environment Variables')
+      return NextResponse.json(
+        { error: 'Storage no configurado. Ve a Vercel Dashboard → akdushop → Settings → Blob y linka el store.' },
+        { status: 500 }
       )
     }
 
@@ -50,31 +60,15 @@ export async function POST(request: NextRequest) {
     }
 
     const fileName = `${crypto.randomUUID()}.${extension}`
-    const buffer = Buffer.from(await file.arrayBuffer())
 
-    const blobToken = process.env.BLOB_READ_WRITE_TOKEN
-
-    if (blobToken) {
-      const { put } = await import('@vercel/blob')
-      const blob = await put(`products/${fileName}`, file, {
-        access: 'public',
-        addRandomSuffix: false,
-      })
-
-      return NextResponse.json({
-        url: blob.url,
-        fileName: fileName,
-        size: file.size
-      }, { status: 201 })
-    }
-
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products')
-    await mkdir(uploadDir, { recursive: true })
-    const filePath = path.join(uploadDir, fileName)
-    await writeFile(filePath, buffer)
+    const { put } = await import('@vercel/blob')
+    const blob = await put(`products/${fileName}`, file, {
+      access: 'public',
+      addRandomSuffix: false,
+    })
 
     return NextResponse.json({
-      url: `/uploads/products/${fileName}`,
+      url: blob.url,
       fileName: fileName,
       size: file.size
     }, { status: 201 })

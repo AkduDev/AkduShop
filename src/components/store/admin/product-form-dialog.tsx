@@ -94,11 +94,12 @@ export function ProductFormDialog({
         body: formDataUpload
       })
 
+      const uploadData = await uploadRes.json()
+
       if (!uploadRes.ok) {
-        throw new Error('Error al subir la imagen')
+        throw new Error(uploadData.error || 'Error al subir la imagen')
       }
 
-      const uploadData = await uploadRes.json()
       const imageUrl = uploadData.url
 
       URL.revokeObjectURL(localPreview)
@@ -106,7 +107,7 @@ export function ProductFormDialog({
       onChange({ ...formData, imageUrl })
     } catch (error) {
       console.error('Error uploading image:', error)
-      setUploadError('Error al subir la imagen. Inténtalo de nuevo.')
+      setUploadError(error instanceof Error ? error.message : 'Error al subir la imagen.')
       setImagePreview(formData.imageUrl || null)
     } finally {
       setIsUploading(false)
