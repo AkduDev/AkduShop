@@ -1,17 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { hashPassword, createSession } from '@/lib/auth'
+import { registerSchema } from '@/lib/validations'
+import { rateLimit, getClientIp, REGISTER_RATE_LIMIT } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, phone, address, password } = await request.json()
+    const ip = getClientIp(request)
+    const limiter = rateLimit(ip, REGISTER_RATE_LIMIT)
 
-    if (!name || !email || !password) {
+    if (!limiter.success) {
       return NextResponse.json(
-        { error: 'Nombre, email y contraseña son requeridos' },
+        { error: 'Demasiados registros. Intenta de nuevo más tarde.' },
+        { status: 429 }
+      )
+    }
+
+    const body = await request.json()
+    const parsed = registerSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
+
+    const { name, email, phone, address, password } = parsed.data
 
     const existing = await db.customer.findUnique({ where: { email } })
     if (existing) {

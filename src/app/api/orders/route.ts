@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession, getCustomerSession } from '@/lib/auth'
+import { createOrderSchema } from '@/lib/validations'
 
 export async function POST(request: Request) {
   try {
@@ -14,27 +15,21 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { notes, items } = body
+    const parsed = createOrderSchema.safeParse(body)
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Productos son requeridos' },
+        { error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
 
-    // Validate prices and stock server-side
+    const { notes, items } = parsed.data
+
     const validatedItems: { productId: string; name: string; quantity: number; unitPrice: number }[] = []
     let total = 0
 
     for (const item of items) {
-      if (!item.productId || !item.quantity || item.quantity < 1) {
-        return NextResponse.json(
-          { error: 'Item inválido: productId y quantity requeridos' },
-          { status: 400 }
-        )
-      }
-
       const product = await db.product.findUnique({
         where: { id: item.productId },
         select: { id: true, name: true, price: true, discountPrice: true, onSale: true, stock: true }

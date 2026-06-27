@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { orderStatusSchema } from '@/lib/validations'
 
 export async function GET(
   _request: Request,
@@ -46,15 +47,16 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { status } = body
+    const parsed = orderStatusSchema.safeParse(body)
 
-    const validStatuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
-    if (!status || !validStatuses.includes(status)) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Estado inválido' },
+        { error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
+
+    const { status } = parsed.data
 
     const order = await db.order.update({
       where: { id },

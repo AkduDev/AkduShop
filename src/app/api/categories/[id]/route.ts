@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { categorySchema } from '@/lib/validations'
 
 export async function GET(
   request: NextRequest,
@@ -14,14 +15,14 @@ export async function GET(
         products: true
       }
     })
-    
+
     if (!category) {
       return NextResponse.json(
         { error: 'Categoría no encontrada' },
         { status: 404 }
       )
     }
-    
+
     return NextResponse.json(category)
   } catch (error) {
     console.error('Error fetching category:', error)
@@ -43,8 +44,18 @@ export async function PUT(
     }
 
     const { id } = await params
-    const data = await request.json()
-    
+    const body = await request.json()
+    const parsed = categorySchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
+        { status: 400 }
+      )
+    }
+
+    const data = parsed.data
+
     const category = await db.category.update({
       where: { id },
       data: {
@@ -53,7 +64,7 @@ export async function PUT(
         imageUrl: data.imageUrl || null
       }
     })
-    
+
     return NextResponse.json(category)
   } catch (error) {
     console.error('Error updating category:', error)
@@ -75,23 +86,22 @@ export async function DELETE(
     }
 
     const { id } = await params
-    
-    // Verificar si hay productos en esta categoría
+
     const productsCount = await db.product.count({
       where: { categoryId: id }
     })
-    
+
     if (productsCount > 0) {
       return NextResponse.json(
         { error: 'No se puede eliminar una categoría que tiene productos' },
         { status: 400 }
       )
     }
-    
+
     await db.category.delete({
       where: { id }
     })
-    
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting category:', error)

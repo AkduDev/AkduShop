@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { categorySchema } from '@/lib/validations'
 
 export async function GET(request: NextRequest) {
   try {
@@ -50,7 +51,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const data = await request.json()
+    const body = await request.json()
+    const parsed = categorySchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
+        { status: 400 }
+      )
+    }
+
+    const data = parsed.data
 
     const category = await db.category.create({
       data: {
