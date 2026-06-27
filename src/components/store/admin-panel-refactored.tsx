@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Package, Folder, Settings, LayoutDashboard, Box, Tag, ChevronLeft, ShoppingBag, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -71,9 +71,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
     name: '',
     description: ''
   })
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+
 
   useEffect(() => {
     fetchProducts()
@@ -159,7 +157,6 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
       featured: product.featured,
       onSale: product.onSale
     })
-    setImagePreview(product.imageUrl)
     setShowProductForm(true)
   }
 
@@ -212,7 +209,6 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
       featured: false,
       onSale: false
     })
-    setImagePreview(null)
     setEditingProduct(null)
     setShowProductForm(false)
   }
