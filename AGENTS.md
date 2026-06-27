@@ -6,7 +6,7 @@
 - Carrito client-side (localStorage), checkout vía WhatsApp, sin pasarela de pago
 - **DB dual:** SQLite (desarrollo) / Neon PostgreSQL (producción)
 - **Deploy:** Vercel (CI/CD automático via GitHub)
-- **Uploads:** Vercel Blob Storage
+- **Uploads:** Cloudinary (upload_stream, folder `akdushop/products`)
 
 ---
 
@@ -17,7 +17,6 @@
 - `src/app/layout.tsx` — envuelve con `<Providers>`
 - `src/hooks/use-products.ts` — refactorizado a `useQuery` + `useMutation`, options object `{category, limit}`
 - `src/hooks/use-categories.ts` — mismo patrón, staleTime 60s, pagination support
-- `src/hooks/use-crud.ts` — **pendiente de eliminar** (código muerto, 119 líneas)
 
 ### 2. Cuentas de clientes
 #### Prisma
@@ -72,19 +71,17 @@
 - **Zoom de imagen** (`product-detail-modal.tsx`) — hover → zoom 1.8x con transform-origin dinámico al cursor
 
 ### 7. Sistema de ofertas/rebajas (COMPLETADO)
-#### Completado:
-- **Prisma** — campos `discountPrice Float?` y `onSale Boolean @default(false)` en modelo Product, índice en `onSale`
-- **DB** — `npx prisma generate && npx prisma db push` ejecutado, schema sincronizado
-- **Types** — `Product` y `ProductFormData` actualizados con `discountPrice`, `onSale`
-- **API** — `GET /api/products`, `POST /api/products`, `PUT /api/products/[id]` actualizados para incluir nuevos campos
-- **Admin form** (`product-form-dialog.tsx`) — sección "En rebaja" con Switch + campo precio de oferta + cálculo de % descuento
-- **Admin panel** (`admin-panel-refactored.tsx`) — `productFormData` y funciones `handleEditProduct`, `resetProductForm` actualizadas
-- **Admin products-table.tsx** — columna "Oferta" con badge, precio original tachado y precio con descuento
+- **Prisma** — campos `discountPrice Float?` y `onSale Boolean @default(false)` en modelo Product
+- **Types** — `Product` y `ProductFormData` actualizados
+- **API** — GET/POST/PUT actualizados para incluir nuevos campos
+- **Admin form** — sección "En rebaja" con Switch + campo precio de oferta + cálculo de % descuento
+- **Admin panel** — `productFormData` y funciones actualizadas
+- **Admin products-table.tsx** — columna "Oferta" con badge, precio tachado
 - **Admin products-cards.tsx** — badge de oferta y precio con descuento
-- **Product card** (`product-card.tsx`) — precio original tachado + precio de oferta cuando `onSale=true`, badge "Oferta" rojo, usa precio de oferta en carrito
-- **Stats cards** — stat "En Oferta" con icono Tag, cuenta productos en rebaja
-- **Componente SalesSection** (`sales-section.tsx`) — sección con gradiente rojo, countdown de 24h, grid responsive, animaciones scroll
-- **Página principal** (`page.tsx`) — SalesSection integrada entre FeaturedProducts y ProductsSection
+- **Product card** — precio tachado + precio de oferta, badge "Oferta" rojo
+- **Stats cards** — stat "En Oferta" con icono Tag
+- **SalesSection** (`sales-section.tsx`) — sección con gradiente, countdown, grid responsive
+- **Página principal** — SalesSection integrada
 
 ### 8. Deploy a Vercel (COMPLETADO)
 - **Repo:** `https://github.com/AkduDev/AkduShop.git`
@@ -92,16 +89,14 @@
 - **URL producción:** `https://akdushop.vercel.app`
 - **CI/CD:** cada push a `main` auto-deploya
 - **Build:** `vercel-build` script → `prisma generate && prisma db push --skip-generate && next build`
-- **Blob Store:** `akdushop-blobs` (store_18Iip8jpM0rwmCUv, iad1) — **pendiente linkar** para habilitar uploads
-- **Env vars en Vercel:** `DATABASE_URL` (Neon pooler), `JWT_SECRET`
-- **AGENTS.md** actualizado con info de deploy
+- **Env vars en Vercel:** `DATABASE_URL` (Neon pooler), `JWT_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
 
 ### 9. Admin Panel — Responsive + Visual (COMPLETADO)
-- **Header admin** (`header.tsx`) — hamburger menu en mobile, nav items en desktop
-- **Products cards** (`products-cards.tsx`) — grid layout, dropdown actions, hover effects, imagen con gradiente overlay, badges flotantes, zoom hover
-- **Categories cards** (`categories-cards.tsx`) — headers coloreados por categoría, dropdown actions, icono por categoría, footer con conteo productos
-- **Orders cards** (`orders-table.tsx`) — barra de estado coloreada, layout limpio en mobile
-- **Settings panel** (`settings-panel.tsx`) — 3 tabs principales visibles + "Más" dropdown para 4 secciones, secciones coloreadas con iconos, colapsable
+- **Header admin** — hamburger menu en mobile, nav items en desktop
+- **Products cards** — grid layout, dropdown actions, hover effects, badges flotantes
+- **Categories cards** — headers coloreados, dropdown actions, icono por categoría
+- **Orders cards** — barra de estado coloreada, layout limpio en mobile
+- **Settings panel** — 3 tabs + "Más" dropdown, secciones coloreadas con iconos
 
 ### 10. Store Header — Responsive (COMPLETADO)
 - Solo 2 categorías visibles + "Más" dropdown en mobile
@@ -109,17 +104,46 @@
 - Categorías se expanden en desktop
 
 ### 11. Paginación + Cache (COMPLETADO)
-- **API categories** — paginación server-side (`page`, `limit`, `total`, `totalPages`)
-- **useProducts** — options object `{category, limit}`, staleTime 30s, placeholderData
+- **API categories** — paginación server-side
+- **useProducts** — options object, staleTime 30s, placeholderData
 - **useCategories** — staleTime 60s, pagination support
-- **Admin panel** — products limit=100, categories paginadas con UI (flechas, page info)
-- **Cache global** — staleTime 30s en QueryClient (excepto auth: staleTime 0)
+- **Admin panel** — products limit=100, categories paginadas
+- **Cache global** — staleTime 30s en QueryClient
 
 ### 12. Seguridad — Fixes Críticos (COMPLETADO)
-- **Seed endpoint** (`/api/seed`) — protegido con auth admin, cambiado a POST, sin credenciales en response
-- **Migrate-images endpoint** (`/api/migrate-images`) — protegido con auth admin, cambiado a POST
-- **Categories CRUD** — auth admin agregado en POST/PUT/DELETE
-- **Orders** — precios validados server-side contra DB (`discountPrice` si `onSale`), stock verificado antes de crear orden
+- **Seed/migrate endpoints** — protegidos con auth admin, cambiado a POST
+- **Categories CRUD** — auth admin en POST/PUT/DELETE
+- **Orders** — precios validados server-side, stock verificado
+
+### 13. Upload de imágenes — Cloudinary (COMPLETADO)
+- **Provider:** Cloudinary (migrado desde Vercel Blob)
+- **Cloud name:** `ds7tspnjm` (verificar en Cloudinary Dashboard → Settings)
+- **Ruta:** `src/app/api/upload/route.ts` — usa `cloudinary.uploader.upload_stream()`
+- **Runtime:** Node.js (`export const runtime = 'nodejs'`)
+- **Config:** `cloudinary.config()` se ejecuta dentro del handler (no a nivel de módulo)
+- **Carpeta:** `akdushop/products`
+- **Env vars necesarias:** `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+
+### 14. Code Cleanup + Security Hardening (COMPLETADO)
+- **Dead code eliminado:** `src/lib/constants.ts` (credenciales hardcodeadas), `use-mobile.ts`, `sidebar.tsx`
+- **14 paquetes Radix UI no usados eliminados** + componentes shadcn wrappers muertos
+- **`next-themes` eliminado** (nunca se importó)
+- **`bun.lock` eliminado** (duplicado con `package-lock.json`)
+- **`server.err`/`server.log` eliminados** del repo
+- **Admin panel:** variables muertas eliminadas (`imagePreview`, `isUploading`, `fileInputRef`)
+
+### 15. Security Headers (COMPLETADO)
+- `X-Frame-Options: DENY`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
+- `poweredByHeader: false`
+- `remotePatterns` restringido a `images.unsplash.com` y `res.cloudinary.com`
+
+### 16. TypeScript + ESLint (COMPLETADO)
+- `noImplicitAny: true` en tsconfig (antes `false`)
+- ESLint: reglas esenciales habilitadas en modo `warn` (`no-explicit-any`, `no-unused-vars`, `prefer-const`, `no-redeclare`, `no-unreachable`, `no-debugger: error`)
+- `react-hooks/exhaustive-deps: warn`
 
 ---
 
@@ -131,32 +155,33 @@
 | Cookie separada para customers | No interferir con sesión admin |
 | Mutations retornan `Promise<boolean>` | Compatible con código existente |
 | Checkout automático post-login | UX: usuario no hace clic dos veces |
-| CSS variables `--gold` con valores azules | Renombrar 75+ clases Tailwind sería muy costoso, cambiar valores CSS es más limpio |
-| `discountPrice` nullable en Prisma | Productos sin oferta simplemente tienen null, sin booleano extra innecesario |
-| `onSale` boolean separado de `discountPrice` | Permite marcar "en oferta" sin necesidad de precio, o tener precio deshabilitado |
-| Seed/migrate como POST con auth | GET no debe mutar estado; auth previene ejecución arbitraria |
-| Precios server-side en orders | Previene manipulación de precios por el cliente |
-| useProducts con options object | Backward-compatible, permite pasar limit para admin (100) vs store (12) |
+| CSS variables `--gold` con valores azules | Renombrar 75+ clases Tailwind sería muy costoso |
+| `discountPrice` nullable en Prisma | Productos sin oferta simplemente tienen null |
+| `onSale` boolean separado de `discountPrice` | Permite marcar "en oferta" sin precio |
+| Seed/migrate como POST con auth | GET no debe mutar estado |
+| Precios server-side en orders | Previene manipulación por el cliente |
+| Cloudinary upload_stream en handler | Config dentro del handler evita problemas con env vars en serverless |
+| `cloudinary.config()` dentro del POST | En Vercel las env vars no están disponibles a nivel de módulo |
+| ESLint en modo warn, no error | Evita que builds fallen pero alerta sobre código problemático |
 
 ---
 
 ## Pendiente — Futuro
 ### Seguridad
-- **Rate limiting** — agregar `next-rate-limit` o middleware para endpoints de auth (brute-force vulnerable)
-- **Input validation con Zod** — schemas para todos los API routes (email, password, precios, cantidades)
-- **Middleware de protección** — `src/middleware.ts` para rutas admin
+- **Rate limiting** — usar Redis/Upstash en vez de in-memory Map (inútil en Vercel serverless)
+- **Input validation con Zod** — schemas para todos los API routes
+- **Middleware admin** — `src/middleware.ts` protege rutas admin (ya implementado)
 
 ### Performance
-- **Stats endpoint** — full table scan en `/api/admin/stats` para calcular inventario; reemplazar con Prisma aggregate o raw SQL `SUM(price * stock)`
+- **Stats endpoint** — full table scan en `/api/admin/stats`; reemplazar con Prisma aggregate
 - **Búsqueda server-side** — endpoint de búsqueda en API en vez de filtrar cliente
 
 ### Calidad de código
-- **Eliminar `use-crud.ts`** — código muerto (119 líneas), documentado como "no usado"
-- **Reemplazar console.log/error** — 32 llamadas en producción; considerar logger estructurado (pino)
-- **React DevTools** — agregar en development
+- **Eliminar `use-crud.ts`** — código muerto si aún existe
+- **Reemplazar console.error** — considerar logger estructurado (pino)
+- **Prisma** — considerar Decimal en vez de Float para precios monetarios
 
 ### Funcionalidad
-- **Blob Store linkado** — linkar `akdushop-blobs` desde Vercel Dashboard para habilitar uploads de imagen
 - **Cuentas admin con roles** — considerar roles adicionales (viewer, editor)
 
 ---
@@ -196,11 +221,14 @@
 - `src/app/api/orders/[id]/route.ts` — GET/PUT orden
 - `src/app/api/seed/route.ts` — POST con auth admin
 - `src/app/api/migrate-images/route.ts` — POST con auth admin
-- `src/app/api/upload/route.ts` — upload images via Vercel Blob Storage
+- `src/app/api/upload/route.ts` — upload images via Cloudinary
 - `src/app/api/admin/stats/route.ts` — estadísticas admin (pendiente: optimizar full table scan)
-- `.env` — SQLite (dev) o Neon (prod), JWT_SECRET requerido
+- `src/middleware.ts` — JWT auth lazy evaluation, protección rutas admin
+- `next.config.ts` — security headers, remotePatterns restringidos, poweredByHeader: false
+- `eslint.config.mjs` — reglas esenciales en modo warn
+- `.env` — SQLite (dev) o Neon (prod), JWT_SECRET, CLOUDINARY_* requeridos
 - `.env.development` — SQLite + dev JWT secret
-- `vercel.json` — config de build para Vercel (vercel-build script)
+- `vercel.json` — config de build para Vercel
 - `scripts/switch-db.js` — alterna SQLite/Neon + regenera Prisma client
 
 ---
@@ -209,7 +237,8 @@
 - Admin: `admin@lesly.com` / `123Lesly`
 - DB SQLite local: `prisma/db/custom.db`
 - Neon: ver `.env.production.bak`
-- JWT_SECRET generado via `openssl rand -base64 32` (sin fallback hardcodeado)
+- JWT_SECRET generado via `openssl rand -base64 32`
+- Cloudinary: cloud name `ds7tspnjm` (verificar en Dashboard → Settings)
 - Vercel project: `akdushop` (akdulaydev-8764s-projects)
 
 ---
