@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import { put } from '@vercel/blob'
 import crypto from 'crypto'
+import { writeFile, mkdir } from 'fs/promises'
+import path from 'path'
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,16 +40,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const extension = file.name.split('.').pop() || 'jpg'
-    const fileName = `${crypto.randomUUID()}.${extension}`
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    if (!allowedExtensions.includes(extension)) {
+      return NextResponse.json(
+        { error: 'Formato de imagen no válido. Usa JPG, PNG, GIF o WEBP' },
+        { status: 400 }
+      )
+    }
 
-    const blob = await put(`products/${fileName}`, file, {
-      access: 'public',
-      addRandomSuffix: false,
-    })
+    const fileName = `${crypto.randomUUID()}.${extension}`
+    const buffer = Buffer.from(await file.arrayBuffer())
+
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+
+    if (blobToken) {
+      const { put } = await import('@vercel/blob')
+      const blob = await put(`products/${fileName}`, file, {
+        access: 'public',
+        addRandomSuffix: false,
+      })
+
+      return NextResponse.json({
+        url: blob.url,
+        fileName: fileName,
+        size: file.size
+      }, { status: 201 })
+    }
+
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products')
+    await mkdir(uploadDir, { recursive: true })
+    const filePath = path.join(uploadDir, fileName)
+    await writeFile(filePath, buffer)
 
     return NextResponse.json({
-      url: blob.url,
+      url: `/uploads/products/${fileName}`,
       fileName: fileName,
       size: file.size
     }, { status: 201 })
