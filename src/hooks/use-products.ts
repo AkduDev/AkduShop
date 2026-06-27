@@ -9,19 +9,34 @@ export type ProductPayload = Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'c
 interface UseProductsOptions {
   category?: string
   limit?: number
+  featured?: boolean
+  onSale?: boolean
+  search?: string
 }
 
 export function useProducts(options: UseProductsOptions = {}) {
-  const { category: selectedCategory = 'all', limit = 12 } = options
+  const { category: selectedCategory = 'all', limit = 12, featured, onSale, search } = options
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
 
-  const queryKey = useMemo(() => ['products', selectedCategory, page, limit], [selectedCategory, page, limit])
+  const queryKey = useMemo(
+    () => ['products', selectedCategory, page, limit, featured, onSale, search],
+    [selectedCategory, page, limit, featured, onSale, search]
+  )
 
   const { data, isLoading, isFetching, error } = useQuery({
     queryKey,
     queryFn: async () => {
-      const res = await fetch(`/api/products?page=${page}&limit=${limit}&categoryId=${selectedCategory}`)
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        categoryId: selectedCategory,
+      })
+      if (featured) params.set('featured', 'true')
+      if (onSale) params.set('onSale', 'true')
+      if (search) params.set('search', search)
+
+      const res = await fetch(`/api/products?${params.toString()}`)
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
       const json = await res.json()
       return {
@@ -113,6 +128,5 @@ export function useProducts(options: UseProductsOptions = {}) {
     updateProduct,
     deleteProduct,
     toggleFeatured,
-    setItems: () => {},
   }
 }

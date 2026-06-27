@@ -90,10 +90,8 @@ export function useCategories() {
     error: error?.message ?? null,
     page,
     setPage,
-    fetchCategories,
     createCategory,
     updateCategory,
     deleteCategory,
-    setItems: () => {},
   }
 }

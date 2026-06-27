@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/types'
 import type { Order, OrderStatus } from '@/types'
+import { useToast } from '@/hooks/use-toast'
 
 interface OrdersTableProps {
   onStatusChange?: (id: string, status: OrderStatus) => Promise<void>
@@ -32,6 +33,7 @@ interface PaginatedOrders {
 export function OrdersTable({ onStatusChange }: OrdersTableProps) {
   const [page, setPage] = useState(1)
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   const { data, isLoading, error } = useQuery<PaginatedOrders>({
     queryKey: ['orders', page],
@@ -64,10 +66,14 @@ export function OrdersTable({ onStatusChange }: OrdersTableProps) {
       })
       return { previous }
     },
+    onSuccess: () => {
+      toast({ title: 'Estado actualizado correctamente' })
+    },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(['orders', page], context.previous)
       }
+      toast({ title: 'Error al actualizar el estado', variant: 'destructive' })
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] })

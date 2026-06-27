@@ -6,15 +6,33 @@ import { productSchema } from '@/lib/validations'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '12')
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '12') || 12))
     const categoryId = searchParams.get('categoryId')
+    const featured = searchParams.get('featured')
+    const onSale = searchParams.get('onSale')
+    const search = searchParams.get('search')
 
     const skip = (page - 1) * limit
 
-    const where = categoryId && categoryId !== 'all'
-      ? { categoryId }
-      : {}
+    const where: Record<string, unknown> = {}
+
+    if (categoryId && categoryId !== 'all') {
+      where.categoryId = categoryId
+    }
+    if (featured === 'true') {
+      where.featured = true
+    }
+    if (onSale === 'true') {
+      where.onSale = true
+      where.stock = { gt: 0 }
+    }
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ]
+    }
 
     const [products, total] = await Promise.all([
       db.product.findMany({

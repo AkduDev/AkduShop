@@ -26,14 +26,19 @@ export async function POST(request: Request) {
 
     const { notes, items } = parsed.data
 
+    const productIds = items.map((i) => i.productId)
+    const products = await db.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true, price: true, discountPrice: true, onSale: true, stock: true },
+    })
+
+    const productMap = new Map(products.map((p) => [p.id, p]))
+
     const validatedItems: { productId: string; name: string; quantity: number; unitPrice: number }[] = []
     let total = 0
 
     for (const item of items) {
-      const product = await db.product.findUnique({
-        where: { id: item.productId },
-        select: { id: true, name: true, price: true, discountPrice: true, onSale: true, stock: true }
-      })
+      const product = productMap.get(item.productId)
 
       if (!product) {
         return NextResponse.json(
@@ -60,31 +65,50 @@ export async function POST(request: Request) {
       })
     }
 
-    const order = await db.order.create({
-      data: {
-        customerId: customerSession.id,
-        customerName: customerSession.name,
-        customerPhone: null,
-        customerAddress: null,
-        notes: notes || null,
-        total,
-        items: {
-          create: validatedItems.map((item) => ({
-            productId: item.productId,
-            name: item.name,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-          })),
+    const order = await db.$transaction(async (tx) => {
+      for (const item of validatedItems) {
+        const updated = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            stock: { gte: item.quantity },
+          },
+          data: {
+            stock: { decrement: item.quantity },
+          },
+        })
+
+        if (updated.count === 0) {
+          throw new Error(`Stock insuficiente para "${item.name}"`)
+        }
+      }
+
+      return tx.order.create({
+        data: {
+          customerId: customerSession.id,
+          customerName: customerSession.name,
+          customerPhone: null,
+          customerAddress: null,
+          notes: notes || null,
+          total,
+          items: {
+            create: validatedItems.map((item) => ({
+              productId: item.productId,
+              name: item.name,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+            })),
+          },
         },
-      },
-      include: { items: true },
+        include: { items: true },
+      })
     })
 
     return NextResponse.json(order, { status: 201 })
   } catch (error) {
     console.error('Error creating order:', error)
+    const message = error instanceof Error ? error.message : 'Error al crear la orden'
     return NextResponse.json(
-      { error: 'Error al crear la orden' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -99,8 +123,8 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20') || 20))
     const status = searchParams.get('status')
 
     const skip = (page - 1) * limit

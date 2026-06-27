@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
-import { ShoppingCart, X, Star, Check, ZoomIn } from 'lucide-react'
+import { ShoppingCart, X, Star, Check, ZoomIn, Tag } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,10 +14,13 @@ interface Product {
   name: string
   description: string
   price: number
+  discountPrice?: number | null
   imageUrl: string
   category: string
+  categoryId: string
   stock: number
   featured: boolean
+  onSale: boolean
 }
 
 interface ProductDetailModalProps {
@@ -35,11 +38,14 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
 
   if (!product) return null
 
+  const isOnSale = product.onSale && product.discountPrice != null && product.discountPrice < product.price
+  const displayPrice = isOnSale ? product.discountPrice! : product.price
+
   const handleAddToCart = () => {
     addItem({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: displayPrice,
       imageUrl: product.imageUrl
     })
     onOpenChange(false)
@@ -63,7 +69,6 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
-          {/* Image Section with Zoom */}
           <div
             ref={imgRef}
             className="relative aspect-square md:aspect-auto md:h-full bg-muted cursor-crosshair overflow-hidden"
@@ -82,20 +87,26 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
               }}
             />
 
-            {/* Zoom indicator */}
             <div className={`absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-background/80 backdrop-blur-sm rounded-full p-1.5 shadow-md transition-opacity duration-200 ${zoom ? 'opacity-0' : 'opacity-100'}`}>
               <ZoomIn className="h-4 w-4 text-muted-foreground" />
             </div>
 
+            {isOnSale && (
+              <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-500 text-white font-medium text-xs sm:text-sm">
+                <Tag className="w-3 h-3 mr-1" />
+                Oferta
+              </Badge>
+            )}
+
             {product.featured && (
-              <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-[var(--gold)] text-primary font-medium text-xs sm:text-sm">
+              <Badge className={`absolute top-2 left-2 sm:top-4 sm:left-4 ${isOnSale ? 'mt-6 sm:mt-10' : ''} bg-[var(--gold)] text-primary font-medium text-xs sm:text-sm`}>
                 <Star className="w-3 h-3 mr-1 fill-primary" />
                 Destacado
               </Badge>
             )}
 
             {lowStock && (
-              <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 mt-6 sm:mt-10 bg-amber-500/90 text-white font-medium text-xs sm:text-sm">
+              <Badge className={`absolute top-2 left-2 sm:top-4 sm:left-4 ${isOnSale || product.featured ? 'mt-12 sm:mt-20' : ''} bg-amber-500/90 text-white font-medium text-xs sm:text-sm`}>
                 ¡Solo quedan {product.stock}!
               </Badge>
             )}
@@ -110,7 +121,6 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
             </Button>
           </div>
 
-          {/* Content Section */}
           <div className="p-4 sm:p-8 flex flex-col">
             <Badge variant="outline" className="w-fit mb-2 sm:mb-3 border-primary/20 text-xs sm:text-sm">
               {product.category}
@@ -119,9 +129,20 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
             <h2 className="text-xl sm:text-3xl font-bold mb-2 sm:mb-3">{product.name}</h2>
 
             <div className="flex items-baseline gap-2 mb-4 sm:mb-6">
-              <span className="text-2xl sm:text-4xl font-bold text-foreground">
-                ${product.price.toFixed(2)}
-              </span>
+              {isOnSale ? (
+                <>
+                  <span className="text-2xl sm:text-4xl font-bold text-red-500">
+                    ${displayPrice.toFixed(2)}
+                  </span>
+                  <span className="text-lg sm:text-xl text-muted-foreground line-through">
+                    ${product.price.toFixed(2)}
+                  </span>
+                </>
+              ) : (
+                <span className="text-2xl sm:text-4xl font-bold text-foreground">
+                  ${product.price.toFixed(2)}
+                </span>
+              )}
               <span className="text-xs sm:text-sm text-muted-foreground">USD</span>
             </div>
 
@@ -129,7 +150,6 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
               {product.description}
             </p>
 
-            {/* Stock Status */}
             <div className="flex items-center gap-2 mb-4 sm:mb-6">
               {product.stock > 0 ? (
                 <>
@@ -146,7 +166,6 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
               )}
             </div>
 
-            {/* Features */}
             <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-8">
               <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                 <Check className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />

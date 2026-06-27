@@ -48,7 +48,7 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
 
   // Hooks personalizados — admin carga todos los items (límite alto)
   const { products, loading: productsLoading, pagination: productsPagination, page: productPage, setPage: setProductPage, fetchProducts, createProduct, updateProduct, deleteProduct, toggleFeatured } = useProducts({ limit: 100 })
-  const { categories, loading: categoriesLoading, pagination: categoriesPagination, page: categoryPage, setPage: setCategoryPage, fetchCategories, createCategory, updateCategory, deleteCategory } = useCategories()
+  const { categories, loading: categoriesLoading, pagination: categoriesPagination, page: categoryPage, setPage: setCategoryPage, createCategory, updateCategory, deleteCategory } = useCategories()
   const loading = productsLoading || categoriesLoading
 
   // Estados para diálogos
@@ -76,14 +76,8 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const fetchData = async () => {
-      await Promise.all([
-        fetchProducts(),
-        fetchCategories()
-      ])
-    }
-    fetchData()
-  }, [fetchProducts, fetchCategories])
+    fetchProducts()
+  }, [fetchProducts])
 
   const calculateStats = (productsList: Product[], categoriesList: Category[]) => {
     const totalStock = productsList.reduce((sum, p) => sum + p.stock, 0)

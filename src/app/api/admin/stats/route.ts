@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth'
 export async function GET() {
   try {
     const session = await getSession()
-    
+
     if (!session || session.role !== 'admin') {
       return NextResponse.json(
         { error: 'No autorizado' },
@@ -13,14 +13,13 @@ export async function GET() {
       )
     }
 
-    // Obtener estadísticas
     const [
       totalProducts,
       totalCategories,
       totalStock,
       lowStockProducts,
       featuredProducts,
-      products
+      onSaleProducts,
     ] = await Promise.all([
       db.product.count(),
       db.category.count(),
@@ -35,16 +34,15 @@ export async function GET() {
       db.product.count({
         where: { featured: true }
       }),
-      db.product.findMany({
-        select: {
-          price: true,
-          stock: true
-        }
-      })
+      db.product.count({
+        where: { onSale: true }
+      }),
     ])
 
-    // Calcular valor del inventario
-    const inventoryValue = products.reduce((sum, p) => sum + (p.price * p.stock), 0)
+    const inventoryResult = await db.$queryRaw<[{ inventoryValue: number }]>`
+      SELECT COALESCE(SUM("price" * "stock"), 0) as "inventoryValue" FROM "Product"
+    `
+    const inventoryValue = Number(inventoryResult[0]?.inventoryValue ?? 0)
 
     return NextResponse.json({
       totalProducts,
@@ -52,6 +50,7 @@ export async function GET() {
       totalStock: totalStock._sum.stock || 0,
       lowStockProducts,
       featuredProducts,
+      onSaleProducts,
       inventoryValue
     })
   } catch (error) {

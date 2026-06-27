@@ -22,26 +22,23 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const { isAdmin, login, logout } = useAuth()
-  const { products, loading, pagination, fetchProducts } = useProducts({ category: selectedCategory })
-  const { categories, fetchCategories } = useCategories()
+  const { products, loading, pagination, fetchProducts } = useProducts({
+    category: selectedCategory,
+    search: searchQuery || undefined,
+  })
+  const { products: featuredProducts } = useProducts({ featured: true, limit: 50 })
+  const { products: saleProducts } = useProducts({ onSale: true, limit: 50 })
+  const { categories } = useCategories()
   const { handleWhatsAppCheckout } = useCartCheckout()
 
   const defaultPagination = { total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false }
-  const featuredProducts = products?.filter(p => p.featured) ?? []
-  const saleProducts = products?.filter(p => p.onSale && p.stock > 0) ?? []
 
   useEffect(() => {
     setCurrentPage(1)
   }, [selectedCategory])
-
-  useEffect(() => {
-    Promise.all([
-      fetchProducts(1),
-      fetchCategories()
-    ])
-  }, [selectedCategory, fetchProducts, fetchCategories])
 
   const handleViewDetails = (product: Product) => {
     setSelectedProduct(product)
@@ -56,6 +53,11 @@ export default function Home() {
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId)
+    setCurrentPage(1)
+  }
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
     setCurrentPage(1)
   }
 
@@ -76,14 +78,14 @@ export default function Home() {
       <main className="flex-1">
         <HeroSection />
 
-        {selectedCategory === 'all' && (
+        {selectedCategory === 'all' && !searchQuery && (
           <FeaturedProducts
             products={featuredProducts}
             onViewDetails={handleViewDetails}
           />
         )}
 
-        {selectedCategory === 'all' && saleProducts.length > 0 && (
+        {selectedCategory === 'all' && !searchQuery && saleProducts.length > 0 && (
           <SalesSection
             products={saleProducts}
             onViewDetails={handleViewDetails}
@@ -97,7 +99,9 @@ export default function Home() {
           categories={categories ?? []}
           selectedCategory={selectedCategory}
           currentPage={currentPage}
+          searchQuery={searchQuery}
           onPageChange={handlePageChange}
+          onSearch={handleSearch}
           onViewDetails={handleViewDetails}
         />
       </main>

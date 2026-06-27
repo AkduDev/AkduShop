@@ -7,20 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCartStore } from '@/store/cart'
-
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  discountPrice?: number | null
-  imageUrl: string
-  category: string
-  categoryId: string
-  stock: number
-  featured: boolean
-  onSale: boolean
-}
+import type { Product } from '@/types'
 
 interface ProductCardProps {
   product: Product
@@ -162,7 +149,7 @@ export function ProductCard({ product, onViewDetails, variant = 'default' }: Pro
                 >
                   <Minus className="h-3 w-3" />
                 </button>
-                <span className="w-5 text-center text-xs font-medium tabular-nums">{qty + (justAdded ? 0 : 0)}</span>
+                <span className="w-5 text-center text-xs font-medium tabular-nums">{qty}</span>
                 <button
                   className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full"
                   onClick={(e) => { e.stopPropagation(); setQty(Math.min(product.stock, qty + 1)) }}
