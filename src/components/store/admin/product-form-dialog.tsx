@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { X, Tag } from 'lucide-react'
+import { X, Tag, Upload, ImageIcon, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -56,25 +56,35 @@ export function ProductFormDialog({
 }: ProductFormDialogProps) {
   const [imagePreview, setImagePreview] = useState(formData.imageUrl || null)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setImagePreview(formData.imageUrl || null)
+  }, [formData.imageUrl, open])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    setUploadError(null)
     setIsUploading(true)
 
     try {
       if (!file.type.startsWith('image/')) {
-        alert('Por favor selecciona un archivo de imagen válido')
+        setUploadError('Por favor selecciona un archivo de imagen válido')
         setIsUploading(false)
         return
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        alert('La imagen debe ser menor a 5MB')
+        setUploadError('La imagen debe ser menor a 5MB')
         setIsUploading(false)
         return
       }
+
+      const localPreview = URL.createObjectURL(file)
+      setImagePreview(localPreview)
 
       const formDataUpload = new FormData()
       formDataUpload.append('file', file)
@@ -91,19 +101,33 @@ export function ProductFormDialog({
       const uploadData = await uploadRes.json()
       const imageUrl = uploadData.url
 
+      URL.revokeObjectURL(localPreview)
       setImagePreview(imageUrl)
       onChange({ ...formData, imageUrl })
-      setIsUploading(false)
     } catch (error) {
       console.error('Error uploading image:', error)
-      alert('Error al subir la imagen. Inténtalo de nuevo.')
+      setUploadError('Error al subir la imagen. Inténtalo de nuevo.')
+      setImagePreview(formData.imageUrl || null)
+    } finally {
       setIsUploading(false)
     }
   }
 
+  const handleRemoveImage = () => {
+    setImagePreview(null)
+    onChange({ ...formData, imageUrl: '' })
+    setUploadError(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleTriggerFileInput = () => {
+    fileInputRef.current?.click()
+  }
+
   const handleSubmit = () => {
     if (!formData.name || !formData.price || !formData.categoryId || !formData.stock) {
-      alert('Por favor completa todos los campos requeridos')
       return
     }
 
@@ -114,52 +138,98 @@ export function ProductFormDialog({
     ? Math.round((1 - parseFloat(formData.discountPrice) / parseFloat(formData.price)) * 100)
     : 0
 
+  const isEditing = !!product
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">
-            {product ? 'Editar Producto' : 'Nuevo Producto'}
+            {isEditing ? 'Editar Producto' : 'Nuevo Producto'}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
+          {/* Image Section */}
           <div className="space-y-2">
             <Label>Imagen del producto</Label>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  disabled={isUploading}
-                />
-                {isUploading && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Subiendo imagen...
-                  </p>
-                )}
-              </div>
-              {imagePreview && (
-                <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-muted border border-border/50">
+
+            {imagePreview ? (
+              <div className="relative group">
+                <div className="relative w-full aspect-video sm:aspect-[16/10] rounded-lg overflow-hidden bg-muted border border-border/50">
                   <Image
                     src={imagePreview}
-                    alt="Preview"
+                    alt="Preview del producto"
                     fill
                     className="object-cover"
+                    sizes="(max-width: 640px) 100vw, 50vw"
                   />
-                  <button
-                    onClick={() => {
-                      setImagePreview(null)
-                      onChange({ ...formData, imageUrl: '' })
-                    }}
-                    className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Subiendo imagen...
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleTriggerFileInput}
+                    disabled={isUploading}
+                    className="flex-1"
+                  >
+                    <Upload className="h-3.5 w-3.5 mr-1.5" />
+                    Reemplazar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRemoveImage}
+                    disabled={isUploading}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <X className="h-3.5 w-3.5 mr-1.5" />
+                    Eliminar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={handleTriggerFileInput}
+                className="flex flex-col items-center justify-center w-full aspect-video sm:aspect-[16/10] rounded-lg border-2 border-dashed border-border/50 bg-muted/30 hover:bg-muted/50 hover:border-primary/30 transition-colors cursor-pointer"
+              >
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <ImageIcon className="h-8 w-8" />
+                    <p className="text-sm font-medium">Haz clic para subir una imagen</p>
+                    <p className="text-xs">JPG, PNG, GIF, WEBP (máx. 5MB)</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            {uploadError && (
+              <p className="text-sm text-destructive">{uploadError}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -292,8 +362,8 @@ export function ProductFormDialog({
           <Button variant="outline" onClick={onCancel} className="flex-1">
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} className="flex-1">
-            {product ? 'Actualizar' : 'Crear'} Producto
+          <Button onClick={handleSubmit} className="flex-1" disabled={isUploading}>
+            {isEditing ? 'Actualizar' : 'Crear'} Producto
           </Button>
         </div>
       </DialogContent>
