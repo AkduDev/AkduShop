@@ -68,4 +68,4 @@ db/*.db
 prisma/db/*.db
 
 # IDE
-.vscode/
+.vscode/AGENTS.md
