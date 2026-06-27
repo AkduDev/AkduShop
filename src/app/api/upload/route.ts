@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import crypto from 'crypto'
+import { v2 as cloudinary } from 'cloudinary'
 
-export const runtime = 'nodejs'
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,16 +16,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
-      )
-    }
-
-    const blobToken = process.env.BLOB_READ_WRITE_TOKEN
-
-    if (!blobToken) {
-      console.error('BLOB_READ_WRITE_TOKEN no está configurado. Linka el Blob Store en Vercel Dashboard → Settings → Environment Variables')
-      return NextResponse.json(
-        { error: 'Storage no configurado. Ve a Vercel Dashboard → akdushop → Settings → Blob y linka el store.' },
-        { status: 500 }
       )
     }
 
@@ -50,26 +44,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']
-    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-    if (!allowedExtensions.includes(extension)) {
-      return NextResponse.json(
-        { error: 'Formato de imagen no válido. Usa JPG, PNG, GIF o WEBP' },
-        { status: 400 }
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
+
+    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      cloudinary.uploader.upload(
+        base64,
+        {
+          folder: 'akdushop/products',
+          resource_type: 'image',
+          transformation: [
+            { width: 1200, height: 1200, crop: 'limit', quality: 'auto', fetch_format: 'auto' }
+          ],
+        },
+        (error, result) => {
+          if (error) reject(error)
+          else resolve(result as { secure_url: string })
+        }
       )
-    }
-
-    const fileName = `${crypto.randomUUID()}.${extension}`
-
-    const { put } = await import('@vercel/blob')
-    const blob = await put(`products/${fileName}`, file, {
-      access: 'public',
-      addRandomSuffix: false,
     })
 
     return NextResponse.json({
-      url: blob.url,
-      fileName: fileName,
+      url: result.secure_url,
+      fileName: result.secure_url.split('/').pop() || '',
       size: file.size
     }, { status: 201 })
 
