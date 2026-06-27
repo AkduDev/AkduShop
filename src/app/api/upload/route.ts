@@ -60,7 +60,8 @@ export async function POST(request: NextRequest) {
 
     const timestamp = Math.round(Date.now() / 1000)
     const folder = 'akdushop/products'
-    const paramsToSign = `folder=${folder}&timestamp=${timestamp}&resource_type=image`
+    const transformation = 'c_limit,w_1200,h_1200,q_auto,f_auto'
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}&transformation=${transformation}`
     const crypto = await import('crypto')
     const signature = crypto
       .createHmac('sha256', apiSecret)
@@ -72,9 +73,8 @@ export async function POST(request: NextRequest) {
     uploadForm.append('api_key', apiKey)
     uploadForm.append('timestamp', String(timestamp))
     uploadForm.append('folder', folder)
-    uploadForm.append('resource_type', 'image')
+    uploadForm.append('transformation', transformation)
     uploadForm.append('signature', signature)
-    uploadForm.append('transformation', 'c_limit,w_1200,h_1200,q_auto,f_auto')
 
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
