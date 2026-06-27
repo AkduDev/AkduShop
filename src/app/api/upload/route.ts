@@ -4,12 +4,6 @@ import { v2 as cloudinary } from 'cloudinary'
 
 export const runtime = 'nodejs'
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
-
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
@@ -26,6 +20,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cloudinary no configurado.' }, { status: 500 })
     }
 
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret,
+    })
+
     const formData = await request.formData()
     const file = formData.get('file') as File
 
@@ -36,15 +36,16 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const result: any = await new Promise((resolve, reject) => {
+    const result = await new Promise<Record<string, unknown>>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder: 'akdushop/products', resource_type: 'image' },
-        (error: any, result: any) => {
+        (error: unknown, result: unknown) => {
           if (error) {
-            console.error('Cloudinary stream error:', JSON.stringify(error))
-            reject(error)
+            const errStr = typeof error === 'string' ? error : JSON.stringify(error)
+            console.error('Cloudinary stream error:', errStr)
+            reject(new Error(errStr))
           } else {
-            resolve(result)
+            resolve(result as Record<string, unknown>)
           }
         }
       )
@@ -53,15 +54,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       url: result.secure_url,
-      fileName: result.public_id.split('/').pop() || '',
+      fileName: String(result.public_id || '').split('/').pop() || '',
       size: file.size
     }, { status: 201 })
 
-  } catch (error: any) {
-    console.error('Upload error:', error?.message || String(error))
-    return NextResponse.json(
-      { error: error?.message || 'Error al subir la imagen' },
-      { status: 500 }
-    )
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error('Upload error:', msg)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
