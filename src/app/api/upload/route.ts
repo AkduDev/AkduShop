@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { v2 as cloudinary } from 'cloudinary'
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
+export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +14,28 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       )
     }
+
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+    const apiKey = process.env.CLOUDINARY_API_KEY
+    const apiSecret = process.env.CLOUDINARY_API_SECRET
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      console.error('Cloudinary env vars missing:', {
+        cloudName: !!cloudName,
+        apiKey: !!apiKey,
+        apiSecret: !!apiSecret,
+      })
+      return NextResponse.json(
+        { error: 'Cloudinary no configurado. Faltan variables de entorno.' },
+        { status: 500 }
+      )
+    }
+
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret,
+    })
 
     const formData = await request.formData()
     const file = formData.get('file') as File
@@ -47,21 +65,12 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer())
     const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
 
-    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
-      cloudinary.uploader.upload(
-        base64,
-        {
-          folder: 'akdushop/products',
-          resource_type: 'image',
-          transformation: [
-            { width: 1200, height: 1200, crop: 'limit', quality: 'auto', fetch_format: 'auto' }
-          ],
-        },
-        (error, result) => {
-          if (error) reject(error)
-          else resolve(result as { secure_url: string })
-        }
-      )
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: 'akdushop/products',
+      resource_type: 'image',
+      transformation: [
+        { width: 1200, height: 1200, crop: 'limit', quality: 'auto', fetch_format: 'auto' }
+      ],
     })
 
     return NextResponse.json({
@@ -73,7 +82,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error uploading file:', error)
     return NextResponse.json(
-      { error: 'Error al subir la imagen' },
+      { error: `Error al subir la imagen: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     )
   }
