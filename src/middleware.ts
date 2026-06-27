@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 
-const SECRET_KEY = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? (() => { throw new Error('JWT_SECRET no está definido en .env') })()
-)
+function getSecretKey() {
+  const secret = process.env.JWT_SECRET
+  if (!secret) throw new Error('JWT_SECRET no está definido en .env')
+  return new TextEncoder().encode(secret)
+}
 
 async function verifyAdminAuth(request: NextRequest): Promise<boolean> {
   const token = request.cookies.get('session')?.value
   if (!token) return false
 
   try {
-    const { payload } = await jwtVerify(token, SECRET_KEY)
+    const { payload } = await jwtVerify(token, getSecretKey())
     const user = payload.user as { role: string } | undefined
     return !!user && user.role === 'admin'
   } catch {
@@ -23,7 +25,7 @@ async function verifyCustomerAuth(request: NextRequest): Promise<boolean> {
   if (!token) return false
 
   try {
-    const { payload } = await jwtVerify(token, SECRET_KEY)
+    const { payload } = await jwtVerify(token, getSecretKey())
     const user = payload.user as { role: string } | undefined
     return !!user && user.role === 'customer'
   } catch {
