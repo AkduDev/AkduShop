@@ -32,14 +32,14 @@
 - `register/route.ts` — crea Customer, setea cookie
 - `login/route.ts` — valida credenciales, setea cookie
 - `logout/route.ts` — limpia cookie
-- `me/route.ts` — devuelve perfil + órdenes del customer logueado
+- `me/route.ts` — GET perfil + órdenes, **PATCH actualizar perfil** (nombre, teléfono, dirección, contraseña)
 
 #### Frontend
-- `src/hooks/use-customer-auth.ts` — hook con React Query
+- `src/hooks/use-customer-auth.ts` — hook con React Query + `updateProfile()`
 - `src/hooks/use-auth.ts` — hook admin con React Query
 - `src/components/store/customer-auth-modal.tsx` — Dialog con tabs Login/Register
 - `src/components/store/layout/header.tsx` — botón "Mi Cuenta" → modal
-- `src/app/profile/page.tsx` — info personal + historial de pedidos
+- `src/app/profile/page.tsx` — perfil editable + historial de pedidos + botón "Volver a comprar"
 
 ### 3. Órdenes vinculadas al customer autenticado
 - `POST /api/orders` — requiere `customer_session` (401 si no)
@@ -54,34 +54,26 @@
 - ~75 referencias Tailwind en 17 archivos ahora se renderizan en azul
 
 ### 5. Mejoras de diseño
-- **Tarjetas de producto** (`product-card.tsx`) — rediseñadas con rounded-2xl, hover sombra/borde, badge destacado azul, overlay con botón "Ver"
+- **Tarjetas de producto** (`product-card.tsx`) — rounded-2xl, hover sombra/borde, badge azul, overlay "Ver", **botón corazón favoritos**
 - **Skeleton loader** (`product-card-skeleton.tsx`) — sincronizado con diseño actual
-- **Hero Section** (`hero-section.tsx`) — degradados con primary, stats con bordes sutiles, animaciones de entrada
-- **Featured Products** (`featured-products.tsx`) — gradientes con primary en vez de gold
-- **Footer** (`footer.tsx`) — botón contacto usa primary-foreground
-- **Search input** (`products-section.tsx`) — focus ring con primary
-- **Aria-labels** — agregados en: carrito, cantidades +/-, eliminar item, admin login, admin settings, menú móvil
+- **Hero Section** (`hero-section.tsx`) — **layout 2 columnas en desktop** (texto + imagen de producto destacado), stats, animaciones
+- **Featured Products** (`featured-products.tsx`) — gradientes con primary
+- **Footer** (`footer.tsx`) — **3 columnas** (marca, enlaces, contacto), WhatsApp icon
+- **Search input** (`products-section.tsx`) — focus ring con primary, **debounce 300ms**
+- **Aria-labels** — carrito, cantidades +/-, eliminar item, admin login, admin settings, menú móvil, favoritos
 
-### 6. Funcionalidades UX nuevas
-- **Barra de anuncios** (`announcement-bar.tsx`) — banda superior con mensajes rotativos (envío + WhatsApp), auto-rotate 5s, botón cerrar
-- **Badges de stock bajo** — badge amarillo "¡Solo quedan X!" cuando stock ≤ 5
-- **Selector de cantidad rápido** — botones +/- en tarjeta + botón "Agregar" con feedback visual verde "✓ Agregado"
+### 6. Funcionalidades UX
+- **Barra de anuncios** (`announcement-bar.tsx`) — mensajes rotativos, auto-rotate 5s
+- **Badges de stock bajo** — "¡Solo quedan X!" cuando stock ≤ 5
+- **Selector de cantidad** — +/- en tarjeta + modal detalle, botón "Agregar" con feedback
 - **Botón volver arriba** (`back-to-top.tsx`) — flotante tras scroll 400px
-- **Animaciones al scroll** (`animate-on-scroll.tsx`) — fade-in + translateY con IntersectionObserver, delay configurable
-- **Zoom de imagen** (`product-detail-modal.tsx`) — hover → zoom 1.8x con transform-origin dinámico al cursor
+- **Animaciones al scroll** (`animate-on-scroll.tsx`) — fade-in + translateY
+- **Zoom de imagen** (`product-detail-modal.tsx`) — hover → zoom 1.8x
 
 ### 7. Sistema de ofertas/rebajas (COMPLETADO)
-- **Prisma** — campos `discountPrice Float?` y `onSale Boolean @default(false)` en modelo Product
-- **Types** — `Product` y `ProductFormData` actualizados
-- **API** — GET/POST/PUT actualizados para incluir nuevos campos
-- **Admin form** — sección "En rebaja" con Switch + campo precio de oferta + cálculo de % descuento
-- **Admin panel** — `productFormData` y funciones actualizadas
-- **Admin products-table.tsx** — columna "Oferta" con badge, precio tachado
-- **Admin products-cards.tsx** — badge de oferta y precio con descuento
-- **Product card** — precio tachado + precio de oferta, badge "Oferta" rojo
-- **Stats cards** — stat "En Oferta" con icono Tag
-- **SalesSection** (`sales-section.tsx`) — sección con gradiente, countdown, grid responsive
-- **Página principal** — SalesSection integrada
+- **Prisma** — `discountPrice Float?` y `onSale Boolean @default(false)` en Product
+- **Admin form** — Switch + campo precio de oferta + cálculo % descuento
+- **SalesSection** (`sales-section.tsx`) — gradiente, grid responsive (countdown eliminado por ser fake)
 
 ### 8. Deploy a Vercel (COMPLETADO)
 - **Repo:** `https://github.com/AkduDev/AkduShop.git`
@@ -89,61 +81,90 @@
 - **URL producción:** `https://akdushop.vercel.app`
 - **CI/CD:** cada push a `main` auto-deploya
 - **Build:** `vercel-build` script → `prisma generate && prisma db push --skip-generate && next build`
-- **Env vars en Vercel:** `DATABASE_URL` (Neon pooler), `JWT_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
 
 ### 9. Admin Panel — Responsive + Visual (COMPLETADO)
-- **Header admin** — hamburger menu en mobile, nav items en desktop
-- **Products cards** — grid layout, dropdown actions, hover effects, badges flotantes
-- **Categories cards** — headers coloreados, dropdown actions, icono por categoría
-- **Orders cards** — barra de estado coloreada, layout limpio en mobile
-- **Settings panel** — 3 tabs + "Más" dropdown, secciones coloreadas con iconos
+- Hamburger menu mobile, nav desktop
+- Products/Categories/Orders cards con dropdown actions
+- Settings panel con 3 tabs + "Más" dropdown
 
 ### 10. Store Header — Responsive (COMPLETADO)
-- Solo 2 categorías visibles + "Más" dropdown en mobile
+- 2 categorías visibles + "Más" dropdown en mobile
+- **Badge de favoritos** con contador + icono corazón
 - Mi Cuenta / Admin siempre visibles
-- Categorías se expanden en desktop
 
 ### 11. Paginación + Cache (COMPLETADO)
 - **API categories** — paginación server-side
 - **useProducts** — options object, staleTime 30s, placeholderData
-- **useCategories** — staleTime 60s, pagination support
-- **Admin panel** — products limit=100, categories paginadas
 - **Cache global** — staleTime 30s en QueryClient
 
 ### 12. Seguridad — Fixes Críticos (COMPLETADO)
-- **Seed/migrate endpoints** — protegidos con auth admin, cambiado a POST
-- **Categories CRUD** — auth admin en POST/PUT/DELETE
-- **Orders** — precios validados server-side, stock verificado
+- Seed/migrate protegidos con auth admin (POST)
+- Categories CRUD con auth admin
+- Precios validados server-side en orders
 
 ### 13. Upload de imágenes — Cloudinary (COMPLETADO)
-- **Provider:** Cloudinary (migrado desde Vercel Blob)
-- **Cloud name:** `ds7tspnjm` (verificar en Cloudinary Dashboard → Settings)
-- **Ruta:** `src/app/api/upload/route.ts` — usa `cloudinary.uploader.upload_stream()`
-- **Runtime:** Node.js (`export const runtime = 'nodejs'`)
-- **Config:** `cloudinary.config()` se ejecuta dentro del handler (no a nivel de módulo)
-- **Carpeta:** `akdushop/products`
-- **Env vars necesarias:** `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+- Cloud name: `ds7tspnjm`, folder: `akdushop/products`
+- `upload_stream()` dentro del handler
 
 ### 14. Code Cleanup + Security Hardening (COMPLETADO)
-- **Dead code eliminado:** `src/lib/constants.ts` (credenciales hardcodeadas), `use-mobile.ts`, `sidebar.tsx`
-- **14 paquetes Radix UI no usados eliminados** + componentes shadcn wrappers muertos
-- **`next-themes` eliminado** (nunca se importó)
-- **`bun.lock` eliminado** (duplicado con `package-lock.json`)
-- **`server.err`/`server.log` eliminados** del repo
-- **Admin panel:** variables muertas eliminadas (`imagePreview`, `isUploading`, `fileInputRef`)
+- Dead code, paquetes Radix no usados, `next-themes`, `bun.lock` eliminados
 
 ### 15. Security Headers (COMPLETADO)
-- `X-Frame-Options: DENY`
-- `X-Content-Type-Options: nosniff`
-- `Referrer-Policy: strict-origin-when-cross-origin`
-- `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
-- `poweredByHeader: false`
-- `remotePatterns` restringido a `images.unsplash.com` y `res.cloudinary.com`
+- X-Frame-Options, X-Content-Type-Options, Referrer-Policy, HSTS, poweredByHeader: false
 
 ### 16. TypeScript + ESLint (COMPLETADO)
-- `noImplicitAny: true` en tsconfig (antes `false`)
-- ESLint: reglas esenciales habilitadas en modo `warn` (`no-explicit-any`, `no-unused-vars`, `prefer-const`, `no-redeclare`, `no-unreachable`, `no-debugger: error`)
-- `react-hooks/exhaustive-deps: warn`
+- `noImplicitAny: true`, ESLint reglas esenciales en modo `warn`
+
+### 17. Frontend Overhaul (NUEVO — 2025-06-27)
+#### Fixes críticos
+- **Búsqueda con debounce** — 300ms con `setTimeout` + estado local en `products-section.tsx`
+- **Catálogo variant default** — products-section usa `variant="default"` (cards grandes con descripción)
+- **Timer countdown falso eliminado** — SalesSection limpia sin countdown engañoso
+- **Botón "Vaciar Carrito" duplicado eliminado** — solo queda en header del drawer
+- **Selector de cantidad en modal detalle** — +/- con min 1, feedback visual "¡Agregado!"
+- **Tipos compartidos** — `product-detail-modal.tsx` usa `Product` desde `@/types`
+
+#### SEO + Performance
+- **URL state sync** — query params `?cat=`, `?q=`, `?page=` — enlaces compartibles
+- **Suspense boundary** — `useSearchParams` envuelto en `<Suspense>` en page.tsx
+- **addItem con qty param** — store acepta `qty?: number`, callers ya no hacen loop
+
+#### Hero + Footer
+- **Hero 2 columnas** — texto izquierda + imagen producto destacado en desktop
+- **Footer 3 columnas** — marca, enlaces (Productos/Contacto/Mi Cuenta), contacto con dirección/horario
+
+#### Editar perfil
+- **API PATCH** `/api/auth/customer/me` — actualiza nombre, teléfono, dirección, contraseña
+- **use-customer-auth.ts** — `updateProfile()` exportado, `updateProfileApi` (evita naming conflict)
+- **Profile page** — formulario inline con modo edición, validación de contraseña actual
+
+#### Dark mode
+- **Badges de estado** — `bg-*/15` + `dark:text-*` en vez de `bg-*-100` (funciona en ambos temas)
+
+#### Skeleton loading
+- **Homepage** — skeletons para FeaturedProducts y SalesSection mientras cargan
+
+#### Filtros avanzados
+- **Sort** — Predeterminado, Menor precio, Mayor precio, Más recientes, Destacados
+- **Rango de precio** — Todos, Hasta $10, $10-25, $25-50, $50-100, Más de $100
+
+#### Wishlist / Favoritos
+- **Store** (`src/store/wishlist.ts`) — Zustand + persist, `addItem`/`removeItem`/`toggleItem`/`isInWishlist`
+- **Página** (`src/app/wishlist/page.tsx`) — lista de favoritos, agregar al carrito, eliminar
+- **Botón corazón** en product card — hover overlay + always-visible heart icon
+- **Badge** en header — contador de favoritos con hidratación
+
+#### Share button
+- **Modal detalle** — botón compartir (Web Share API + clipboard fallback)
+- Comparte URL con query `?q=nombre producto`
+
+#### Toast notifications
+- **Carrito** — toast al agregar, quitar, y vaciar
+- **Favoritos** — toast al agregar/quitar de wishlist
+
+#### Reordenar
+- **Profile** — botón "Volver a comprar" en cada pedido
+- Fetch de `/api/products/[id]` para obtener imagen real (no placeholder)
 
 ---
 
@@ -161,8 +182,13 @@
 | Seed/migrate como POST con auth | GET no debe mutar estado |
 | Precios server-side en orders | Previene manipulación por el cliente |
 | Cloudinary upload_stream en handler | Config dentro del handler evita problemas con env vars en serverless |
-| `cloudinary.config()` dentro del POST | En Vercel las env vars no están disponibles a nivel de módulo |
 | ESLint en modo warn, no error | Evita que builds fallen pero alerta sobre código problemático |
+| Debounce búsqueda 300ms | Evita 1 API call por tecla, balance speed/responsiveness |
+| `addItem(item, qty)` con param opcional | Un solo state update en vez de N loops |
+| Cart minus elimina en qty ≤ 1 | Evita ghost items con quantity 0 |
+| URL state sync con `router.replace` | Permite compartir enlaces con filtros sin recargar |
+| Suspense para useSearchParams | Requerido por Next.js 14+ App Router |
+| `updateProfileApi` (no `updateProfile`) | Evita naming conflict con la función del hook |
 
 ---
 
@@ -170,7 +196,6 @@
 ### Seguridad
 - **Rate limiting** — usar Redis/Upstash en vez de in-memory Map (inútil en Vercel serverless)
 - **Input validation con Zod** — schemas para todos los API routes
-- **Middleware admin** — `src/middleware.ts` protege rutas admin (ya implementado)
 
 ### Performance
 - **Stats endpoint** — full table scan en `/api/admin/stats`; reemplazar con Prisma aggregate
@@ -183,53 +208,78 @@
 
 ### Funcionalidad
 - **Cuentas admin con roles** — considerar roles adicionales (viewer, editor)
+- **Páginas de producto individuales** — `/products/[id]` para SEO y sharing
+- **Newsletter signup** — formulario en footer
+- **Reseñas/ratings** — sistema de valoraciones de productos
+- **Paginación con infinite scroll** — alternativa a paginación tradicional
 
 ---
 
 ## Archivos relevantes
+### Core
 - `prisma/schema.prisma` — modelos: User, Customer, Category, Product, SiteSetting, Order, OrderItem
 - `src/lib/auth.ts` — JWT + hashing + session helpers (admin + customer)
 - `src/lib/providers.tsx` — QueryClientProvider
 - `src/lib/settings-context.tsx` — SettingsProvider con fetch de /api/settings
+
+### Hooks
 - `src/hooks/use-products.ts` — React Query para productos (options object)
 - `src/hooks/use-categories.ts` — React Query para categorías (paginación)
-- `src/hooks/use-customer-auth.ts` — auth de clientes
+- `src/hooks/use-customer-auth.ts` — auth de clientes + `updateProfile()`
 - `src/hooks/use-cart-checkout.ts` — checkout con datos del customer logueado
+
+### Stores
+- `src/store/cart.ts` — Zustand cart con `addItem(item, qty?)`, persist localStorage
+- `src/store/wishlist.ts` — Zustand wishlist con `toggleItem`, persist localStorage
+
+### Types
 - `src/types/product.ts` — interfaces Product, ProductFormData (con discountPrice, onSale)
-- `src/types/api.ts` — SiteSettings, DEFAULT_SETTINGS
+- `src/types/api.ts` — SiteSettings, DEFAULT_SETTINGS, PaginationData
+- `src/types/order.ts` — Order, OrderItem, ORDER_STATUS_LABELS
+
+### Store Frontend
 - `src/components/store/layout/announcement-bar.tsx` — barra de anuncios rotativa
 - `src/components/store/layout/back-to-top.tsx` — botón volver arriba
-- `src/components/store/layout/header.tsx` — store header responsive (2 categorías + "Más")
+- `src/components/store/layout/header.tsx` — store header responsive + badge favoritos
+- `src/components/store/layout/hero-section.tsx` — hero 2 columnas con producto destacado
+- `src/components/store/layout/footer.tsx` — footer 3 columnas
+- `src/components/store/layout/contact-section.tsx` — sección contacto
 - `src/components/store/animate-on-scroll.tsx` — wrapper animaciones scroll
-- `src/components/store/product-card.tsx` — tarjeta con quantity selector, badges stock, feedback
-- `src/components/store/product-detail-modal.tsx` — modal con zoom de imagen
+- `src/components/store/product-card.tsx` — card con quantity, badges, favoritos, toast
+- `src/components/store/product-detail-modal.tsx` — modal con zoom, cantidad, share, tipos compartidos
 - `src/components/store/featured-products.tsx` — sección destacados
-- `src/components/store/products-section.tsx` — sección productos con search/pagination
-- `src/components/store/sales-section.tsx` — sección de ofertas con countdown y grid responsive
-- `src/components/store/admin/product-form-dialog.tsx` — formulario con campos onSale + discountPrice
-- `src/components/store/admin/products-table.tsx` — tabla admin con paginación UI
-- `src/components/store/admin/categories-table.tsx` — tabla admin con paginación UI
-- `src/components/store/admin-panel-refactored.tsx` — panel admin principal
-- `src/app/page.tsx` — página principal con AnnouncementBar + BackToTop
+- `src/components/store/products-section.tsx` — catálogo con debounce, sort, filtros precio
+- `src/components/store/sales-section.tsx` — sección ofertas (sin countdown)
+- `src/components/store/cart-drawer.tsx` — carrito lateral con toast
+- `src/components/store/customer-auth-modal.tsx` — login/register modal
+
+### Pages
+- `src/app/page.tsx` — homepage con Suspense, URL state sync, skeleton loading
+- `src/app/profile/page.tsx` — perfil editable + historial + reordenar
+- `src/app/wishlist/page.tsx` — página de favoritos
 - `src/app/admin/page.tsx` — página admin
-- `src/app/globals.css` — paleta de colores (azul hue 250)
+
+### API Routes
 - `src/app/api/products/route.ts` — GET/POST productos (paginación)
 - `src/app/api/products/[id]/route.ts` — GET/PUT/DELETE producto
 - `src/app/api/categories/route.ts` — GET/POST categorías (paginación + auth en POST)
 - `src/app/api/categories/[id]/route.ts` — GET/PUT/DELETE categoría (auth en PUT/DELETE)
 - `src/app/api/orders/route.ts` — GET/POST órdenes (paginación + validación server-side)
 - `src/app/api/orders/[id]/route.ts` — GET/PUT orden
+- `src/app/api/auth/customer/me/route.ts` — GET perfil + PATCH actualizar perfil
+- `src/app/api/auth/customer/register/route.ts` — registro
+- `src/app/api/auth/customer/login/route.ts` — login
+- `src/app/api/auth/customer/logout/route.ts` — logout
 - `src/app/api/seed/route.ts` — POST con auth admin
-- `src/app/api/migrate-images/route.ts` — POST con auth admin
-- `src/app/api/upload/route.ts` — upload images via Cloudinary
-- `src/app/api/admin/stats/route.ts` — estadísticas admin (pendiente: optimizar full table scan)
+- `src/app/api/upload/route.ts` — upload Cloudinary
+
+### Config
 - `src/middleware.ts` — JWT auth lazy evaluation, protección rutas admin
-- `next.config.ts` — security headers, remotePatterns restringidos, poweredByHeader: false
+- `next.config.ts` — security headers, remotePatterns restringidos
 - `eslint.config.mjs` — reglas esenciales en modo warn
-- `.env` — SQLite (dev) o Neon (prod), JWT_SECRET, CLOUDINARY_* requeridos
-- `.env.development` — SQLite + dev JWT secret
-- `vercel.json` — config de build para Vercel
-- `scripts/switch-db.js` — alterna SQLite/Neon + regenera Prisma client
+- `.env` / `.env.development` — DB, JWT_SECRET, CLOUDINARY_*
+- `vercel.json` — config de build
+- `public/placeholder.svg` — imagen placeholder para reordenar
 
 ---
 
@@ -238,7 +288,7 @@
 - DB SQLite local: `prisma/db/custom.db`
 - Neon: ver `.env.production.bak`
 - JWT_SECRET generado via `openssl rand -base64 32`
-- Cloudinary: cloud name `ds7tspnjm` (verificar en Dashboard → Settings)
+- Cloudinary: cloud name `ds7tspnjm`
 - Vercel project: `akdushop` (akdulaydev-8764s-projects)
 
 ---
