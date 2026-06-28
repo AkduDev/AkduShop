@@ -44,6 +44,19 @@ async function logoutCustomer(): Promise<void> {
   await fetch('/api/auth/customer/logout', { method: 'POST' })
 }
 
+async function updateProfileApi(data: { name?: string; phone?: string; address?: string; currentPassword?: string; newPassword?: string }): Promise<boolean> {
+  const res = await fetch('/api/auth/customer/me', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const json = await res.json()
+    throw new Error(json.error || 'Error al actualizar perfil')
+  }
+  return true
+}
+
 export function useCustomerAuth() {
   const queryClient = useQueryClient()
 
@@ -75,6 +88,14 @@ export function useCustomerAuth() {
     },
   })
 
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: { name?: string; phone?: string; address?: string; currentPassword?: string; newPassword?: string }) =>
+      updateProfileApi(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customer'] })
+    },
+  })
+
   const login = async (data: CustomerLoginData): Promise<boolean> => {
     try {
       await loginMutation.mutateAsync(data)
@@ -97,6 +118,15 @@ export function useCustomerAuth() {
     await logoutMutation.mutateAsync()
   }
 
+  const updateProfile = async (data: { name?: string; phone?: string; address?: string; currentPassword?: string; newPassword?: string }): Promise<{ success: boolean; error?: string }> => {
+    try {
+      await updateProfileMutation.mutateAsync(data)
+      return { success: true }
+    } catch (e) {
+      return { success: false, error: e instanceof Error ? e.message : 'Error al actualizar' }
+    }
+  }
+
   const checkAuth = async () => {
     await queryClient.invalidateQueries({ queryKey: ['customer'] })
   }
@@ -109,5 +139,6 @@ export function useCustomerAuth() {
     login,
     register,
     logout,
+    updateProfile,
   }
 }

@@ -25,6 +25,7 @@ import {
   AlertDialogAction,
 } from '@/components/ui/alert-dialog'
 import { useCustomerAuth } from '@/hooks/use-customer-auth'
+import { useToast } from '@/hooks/use-toast'
 import { CustomerAuthModal } from '@/components/store/customer-auth-modal'
 
 interface CartDrawerProps {
@@ -56,6 +57,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCartStore()
   const { isLoggedIn } = useCustomerAuth()
+  const { toast } = useToast()
   const pendingCheckout = useRef(false)
 
   useEffect(() => {
@@ -150,7 +152,14 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                           variant="outline"
                           size="icon"
                           className="h-8 w-8 rounded-full border-border/50"
-                          onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
+                          onClick={() => {
+                            if (item.quantity <= 1) {
+                              removeItem(item.id)
+                              toast({ title: 'Producto eliminado', description: item.name })
+                            } else {
+                              updateQuantity(item.id, item.quantity - 1)
+                            }
+                          }}
                           aria-label={`Reducir cantidad de ${item.name}`}
                         >
                           <Minus className="h-3 w-3" />
@@ -169,7 +178,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 ml-auto text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => { removeItem(item.id); toast({ title: 'Producto eliminado', description: item.name }) }}
                           aria-label={`Eliminar ${item.name} del carrito`}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -190,21 +199,12 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <Button
-                    className="h-12 bg-[#25D366] hover:bg-[#25D366]/90 text-white rounded-full text-base"
+                    className="col-span-2 h-12 bg-[#25D366] hover:bg-[#25D366]/90 text-white rounded-full text-base"
                     onClick={handleCheckout}
                     aria-label="Enviar pedido por WhatsApp"
                   >
                     <MessageCircle className="mr-2 h-5 w-5" />
                     Enviar Pedido
-                  </Button>
-                  <Button
-                    variant="default"
-                    className="h-12 bg-destructive hover:bg-destructive/90 text-white rounded-full text-base"
-                    onClick={clearCart}
-                    aria-label="Vaciar carrito de compras"
-                  >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Vaciar Carrito
                   </Button>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Menu, X, User, LogOut, ChevronDown, Settings } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Menu, X, User, LogOut, ChevronDown, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { CartDrawer } from '@/components/store/cart-drawer'
@@ -9,6 +9,7 @@ import { AdminLogin } from '@/components/store/admin-login'
 import { CustomerAuthModal } from '@/components/store/customer-auth-modal'
 import { useSettings } from '@/lib/settings-context'
 import { useCustomerAuth } from '@/hooks/use-customer-auth'
+import { useWishlistStore } from '@/store/wishlist'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Category } from '@/types'
+
+interface WishlistBadgeProps {
+  count: number
+}
+
+function WishlistBadge({ count }: WishlistBadgeProps) {
+  const [hydrated, setHydrated] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setHydrated(true), 0)
+    return () => clearTimeout(t)
+  }, [])
+  const show = hydrated && count > 0
+  return show ? (
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+      {count}
+    </span>
+  ) : null
+}
 
 interface HeaderProps {
   selectedCategory: string
@@ -39,6 +58,7 @@ export function Header({
 }: HeaderProps) {
   const { settings } = useSettings()
   const { customer, isLoggedIn, logout } = useCustomerAuth()
+  const { items: wishlistItems } = useWishlistStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
@@ -115,6 +135,14 @@ export function Header({
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            {!isAdmin && (
+              <Link href="/wishlist">
+                <Button variant="outline" size="icon" className="relative rounded-full border-border/50 hover:border-red-500 hover:text-red-500" aria-label="Favoritos">
+                  <Heart className="h-5 w-5" />
+                  <WishlistBadge count={wishlistItems.length} />
+                </Button>
+              </Link>
+            )}
             {!isAdmin && <CartDrawer onCheckout={onCheckout} />}
             {!isAdmin && (
               isLoggedIn ? (

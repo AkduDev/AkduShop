@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { ShoppingCart, Eye, Star, Plus, Minus, Check, Tag } from 'lucide-react'
+import { ShoppingCart, Eye, Star, Plus, Minus, Check, Tag, Heart } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCartStore } from '@/store/cart'
+import { useWishlistStore } from '@/store/wishlist'
+import { useToast } from '@/hooks/use-toast'
 import type { Product } from '@/types'
 
 interface ProductCardProps {
@@ -17,26 +19,44 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onViewDetails, variant = 'default' }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem)
+  const { toggleItem, items: wishlistItems } = useWishlistStore()
+  const { toast } = useToast()
   const isFeatured = variant === 'featured'
   const [qty, setQty] = useState(0)
   const [justAdded, setJustAdded] = useState(false)
+  const isWishlisted = wishlistItems.some((i) => i.id === product.id)
 
   const lowStock = product.stock > 0 && product.stock <= 5
 
   const handleAddToCart = () => {
     const addQty = qty > 0 ? qty : 1
     const priceToAdd = product.onSale && product.discountPrice != null ? product.discountPrice : product.price
-    for (let i = 0; i < addQty; i++) {
-      addItem({
-        id: product.id,
-        name: product.name,
-        price: priceToAdd,
-        imageUrl: product.imageUrl
-      })
-    }
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: priceToAdd,
+      imageUrl: product.imageUrl
+    }, addQty)
     setJustAdded(true)
     setTimeout(() => setJustAdded(false), 1500)
     setQty(0)
+    toast({ title: 'Agregado al carrito', description: `${product.name} × ${addQty}` })
+  }
+
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    toggleItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      discountPrice: product.discountPrice,
+      imageUrl: product.imageUrl,
+      category: product.category,
+    })
+    toast({
+      title: isWishlisted ? 'Eliminado de favoritos' : 'Agregado a favoritos',
+      description: product.name,
+    })
   }
 
   return (
@@ -80,7 +100,7 @@ export function ProductCard({ product, onViewDetails, variant = 'default' }: Pro
 
           {/* Quick view on hover */}
           {onViewDetails && (
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+            <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
               <Button
                 size="sm"
                 variant="secondary"
@@ -93,6 +113,19 @@ export function ProductCard({ product, onViewDetails, variant = 'default' }: Pro
               </Button>
             </div>
           )}
+
+          {/* Wishlist button */}
+          <button
+            onClick={handleToggleWishlist}
+            className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10 rounded-full p-1.5 backdrop-blur-sm transition-all duration-200 ${
+              isWishlisted
+                ? 'bg-red-500 text-white shadow-md'
+                : 'bg-background/80 text-muted-foreground hover:text-red-500 hover:bg-background/90'
+            }`}
+            aria-label={isWishlisted ? `Eliminar ${product.name} de favoritos` : `Agregar ${product.name} a favoritos`}
+          >
+            <Heart className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isWishlisted ? 'fill-current' : ''}`} />
+          </button>
 
           {product.stock <= 0 && (
             <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px]" />

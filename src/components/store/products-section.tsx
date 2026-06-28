@@ -1,6 +1,7 @@
 'use client'
 
-import { ShoppingBag } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { ShoppingBag, ArrowUpDown } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { ProductCard } from '@/components/store/product-card'
 import { Pagination } from '@/components/store/pagination'
@@ -21,6 +22,8 @@ interface ProductsSectionProps {
   onViewDetails: (product: Product) => void
 }
 
+type SortOption = 'default' | 'price-asc' | 'price-desc' | 'newest' | 'featured'
+
 export function ProductsSection({
   products,
   loading,
@@ -34,6 +37,71 @@ export function ProductsSection({
   onViewDetails
 }: ProductsSectionProps) {
   const { settings } = useSettings()
+  const [localSearch, setLocalSearch] = useState(searchQuery)
+  const [sortBy, setSortBy] = useState<SortOption>('default')
+  const [priceRange, setPriceRange] = useState<string>('all')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    setLocalSearch(searchQuery)
+  }, [searchQuery])
+
+  const handleSearchChange = (value: string) => {
+    setLocalSearch(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      onSearch(value)
+    }, 300)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
+  const filteredProducts = useMemo(() => {
+    let result = [...products]
+
+    if (priceRange !== 'all') {
+      result = result.filter((p) => {
+        const price = p.onSale && p.discountPrice != null ? p.discountPrice : p.price
+        switch (priceRange) {
+          case '0-10': return price <= 10
+          case '10-25': return price > 10 && price <= 25
+          case '25-50': return price > 25 && price <= 50
+          case '50-100': return price > 50 && price <= 100
+          case '100+': return price > 100
+          default: return true
+        }
+      })
+    }
+
+    switch (sortBy) {
+      case 'price-asc':
+        result.sort((a, b) => {
+          const pa = a.onSale && a.discountPrice != null ? a.discountPrice : a.price
+          const pb = b.onSale && b.discountPrice != null ? b.discountPrice : b.price
+          return pa - pb
+        })
+        break
+      case 'price-desc':
+        result.sort((a, b) => {
+          const pa = a.onSale && a.discountPrice != null ? a.discountPrice : a.price
+          const pb = b.onSale && b.discountPrice != null ? b.discountPrice : b.price
+          return pb - pa
+        })
+        break
+      case 'newest':
+        result.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        break
+      case 'featured':
+        result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+        break
+    }
+
+    return result
+  }, [products, sortBy, priceRange])
 
   const selectedCategoryName = selectedCategory === 'all'
     ? 'all'
@@ -63,8 +131,8 @@ export function ProductsSection({
               type="text"
               aria-label={settings.searchPlaceholder}
               placeholder={settings.searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => onSearch(e.target.value)}
+              value={localSearch}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full px-4 py-3 pl-12 rounded-full border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
             />
             <svg
@@ -80,9 +148,9 @@ export function ProductsSection({
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
-            {searchQuery && (
+            {localSearch && (
               <button
-                onClick={() => onSearch('')}
+                onClick={() => { setLocalSearch(''); onSearch('') }}
                 aria-label="Limpiar búsqueda"
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
@@ -94,13 +162,46 @@ export function ProductsSection({
           </div>
         </div>
 
+        {!loading && products.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="text-sm bg-background border border-border/50 rounded-full px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+                aria-label="Ordenar por"
+              >
+                <option value="default">Predeterminado</option>
+                <option value="price-asc">Menor precio</option>
+                <option value="price-desc">Mayor precio</option>
+                <option value="newest">Más recientes</option>
+                <option value="featured">Destacados</option>
+              </select>
+            </div>
+            <select
+              value={priceRange}
+              onChange={(e) => setPriceRange(e.target.value)}
+              className="text-sm bg-background border border-border/50 rounded-full px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+              aria-label="Filtrar por precio"
+            >
+              <option value="all">Todos los precios</option>
+              <option value="0-10">Hasta $10</option>
+              <option value="10-25">$10 - $25</option>
+              <option value="25-50">$25 - $50</option>
+              <option value="50-100">$50 - $100</option>
+              <option value="100+">Más de $100</option>
+            </select>
+          </div>
+        )}
+
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
             {[...Array(10)].map((_, i) => (
               <ProductCardSkeleton key={i} />
             ))}
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="text-center py-20">
             <ShoppingBag className="h-20 w-20 mx-auto mb-6 text-muted-foreground/30" />
             <p className="text-xl text-muted-foreground">
@@ -110,12 +211,12 @@ export function ProductsSection({
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
-              {products.map(product => (
+              {filteredProducts.map(product => (
                 <ProductCard
                   key={product.id}
                   product={product}
                   onViewDetails={onViewDetails}
-                  variant="featured"
+                  variant="default"
                 />
               ))}
             </div>

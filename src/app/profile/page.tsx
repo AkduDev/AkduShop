@@ -1,34 +1,117 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Package, Mail, Phone, MapPin } from 'lucide-react'
+import { ArrowLeft, Package, Mail, Phone, MapPin, Pencil, Save, X, Lock, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useCustomerAuth } from '@/hooks/use-customer-auth'
+import { useCartStore } from '@/store/cart'
+import { useToast } from '@/hooks/use-toast'
 import { ORDER_STATUS_LABELS } from '@/types'
 import type { Order } from '@/types'
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  confirmed: 'bg-blue-100 text-blue-800 border-blue-200',
-  shipped: 'bg-purple-100 text-purple-800 border-purple-200',
-  delivered: 'bg-green-100 text-green-800 border-green-200',
-  cancelled: 'bg-red-100 text-red-800 border-red-200',
+  pending: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30',
+  confirmed: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30',
+  shipped: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
+  delivered: 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30',
+  cancelled: 'bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30',
 }
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { customer, isLoggedIn, loading } = useCustomerAuth()
+  const { customer, isLoggedIn, loading, updateProfile } = useCustomerAuth()
+  const addItem = useCartStore((state) => state.addItem)
+  const { toast } = useToast()
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [form, setForm] = useState({ name: '', phone: '', address: '', currentPassword: '', newPassword: '' })
 
   useEffect(() => {
     if (!loading && !isLoggedIn) {
       router.push('/')
     }
   }, [loading, isLoggedIn, router])
+
+  useEffect(() => {
+    if (customer) {
+      setForm({
+        name: customer.name || '',
+        phone: customer.phone || '',
+        address: customer.address || '',
+        currentPassword: '',
+        newPassword: '',
+      })
+    }
+  }, [customer])
+
+  const handleReorder = async (order: Order) => {
+    if (!order.items) return
+    const validItems = order.items.filter(i => i.productId)
+    let addedCount = 0
+
+    for (const item of validItems) {
+      try {
+        const res = await fetch(`/api/products/${item.productId}`)
+        if (res.ok) {
+          const product = await res.json()
+          addItem({
+            id: item.productId!,
+            name: item.name,
+            price: item.unitPrice,
+            imageUrl: product.imageUrl || '/placeholder.svg',
+          })
+          addedCount++
+        } else {
+          addItem({
+            id: item.productId!,
+            name: item.name,
+            price: item.unitPrice,
+            imageUrl: '/placeholder.svg',
+          })
+          addedCount++
+        }
+      } catch {
+        addItem({
+          id: item.productId!,
+          name: item.name,
+          price: item.unitPrice,
+          imageUrl: '/placeholder.svg',
+        })
+        addedCount++
+      }
+    }
+    toast({ title: 'Pedido agregado al carrito', description: `${addedCount} producto(s) agregado(s)` })
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    setError('')
+    const data: Record<string, string> = {
+      name: form.name,
+      phone: form.phone,
+      address: form.address,
+    }
+    if (form.newPassword) {
+      data.currentPassword = form.currentPassword
+      data.newPassword = form.newPassword
+    }
+    const result = await updateProfile(data)
+    setSaving(false)
+    if (result.success) {
+      setEditing(false)
+      setForm(f => ({ ...f, currentPassword: '', newPassword: '' }))
+    } else {
+      setError(result.error || 'Error al actualizar')
+    }
+  }
 
   if (loading) {
     return (
@@ -64,25 +147,81 @@ export default function ProfilePage() {
         </div>
 
         <Card className="mb-6">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Información Personal</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Mail className="h-4 w-4" />
-              <span>{customer.email}</span>
-            </div>
-            {customer.phone && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span>{customer.phone}</span>
+            {!editing ? (
+              <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+                <Pencil className="h-4 w-4 mr-1" />
+                Editar
+              </Button>
+            ) : (
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={() => { setEditing(false); setError(''); setForm(f => ({ ...f, currentPassword: '', newPassword: '' })) }}>
+                  <X className="h-4 w-4 mr-1" />
+                  Cancelar
+                </Button>
+                <Button size="sm" onClick={handleSave} disabled={saving}>
+                  <Save className="h-4 w-4 mr-1" />
+                  {saving ? 'Guardando...' : 'Guardar'}
+                </Button>
               </div>
             )}
-            {customer.address && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                <span>{customer.address}</span>
-              </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+              <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">{error}</p>
+            )}
+            {editing ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nombre</Label>
+                  <Input id="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Teléfono</Label>
+                  <Input id="phone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Dirección</Label>
+                  <Input id="address" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
+                </div>
+                <div className="border-t border-border/30 pt-4 mt-4">
+                  <p className="text-sm font-medium mb-3 flex items-center gap-1.5">
+                    <Lock className="h-3.5 w-3.5" />
+                    Cambiar contraseña (opcional)
+                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Contraseña actual</Label>
+                    <Input id="currentPassword" type="password" value={form.currentPassword} onChange={e => setForm(f => ({ ...f, currentPassword: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2 mt-2">
+                    <Label htmlFor="newPassword">Nueva contraseña</Label>
+                    <Input id="newPassword" type="password" minLength={6} value={form.newPassword} onChange={e => setForm(f => ({ ...f, newPassword: e.target.value }))} />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="h-4 w-4" />
+                  <span>{customer.email}</span>
+                </div>
+                {customer.phone && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    <span>{customer.phone}</span>
+                  </div>
+                )}
+                {customer.address && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{customer.address}</span>
+                  </div>
+                )}
+                {!customer.phone && !customer.address && (
+                  <p className="text-sm text-muted-foreground">Agrega tu teléfono y dirección para facilitar tus pedidos.</p>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -144,6 +283,15 @@ export default function ProfilePage() {
                         Notas: {order.notes}
                       </p>
                     )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full text-xs mt-2"
+                      onClick={() => handleReorder(order)}
+                    >
+                      <RotateCcw className="h-3 w-3 mr-1" />
+                      Volver a comprar
+                    </Button>
                   </div>
                 ))}
               </div>
