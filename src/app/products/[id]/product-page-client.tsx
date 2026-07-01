@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ShoppingCart, ArrowLeft, Star, Check, ZoomIn, Tag, Plus, Minus, Share2, ChevronRight } from 'lucide-react'
+import { ShoppingCart, ArrowLeft, Star, Check, Tag, Plus, Minus, Share2, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/store/layout/header'
@@ -31,11 +31,10 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
   const { isAdmin, login, logout } = useAuth()
   const { handleWhatsAppCheckout } = useCartCheckout()
   const { toast } = useToast()
-  const [zoom, setZoom] = useState(false)
-  const imgRef = useRef<HTMLDivElement>(null)
   const [qty, setQty] = useState(1)
   const [justAdded, setJustAdded] = useState(false)
   const ctaRef = useRef<HTMLDivElement>(null)
+  const addedTimerRef = useRef<NodeJS.Timeout | null>(null)
   const [showStickyCta, setShowStickyCta] = useState(false)
 
   useEffect(() => {
@@ -61,19 +60,13 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
     }, qty)
     setJustAdded(true)
     toast({ title: `${product.name} agregado al carrito` })
-    setTimeout(() => setJustAdded(false), 1200)
+    if (addedTimerRef.current) clearTimeout(addedTimerRef.current)
+    addedTimerRef.current = setTimeout(() => setJustAdded(false), 1200)
   }
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imgRef.current) return
-    const rect = imgRef.current.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
-    const img = imgRef.current.querySelector('img') as HTMLImageElement | null
-    if (img) {
-      img.style.transformOrigin = `${x}% ${y}%`
-    }
-  }
+  useEffect(() => {
+    return () => { if (addedTimerRef.current) clearTimeout(addedTimerRef.current) }
+  }, [])
 
   const handleShare = async () => {
     const url = `${window.location.origin}/products/${product.id}`
@@ -82,8 +75,18 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
         await navigator.share({ title: product.name, text: `Mira este producto: ${product.name}`, url })
       } catch {}
     } else {
-      await navigator.clipboard.writeText(url)
-      toast({ title: 'Enlace copiado al portapapeles' })
+      try {
+        await navigator.clipboard.writeText(url)
+        toast({ title: 'Enlace copiado al portapapeles' })
+      } catch {
+        const textarea = document.createElement('textarea')
+        textarea.value = url
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+        toast({ title: 'Enlace copiado al portapapeles' })
+      }
     }
   }
 
@@ -129,28 +132,15 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
           </Link>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-            <div
-              ref={imgRef}
-              className="relative aspect-square bg-muted cursor-crosshair overflow-hidden rounded-2xl"
-              onMouseEnter={() => setZoom(true)}
-              onMouseLeave={() => setZoom(false)}
-              onMouseMove={handleMouseMove}
-            >
+            <div className="relative aspect-square bg-muted overflow-hidden rounded-2xl">
               <Image
                 src={product.imageUrl}
                 alt={product.name}
                 fill
                 sizes="(max-width: 768px) 90vw, 45vw"
-                className="object-cover transition-transform duration-200 ease-out"
-                style={{
-                  transform: zoom ? 'scale(1.8)' : 'scale(1)',
-                }}
+                className="object-cover"
                 priority
               />
-
-              <div className={`absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-md transition-opacity duration-200 ${zoom ? 'opacity-0' : 'opacity-100'}`}>
-                <ZoomIn className="h-5 w-5 text-muted-foreground" />
-              </div>
 
               {isOnSale && (
                 <Badge className="absolute top-4 left-4 bg-red-500 text-white font-medium">

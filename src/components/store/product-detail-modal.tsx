@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
-import { ShoppingCart, X, Star, Check, ZoomIn, Tag, Plus, Minus, Share2 } from 'lucide-react'
+import { ShoppingCart, X, Star, Check, Tag, Plus, Minus, Share2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,8 +19,6 @@ interface ProductDetailModalProps {
 export function ProductDetailModal({ product, open, onOpenChange }: ProductDetailModalProps) {
   const addItem = useCartStore((state) => state.addItem)
   const { settings } = useSettings()
-  const [zoom, setZoom] = useState(false)
-  const imgRef = useRef<HTMLDivElement>(null)
   const [qty, setQty] = useState(1)
   const [justAdded, setJustAdded] = useState(false)
 
@@ -53,25 +51,23 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
     ;(document.querySelector('[data-cart-trigger]') as HTMLElement | null)?.click()
   }
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imgRef.current) return
-    const rect = imgRef.current.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
-    const img = imgRef.current.querySelector('img') as HTMLImageElement | null
-    if (img) {
-      img.style.transformOrigin = `${x}% ${y}%`
-    }
-  }
-
   const handleShare = async () => {
-    const url = `${window.location.origin}?q=${encodeURIComponent(product.name)}`
+    const url = `${window.location.origin}/products/${product.id}`
     if (navigator.share) {
       try {
         await navigator.share({ title: product.name, text: `Mira este producto: ${product.name}`, url })
       } catch {}
     } else {
-      await navigator.clipboard.writeText(url)
+      try {
+        await navigator.clipboard.writeText(url)
+      } catch {
+        const textarea = document.createElement('textarea')
+        textarea.value = url
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
     }
   }
 
@@ -84,26 +80,15 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
 
         <div className="grid grid-cols-1 md:grid-cols-2 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
           <div
-            ref={imgRef}
-            className="relative aspect-square md:aspect-auto md:h-full bg-muted cursor-crosshair overflow-hidden"
-            onMouseEnter={() => setZoom(true)}
-            onMouseLeave={() => setZoom(false)}
-            onMouseMove={handleMouseMove}
+            className="relative aspect-square md:aspect-auto md:h-full bg-muted overflow-hidden"
           >
             <Image
               src={product.imageUrl}
               alt={product.name}
               fill
               sizes="(max-width: 768px) 90vw, 45vw"
-              className="object-cover transition-transform duration-200 ease-out"
-              style={{
-                transform: zoom ? 'scale(1.8)' : 'scale(1)',
-              }}
+              className="object-cover"
             />
-
-            <div className={`absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-background/80 backdrop-blur-sm rounded-full p-1.5 shadow-md transition-opacity duration-200 ${zoom ? 'opacity-0' : 'opacity-100'}`}>
-              <ZoomIn className="h-4 w-4 text-muted-foreground" />
-            </div>
 
             {isOnSale && (
               <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-500 text-white font-medium text-xs sm:text-sm">
@@ -130,6 +115,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
               size="icon"
               className="absolute top-2 right-2 sm:top-4 sm:right-4 rounded-full bg-background/80 backdrop-blur hover:bg-background h-8 w-8 sm:h-10 sm:w-10"
               onClick={() => onOpenChange(false)}
+              aria-label="Cerrar"
             >
               <X className="h-4 w-4" />
             </Button>

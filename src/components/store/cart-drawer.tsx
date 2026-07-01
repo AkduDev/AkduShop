@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import { ShoppingCart, Trash2, Plus, Minus, MessageCircle, Trash } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -55,7 +55,11 @@ function CartBadge() {
 export function CartDrawer({ onCheckout }: CartDrawerProps) {
   const [open, setOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
-  const { items, removeItem, updateQuantity, getTotal, clearCart } = useCartStore()
+  const items = useCartStore((s) => s.items)
+  const removeItem = useCartStore((s) => s.removeItem)
+  const updateQuantity = useCartStore((s) => s.updateQuantity)
+  const clearCart = useCartStore((s) => s.clearCart)
+  const total = useMemo(() => items.reduce((t, i) => t + i.price * i.quantity, 0), [items])
   const { isLoggedIn } = useCustomerAuth()
   const { toast } = useToast()
   const pendingCheckout = useRef(false)
@@ -195,7 +199,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-base">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="text-xl font-bold text-foreground">${getTotal().toFixed(2)}</span>
+                  <span className="text-xl font-bold text-foreground">${total.toFixed(2)}</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
