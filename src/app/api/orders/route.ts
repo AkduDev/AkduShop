@@ -66,6 +66,11 @@ export async function POST(request: Request) {
       })
     }
 
+    const customer = await db.customer.findUnique({
+      where: { id: customerSession.id },
+      select: { phone: true, address: true },
+    })
+
     const order = await db.$transaction(async (tx) => {
       for (const item of validatedItems) {
         const updated = await tx.product.updateMany({
@@ -87,8 +92,8 @@ export async function POST(request: Request) {
         data: {
           customerId: customerSession.id,
           customerName: customerSession.name,
-          customerPhone: null,
-          customerAddress: null,
+          customerPhone: customer?.phone || null,
+          customerAddress: customer?.address || null,
           notes: notes || null,
           total,
           items: {

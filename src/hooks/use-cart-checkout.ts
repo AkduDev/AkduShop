@@ -21,6 +21,27 @@ export function useCartCheckout() {
 
     setSubmitting(true)
     try {
+      const stockCheck = await fetch('/api/orders/validate-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            productId: item.id,
+            quantity: item.quantity,
+          })),
+        }),
+      })
+
+      if (!stockCheck.ok) {
+        const stockError = await stockCheck.json()
+        toast({
+          title: 'Stock no disponible',
+          description: stockError.error || 'Algunos productos ya no están disponibles',
+          variant: 'destructive',
+        })
+        return
+      }
+
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

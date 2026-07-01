@@ -86,20 +86,11 @@ export async function authenticateUser(email: string, password: string): Promise
   
   if (!user) return null
 
-  const isHashedPassword = typeof user.password === 'string' && /^[0-9a-f]{32}:[0-9a-f]{128}$/.test(user.password)
-  const isValidPassword = isHashedPassword
-    ? await verifyPassword(password, user.password)
-    : user.password === password
-  
-  if (!isValidPassword) return null
+  const isHashedPassword = typeof user.password === 'string' && user.password.includes(':')
+  if (!isHashedPassword) return null
 
-  if (!isHashedPassword) {
-    const hashed = await hashPassword(password)
-    await db.user.update({
-      where: { id: user.id },
-      data: { password: hashed }
-    })
-  }
+  const isValidPassword = await verifyPassword(password, user.password)
+  if (!isValidPassword) return null
   
   return {
     id: user.id,

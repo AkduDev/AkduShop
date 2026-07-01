@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import { Phone, MessageCircle, Mail, MapPin, Send, Check } from 'lucide-react'
 import { useSettings } from '@/lib/settings-context'
 import { useToast } from '@/hooks/use-toast'
@@ -8,6 +10,8 @@ import { useToast } from '@/hooks/use-toast'
 export function Footer() {
   const { settings } = useSettings()
   const { toast } = useToast()
+  const router = useRouter()
+  const pathname = usePathname()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [subscribed, setSubscribed] = useState(false)
@@ -37,6 +41,15 @@ export function Footer() {
       toast({ title: 'Error al conectar con el servidor', variant: 'destructive' })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleNavClick = (href: string, isAnchor: boolean) => {
+    if (isAnchor && pathname !== '/') {
+      router.push('/' + href)
+    } else if (isAnchor) {
+      const el = document.querySelector(href)
+      el?.scrollIntoView({ behavior: 'smooth' })
     }
   }
 
@@ -84,9 +97,27 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold mb-3 uppercase tracking-wider text-primary-foreground/80">Enlaces</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
-              <li><a href="#productos" className="hover:text-primary-foreground transition-colors">Productos</a></li>
-              <li><a href="#contacto" className="hover:text-primary-foreground transition-colors">Contacto</a></li>
-              <li><a href="/profile" className="hover:text-primary-foreground transition-colors">Mi Cuenta</a></li>
+              <li>
+                <button
+                  onClick={() => handleNavClick('#productos', true)}
+                  className="hover:text-primary-foreground transition-colors"
+                >
+                  Productos
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleNavClick('#contacto', true)}
+                  className="hover:text-primary-foreground transition-colors"
+                >
+                  Contacto
+                </button>
+              </li>
+              <li>
+                <Link href="/profile" className="hover:text-primary-foreground transition-colors">
+                  Mi Cuenta
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -59,6 +59,10 @@ export function getClientIp(request: Request): string {
   if (realIp) {
     return realIp
   }
+  const vercelForwarded = request.headers.get('x-vercel-forwarded-for')
+  if (vercelForwarded) {
+    return vercelForwarded.split(',')[0].trim()
+  }
   return '127.0.0.1'
 }
 

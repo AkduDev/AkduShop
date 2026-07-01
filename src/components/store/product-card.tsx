@@ -109,6 +109,7 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
                 : 'bg-white/90 text-gray-600 hover:bg-red-50 hover:text-red-500 dark:bg-black/60 dark:text-gray-300 dark:hover:bg-red-950 dark:hover:text-red-400'
             }`}
             aria-label={isWishlisted ? `Eliminar ${product.name} de favoritos` : `Agregar ${product.name} a favoritos`}
+            aria-pressed={isWishlisted}
           >
             <Heart className={`h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-200 ${isWishlisted ? 'fill-current scale-110' : ''}`} />
           </button>
@@ -120,7 +121,7 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
 
           {/* Hover "Ver detalles" overlay text */}
           {onViewDetails && (
-            <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-10">
+            <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 group-focus-within:translate-y-0 z-10">
               <Button
                 variant="secondary"
                 size="sm"

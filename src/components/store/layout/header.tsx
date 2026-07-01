@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { CartDrawer } from '@/components/store/cart-drawer'
 import { AdminLogin } from '@/components/store/admin-login'
 import { CustomerAuthModal } from '@/components/store/customer-auth-modal'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useSettings } from '@/lib/settings-context'
 import { useCustomerAuth } from '@/hooks/use-customer-auth'
 import { useWishlistStore } from '@/store/wishlist'
@@ -170,6 +171,7 @@ export function Header({
               )
             )}
             <AdminLogin isAdmin={isAdmin} onLogin={onLogin} onLogout={onLogout} />
+            <ThemeToggle />
 
             {/* Mobile hamburger */}
             <Button

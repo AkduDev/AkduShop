@@ -91,6 +91,7 @@ export function Pagination({
                   : 'border-[var(--gold)]/30 hover:bg-[var(--gold)]/10'
               }`}
               onClick={() => onPageChange(page as number)}
+              aria-current={currentPage === page ? 'page' : undefined}
             >
               {page}
             </Button>

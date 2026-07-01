@@ -69,5 +69,36 @@ export default async function ProductPage({ params }: PageProps) {
     notFound()
   }
 
-  return <ProductPageClient product={product} />
+  const isOnSale = product.onSale && product.discountPrice != null && product.discountPrice < product.price
+  const displayPrice = isOnSale ? product.discountPrice! : product.price
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description,
+    image: product.imageUrl,
+    sku: product.id,
+    offers: {
+      '@type': 'Offer',
+      price: displayPrice,
+      priceCurrency: 'USD',
+      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      url: `https://akdushop.vercel.app/products/${product.id}`,
+    },
+    brand: {
+      '@type': 'Organization',
+      name: 'AkduShop',
+    },
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductPageClient product={product} />
+    </>
+  )
 }

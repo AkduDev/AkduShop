@@ -1,13 +1,16 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
-import { ShoppingCart, X, Star, Check, Tag, Plus, Minus, Share2 } from 'lucide-react'
+import { ShoppingCart, X, Star, Check, Tag, Share2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { QuantitySelector } from '@/components/ui/quantity-selector'
 import { useCartStore } from '@/store/cart'
 import { useSettings } from '@/lib/settings-context'
+import { useShare } from '@/hooks/use-share'
+import { getDisplayPrice } from '@/lib/product-utils'
 import type { Product } from '@/types'
 
 interface ProductDetailModalProps {
@@ -19,13 +22,13 @@ interface ProductDetailModalProps {
 export function ProductDetailModal({ product, open, onOpenChange }: ProductDetailModalProps) {
   const addItem = useCartStore((state) => state.addItem)
   const { settings } = useSettings()
+  const { share } = useShare()
   const [qty, setQty] = useState(1)
   const [justAdded, setJustAdded] = useState(false)
 
   if (!product) return null
 
-  const isOnSale = product.onSale && product.discountPrice != null && product.discountPrice < product.price
-  const displayPrice = isOnSale ? product.discountPrice! : product.price
+  const { isOnSale, displayPrice, discountPercent } = getDisplayPrice(product)
   const lowStock = product.stock > 0 && product.stock <= 5
 
   const handleAddToCart = () => {
@@ -53,22 +56,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
 
   const handleShare = async () => {
     const url = `${window.location.origin}/products/${product.id}`
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: product.name, text: `Mira este producto: ${product.name}`, url })
-      } catch {}
-    } else {
-      try {
-        await navigator.clipboard.writeText(url)
-      } catch {
-        const textarea = document.createElement('textarea')
-        textarea.value = url
-        document.body.appendChild(textarea)
-        textarea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textarea)
-      }
-    }
+    await share(url, product.name, `Mira este producto: ${product.name}`)
   }
 
   return (
@@ -79,9 +67,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
-          <div
-            className="relative aspect-square md:aspect-auto md:h-full bg-muted overflow-hidden"
-          >
+          <div className="relative aspect-square md:aspect-auto md:h-full bg-muted overflow-hidden">
             <Image
               src={product.imageUrl}
               alt={product.name}
@@ -147,9 +133,11 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
                   <span className="text-lg sm:text-xl text-muted-foreground line-through">
                     ${product.price.toFixed(2)}
                   </span>
-                  <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border-0 text-xs font-semibold">
-                    -{Math.round((1 - displayPrice / product.price) * 100)}%
-                  </Badge>
+                  {discountPercent !== null && (
+                    <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border-0 text-xs font-semibold">
+                      -{discountPercent}%
+                    </Badge>
+                  )}
                 </>
               ) : (
                 <span className="text-2xl sm:text-4xl font-bold text-foreground">
@@ -197,23 +185,12 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
             {product.stock > 0 && (
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-sm text-muted-foreground">Cantidad:</span>
-                <div className="flex items-center border border-border/60 rounded-full h-10">
-                  <button
-                    className="h-10 w-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full"
-                    onClick={() => setQty(Math.max(1, qty - 1))}
-                    aria-label="Reducir cantidad"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <span className="w-8 text-center text-sm font-medium tabular-nums">{qty}</span>
-                  <button
-                    className="h-10 w-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full"
-                    onClick={() => setQty(Math.min(product.stock, qty + 1))}
-                    aria-label="Aumentar cantidad"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
+                <QuantitySelector
+                  value={qty}
+                  onChange={setQty}
+                  min={1}
+                  max={product.stock}
+                />
               </div>
             )}
 

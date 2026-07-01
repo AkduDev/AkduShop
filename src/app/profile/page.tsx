@@ -67,39 +67,34 @@ export default function ProfilePage() {
   const handleReorder = async (order: Order) => {
     if (!order.items) return
     const validItems = order.items.filter(i => i.productId)
-    let addedCount = 0
 
-    for (const item of validItems) {
-      try {
-        const res = await fetch(`/api/products/${item.productId}`)
-        if (res.ok) {
-          const product = await res.json()
-          addItem({
-            id: item.productId!,
-            name: item.name,
-            price: item.unitPrice,
-            imageUrl: product.imageUrl || '/placeholder.svg',
-          })
-          addedCount++
-        } else {
-          addItem({
-            id: item.productId!,
-            name: item.name,
-            price: item.unitPrice,
-            imageUrl: '/placeholder.svg',
-          })
-          addedCount++
-        }
-      } catch {
+    const results = await Promise.allSettled(
+      validItems.map(async (item) => {
+        try {
+          const res = await fetch(`/api/products/${item.productId}`)
+          if (res.ok) {
+            const product = await res.json()
+            return { ...item, imageUrl: product.imageUrl || '/placeholder.svg' }
+          }
+        } catch {}
+        return { ...item, imageUrl: '/placeholder.svg' }
+      })
+    )
+
+    let addedCount = 0
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        const item = result.value
         addItem({
           id: item.productId!,
           name: item.name,
           price: item.unitPrice,
-          imageUrl: '/placeholder.svg',
+          imageUrl: item.imageUrl,
         })
         addedCount++
       }
     }
+
     toast({ title: 'Pedido agregado al carrito', description: `${addedCount} producto(s) agregado(s)` })
   }
 
@@ -120,6 +115,7 @@ export default function ProfilePage() {
     if (result.success) {
       setEditing(false)
       setForm(f => ({ ...f, currentPassword: '', newPassword: '' }))
+      toast({ title: 'Perfil actualizado', description: 'Tus datos se han guardado correctamente' })
     } else {
       setError(result.error || 'Error al actualizar')
     }
