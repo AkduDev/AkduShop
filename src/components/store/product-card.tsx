@@ -138,15 +138,15 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
         )}
       </CardContent>
 
-      <CardFooter className={`pt-0 flex flex-col gap-2 ${isFeatured ? 'px-2.5 pb-2.5 sm:px-3 sm:pb-3' : 'px-3 pb-3 sm:px-4 sm:pb-4'}`}>
-        <div className="flex items-center justify-between w-full">
+      <CardFooter className={`pt-0 ${isFeatured ? 'px-2.5 pb-2.5 sm:px-3 sm:pb-3' : 'px-3 pb-3 sm:px-4 sm:pb-4'}`}>
+        <div className="flex items-center justify-between w-full mb-2">
           <div className="min-w-0">
             {product.onSale && product.discountPrice != null ? (
-              <div className="flex items-center gap-1.5">
-                <span className={`font-bold text-muted-foreground line-through decoration-1 ${isFeatured ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'}`}>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className={`font-bold text-muted-foreground line-through decoration-1 text-xs sm:text-sm`}>
                   ${product.price.toFixed(2)}
                 </span>
-                <span className={`font-bold text-green-600 ${isFeatured ? 'text-sm sm:text-base' : 'text-base sm:text-xl'}`}>
+                <span className={`font-bold text-green-600 text-sm sm:text-base`}>
                   ${product.discountPrice.toFixed(2)}
                 </span>
                 <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border-0 text-[10px] font-semibold px-1.5 py-0">
@@ -154,32 +154,29 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
                 </Badge>
               </div>
             ) : (
-              <span className={`font-bold text-foreground ${isFeatured ? 'text-sm sm:text-base' : 'text-base sm:text-xl'}`}>
+              <span className={`font-bold text-foreground text-base sm:text-lg`}>
                 ${product.price.toFixed(2)}
               </span>
-            )}
-            {!isFeatured && (
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">USD</p>
             )}
           </div>
 
           {product.stock > 0 && !isFeatured && (
-            <div className="flex items-center gap-1.5">
-              <div className="flex items-center border border-border/60 rounded-full h-8">
+            <div className="flex items-center">
+              <div className="flex items-center border border-border/60 rounded-full h-9">
                 <button
-                  className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full"
+                  className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full active:scale-90"
                   onClick={(e) => { e.stopPropagation(); setQty(Math.max(0, qty - 1)) }}
                   aria-label="Reducir cantidad"
                 >
-                  <Minus className="h-3 w-3" />
+                  <Minus className="h-4 w-4" />
                 </button>
-                <span className="w-5 text-center text-xs font-medium tabular-nums">{qty}</span>
+                <span className="w-6 text-center text-sm font-medium tabular-nums">{qty}</span>
                 <button
-                  className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full"
+                  className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full active:scale-90"
                   onClick={(e) => { e.stopPropagation(); setQty(Math.min(product.stock, qty + 1)) }}
                   aria-label="Aumentar cantidad"
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -189,7 +186,7 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
         {product.stock > 0 && (
           <div className="flex gap-2 w-full">
             <Button
-              className={`flex-1 rounded-full shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9 gap-1.5 ${
+              className={`flex-1 rounded-full shadow-md hover:shadow-lg transition-all duration-200 text-sm h-10 sm:h-9 gap-1.5 active:scale-95 ${
                 justAdded
                   ? 'bg-green-600 hover:bg-green-600 text-white'
                   : 'bg-primary text-primary-foreground hover:bg-primary/90'
@@ -199,12 +196,12 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
             >
               {justAdded ? (
                 <>
-                  <Check className="h-3.5 w-3.5" />
+                  <Check className="h-4 w-4" />
                   Agregado
                 </>
               ) : (
                 <>
-                  <ShoppingCart className="h-3.5 w-3.5" />
+                  <ShoppingCart className="h-4 w-4" />
                   {qty > 0 ? `Agregar (${qty})` : 'Agregar'}
                 </>
               )}
@@ -213,11 +210,11 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
               <Button
                 variant="outline"
                 size="icon"
-                className="h-8 sm:h-9 w-8 sm:w-9 rounded-full border-border/60 shrink-0"
+                className="h-10 w-10 sm:h-9 sm:w-9 rounded-full border-border/60 shrink-0 active:scale-90"
                 onClick={(e) => { e.stopPropagation(); onViewDetails(product) }}
                 aria-label={`Ver detalles de ${product.name}`}
               >
-                <Eye className="h-3.5 w-3.5" />
+                <Eye className="h-4 w-4" />
               </Button>
             )}
           </div>
