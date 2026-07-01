@@ -100,22 +100,6 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
             )}
           </div>
 
-          {/* Quick view on hover */}
-          {onViewDetails && (
-            <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <Button
-                size="sm"
-                variant="secondary"
-                className="rounded-full bg-background/90 backdrop-blur-sm text-foreground shadow-lg border-0 h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm font-medium gap-1.5"
-                onClick={(e) => { e.stopPropagation(); onViewDetails(product) }}
-                aria-label={`Ver detalles de ${product.name}`}
-              >
-                <Eye className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Ver</span>
-              </Button>
-            </div>
-          )}
-
           {/* Wishlist button */}
           <button
             onClick={handleToggleWishlist}
@@ -200,27 +184,40 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
         </div>
 
         {product.stock > 0 && (
-          <Button
-            className={`w-full rounded-full shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9 gap-1.5 ${
-              justAdded
-                ? 'bg-green-600 hover:bg-green-600 text-white'
-                : 'bg-primary text-primary-foreground hover:bg-primary/90'
-            }`}
-            onClick={handleAddToCart}
-            aria-label={`Agregar ${product.name} al carrito`}
-          >
-            {justAdded ? (
-              <>
-                <Check className="h-3.5 w-3.5" />
-                Agregado
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="h-3.5 w-3.5" />
-                {qty > 0 ? `Agregar (${qty})` : 'Agregar'}
-              </>
+          <div className="flex gap-2 w-full">
+            <Button
+              className={`flex-1 rounded-full shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9 gap-1.5 ${
+                justAdded
+                  ? 'bg-green-600 hover:bg-green-600 text-white'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              }`}
+              onClick={handleAddToCart}
+              aria-label={`Agregar ${product.name} al carrito`}
+            >
+              {justAdded ? (
+                <>
+                  <Check className="h-3.5 w-3.5" />
+                  Agregado
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                  {qty > 0 ? `Agregar (${qty})` : 'Agregar'}
+                </>
+              )}
+            </Button>
+            {onViewDetails && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 sm:h-9 w-8 sm:w-9 rounded-full border-border/60 shrink-0"
+                onClick={(e) => { e.stopPropagation(); onViewDetails(product) }}
+                aria-label={`Ver detalles de ${product.name}`}
+              >
+                <Eye className="h-3.5 w-3.5" />
+              </Button>
             )}
-          </Button>
+          </div>
         )}
       </CardFooter>
     </Card>
