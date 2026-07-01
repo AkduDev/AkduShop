@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { productSchema } from '@/lib/validations'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,6 +13,8 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get('featured')
     const onSale = searchParams.get('onSale')
     const search = searchParams.get('search')
+    const sortBy = searchParams.get('sortBy') || 'default'
+    const priceRange = searchParams.get('priceRange') || 'all'
 
     const skip = (page - 1) * limit
 
@@ -34,13 +37,50 @@ export async function GET(request: NextRequest) {
       ]
     }
 
+    if (priceRange !== 'all') {
+      const priceField = 'price'
+      switch (priceRange) {
+        case '0-10':
+          where[priceField] = { lte: 10 }
+          break
+        case '10-25':
+          where[priceField] = { gt: 10, lte: 25 }
+          break
+        case '25-50':
+          where[priceField] = { gt: 25, lte: 50 }
+          break
+        case '50-100':
+          where[priceField] = { gt: 50, lte: 100 }
+          break
+        case '100+':
+          where[priceField] = { gt: 100 }
+          break
+      }
+    }
+
+    let orderBy: Record<string, string> = { createdAt: 'desc' }
+    switch (sortBy) {
+      case 'price-asc':
+        orderBy = { price: 'asc' }
+        break
+      case 'price-desc':
+        orderBy = { price: 'desc' }
+        break
+      case 'newest':
+        orderBy = { createdAt: 'desc' }
+        break
+      case 'featured':
+        orderBy = { featured: 'desc' }
+        break
+    }
+
     const [products, total] = await Promise.all([
       db.product.findMany({
         where,
         include: {
           category: true
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take: limit
       }),
@@ -75,7 +115,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error fetching products:', error)
+    logger.error('Error fetching products', 'products', error)
     return NextResponse.json(
       { error: 'Error al obtener productos' },
       { status: 500 }
@@ -139,7 +179,7 @@ export async function POST(request: NextRequest) {
       updatedAt: product.updatedAt
     }, { status: 201 })
   } catch (error) {
-    console.error('Error creating product:', error)
+    logger.error('Error creating product', 'products', error)
     return NextResponse.json(
       { error: 'Error al crear producto' },
       { status: 500 }

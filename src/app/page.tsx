@@ -36,11 +36,15 @@ function HomeContent() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(Number(searchParams.get('page')) || 1)
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
+  const [sortBy, setSortBy] = useState<string>(searchParams.get('sort') || 'default')
+  const [priceRange, setPriceRange] = useState<string>(searchParams.get('price') || 'all')
 
   const { isAdmin, login, logout } = useAuth()
   const { products, loading, pagination, fetchProducts } = useProducts({
     category: selectedCategory,
     search: searchQuery || undefined,
+    sortBy: sortBy || undefined,
+    priceRange: priceRange !== 'all' ? priceRange : undefined,
   })
   const { products: featuredProducts, loading: featuredLoading } = useProducts({ featured: true, limit: 50 })
   const { products: saleProducts, loading: saleLoading } = useProducts({ onSale: true, limit: 50 })
@@ -49,18 +53,20 @@ function HomeContent() {
 
   const defaultPagination = { total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false }
 
-  const updateURL = useCallback((cat: string, q: string, page: number) => {
+  const updateURL = useCallback((cat: string, q: string, page: number, sort: string, price: string) => {
     const params = new URLSearchParams()
     if (cat && cat !== 'all') params.set('cat', cat)
     if (q) params.set('q', q)
     if (page > 1) params.set('page', String(page))
+    if (sort && sort !== 'default') params.set('sort', sort)
+    if (price && price !== 'all') params.set('price', price)
     const qs = params.toString()
     router.replace(qs ? `?${qs}` : '/', { scroll: false })
   }, [router])
 
   useEffect(() => {
     setCurrentPage(1)
-    updateURL(selectedCategory, searchQuery, 1)
+    updateURL(selectedCategory, searchQuery, 1, sortBy, priceRange)
   }, [selectedCategory]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleViewDetails = (product: Product) => {
@@ -71,7 +77,7 @@ function HomeContent() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
     fetchProducts(page)
-    updateURL(selectedCategory, searchQuery, page)
+    updateURL(selectedCategory, searchQuery, page, sortBy, priceRange)
     document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })
   }
 
@@ -83,7 +89,19 @@ function HomeContent() {
   const handleSearch = (query: string) => {
     setSearchQuery(query)
     setCurrentPage(1)
-    updateURL(selectedCategory, query, 1)
+    updateURL(selectedCategory, query, 1, sortBy, priceRange)
+  }
+
+  const handleSortByChange = (sort: string) => {
+    setSortBy(sort)
+    setCurrentPage(1)
+    updateURL(selectedCategory, searchQuery, 1, sort, priceRange)
+  }
+
+  const handlePriceRangeChange = (range: string) => {
+    setPriceRange(range)
+    setCurrentPage(1)
+    updateURL(selectedCategory, searchQuery, 1, sortBy, range)
   }
 
   return (
@@ -155,8 +173,12 @@ function HomeContent() {
           selectedCategory={selectedCategory}
           currentPage={currentPage}
           searchQuery={searchQuery}
+          sortBy={sortBy as 'default' | 'price-asc' | 'price-desc' | 'newest' | 'featured'}
+          priceRange={priceRange}
           onPageChange={handlePageChange}
           onSearch={handleSearch}
+          onSortByChange={handleSortByChange}
+          onPriceRangeChange={handlePriceRangeChange}
           onViewDetails={handleViewDetails}
         />
       </main>

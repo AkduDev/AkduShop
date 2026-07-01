@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { productSchema } from '@/lib/validations'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   request: NextRequest,
@@ -39,7 +40,7 @@ export async function GET(
       updatedAt: product.updatedAt
     })
   } catch (error) {
-    console.error('Error fetching product:', error)
+    logger.error('Error fetching product', 'products/[id]', error)
     return NextResponse.json(
       { error: 'Error al obtener producto' },
       { status: 500 }
@@ -108,7 +109,7 @@ export async function PUT(
       updatedAt: product.updatedAt
     })
   } catch (error) {
-    console.error('Error updating product:', error)
+    logger.error('Error updating product', 'products/[id]', error)
     return NextResponse.json(
       { error: 'Error al actualizar producto' },
       { status: 500 }
@@ -137,7 +138,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting product:', error)
+    logger.error('Error deleting product', 'products/[id]', error)
     return NextResponse.json(
       { error: 'Error al eliminar producto' },
       { status: 500 }

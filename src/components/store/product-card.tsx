@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { ShoppingCart, Eye, Star, Plus, Minus, Check, Tag, Heart } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -141,7 +142,9 @@ export function ProductCard({ product, onViewDetails, variant = 'default' }: Pro
           {product.category}
         </Badge>
         <h3 className={`font-semibold line-clamp-1 text-foreground group-hover:text-primary transition-colors duration-200 ${isFeatured ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'}`}>
-          {product.name}
+          <Link href={`/products/${product.id}`} className="hover:underline" prefetch={false}>
+            {product.name}
+          </Link>
         </h3>
         {!isFeatured && (
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed hidden sm:block">

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { categorySchema } from '@/lib/validations'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Error fetching categories:', error)
+    logger.error('Error fetching categories', 'categories', error)
     return NextResponse.json(
       { error: 'Error al obtener categorías' },
       { status: 500 }
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(category, { status: 201 })
   } catch (error) {
-    console.error('Error creating category:', error)
+    logger.error('Error creating category', 'categories', error)
     return NextResponse.json(
       { error: 'Error al crear categoría' },
       { status: 500 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession, getCustomerSession } from '@/lib/auth'
 import { createOrderSchema } from '@/lib/validations'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: Request) {
   try {
@@ -105,7 +106,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(order, { status: 201 })
   } catch (error) {
-    console.error('Error creating order:', error)
+    logger.error('Error creating order', 'orders', error)
     const message = error instanceof Error ? error.message : 'Error al crear la orden'
     return NextResponse.json(
       { error: message },
@@ -154,7 +155,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Error fetching orders:', error)
+    logger.error('Error fetching orders', 'orders', error)
     return NextResponse.json(
       { error: 'Error al obtener las órdenes' },
       { status: 500 }

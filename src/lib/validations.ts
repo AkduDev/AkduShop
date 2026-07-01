@@ -47,9 +47,33 @@ export const orderStatusSchema = z.object({
   }),
 })
 
+export const updateProfileSchema = z.object({
+  name: z.string().min(1, 'Nombre es requerido').max(100).optional(),
+  phone: z.string().max(20).optional().nullable(),
+  address: z.string().max(200).optional().nullable(),
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(6, 'La nueva contraseña debe tener al menos 6 caracteres').optional(),
+}).refine(
+  (data) => !data.newPassword || data.currentPassword,
+  { message: 'Contraseña actual requerida para cambiar contraseña', path: ['currentPassword'] }
+)
+
+export const newsletterSchema = z.object({
+  email: z.string().min(1, 'Email es requerido').email('Email inválido'),
+})
+
+export const reviewSchema = z.object({
+  productId: z.string().min(1, 'ProductId es requerido'),
+  rating: z.coerce.number().int().min(1, 'Rating mínimo es 1').max(5, 'Rating máximo es 5'),
+  comment: z.string().max(1000).optional().nullable(),
+})
+
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
 export type ProductInput = z.infer<typeof productSchema>
 export type CategoryInput = z.infer<typeof categorySchema>
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
 export type OrderStatusInput = z.infer<typeof orderStatusSchema>
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
+export type NewsletterInput = z.infer<typeof newsletterSchema>
+export type ReviewInput = z.infer<typeof reviewSchema>

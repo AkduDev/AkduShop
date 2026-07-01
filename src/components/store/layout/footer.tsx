@@ -1,10 +1,44 @@
 'use client'
 
-import { Phone, MessageCircle, Mail, MapPin } from 'lucide-react'
+import { useState } from 'react'
+import { Phone, MessageCircle, Mail, MapPin, Send, Check } from 'lucide-react'
 import { useSettings } from '@/lib/settings-context'
+import { useToast } from '@/hooks/use-toast'
 
 export function Footer() {
   const { settings } = useSettings()
+  const { toast } = useToast()
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [subscribed, setSubscribed] = useState(false)
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) return
+
+    setLoading(true)
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setSubscribed(true)
+        setEmail('')
+        toast({ title: data.message || '¡Suscripción exitosa!' })
+      } else {
+        toast({ title: data.error || 'Error al suscribirse', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error al conectar con el servidor', variant: 'destructive' })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <footer className="bg-primary text-primary-foreground">
@@ -12,9 +46,39 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <h3 className="text-lg font-bold mb-3">{settings.siteName}</h3>
-            <p className="text-sm text-primary-foreground/70 leading-relaxed">
+            <p className="text-sm text-primary-foreground/70 leading-relaxed mb-4">
               {settings.siteDescription}
             </p>
+
+            <div>
+              <h4 className="text-sm font-semibold mb-2 uppercase tracking-wider text-primary-foreground/80">Newsletter</h4>
+              {subscribed ? (
+                <div className="flex items-center gap-2 text-sm text-primary-foreground/80">
+                  <Check className="h-4 w-4" />
+                  <span>¡Gracias por suscribirte!</span>
+                </div>
+              ) : (
+                <form onSubmit={handleSubscribe} className="flex gap-2">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Tu email"
+                    required
+                    className="flex-1 px-3 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 text-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-foreground/30"
+                    aria-label="Email para newsletter"
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-3 py-2 rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-colors disabled:opacity-50"
+                    aria-label="Suscribirse al newsletter"
+                  >
+                    <Send className="h-4 w-4" />
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
 
           <div>

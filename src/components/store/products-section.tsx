@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ShoppingBag, ArrowUpDown } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { ProductCard } from '@/components/store/product-card'
@@ -8,6 +8,8 @@ import { Pagination } from '@/components/store/pagination'
 import { ProductCardSkeleton } from '@/components/ui/skeletons/product-card-skeleton'
 import { useSettings } from '@/lib/settings-context'
 import type { Product, Category, PaginationData } from '@/types'
+
+type SortOption = 'default' | 'price-asc' | 'price-desc' | 'newest' | 'featured'
 
 interface ProductsSectionProps {
   products: Product[]
@@ -17,12 +19,14 @@ interface ProductsSectionProps {
   selectedCategory: string
   currentPage: number
   searchQuery: string
+  sortBy: SortOption
+  priceRange: string
   onPageChange: (page: number) => void
   onSearch: (query: string) => void
+  onSortByChange: (sort: SortOption) => void
+  onPriceRangeChange: (range: string) => void
   onViewDetails: (product: Product) => void
 }
-
-type SortOption = 'default' | 'price-asc' | 'price-desc' | 'newest' | 'featured'
 
 export function ProductsSection({
   products,
@@ -32,14 +36,16 @@ export function ProductsSection({
   selectedCategory,
   currentPage,
   searchQuery,
+  sortBy,
+  priceRange,
   onPageChange,
   onSearch,
+  onSortByChange,
+  onPriceRangeChange,
   onViewDetails
 }: ProductsSectionProps) {
   const { settings } = useSettings()
   const [localSearch, setLocalSearch] = useState(searchQuery)
-  const [sortBy, setSortBy] = useState<SortOption>('default')
-  const [priceRange, setPriceRange] = useState<string>('all')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -59,49 +65,6 @@ export function ProductsSection({
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
   }, [])
-
-  const filteredProducts = useMemo(() => {
-    let result = [...products]
-
-    if (priceRange !== 'all') {
-      result = result.filter((p) => {
-        const price = p.onSale && p.discountPrice != null ? p.discountPrice : p.price
-        switch (priceRange) {
-          case '0-10': return price <= 10
-          case '10-25': return price > 10 && price <= 25
-          case '25-50': return price > 25 && price <= 50
-          case '50-100': return price > 50 && price <= 100
-          case '100+': return price > 100
-          default: return true
-        }
-      })
-    }
-
-    switch (sortBy) {
-      case 'price-asc':
-        result.sort((a, b) => {
-          const pa = a.onSale && a.discountPrice != null ? a.discountPrice : a.price
-          const pb = b.onSale && b.discountPrice != null ? b.discountPrice : b.price
-          return pa - pb
-        })
-        break
-      case 'price-desc':
-        result.sort((a, b) => {
-          const pa = a.onSale && a.discountPrice != null ? a.discountPrice : a.price
-          const pb = b.onSale && b.discountPrice != null ? b.discountPrice : b.price
-          return pb - pa
-        })
-        break
-      case 'newest':
-        result.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-        break
-      case 'featured':
-        result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
-        break
-    }
-
-    return result
-  }, [products, sortBy, priceRange])
 
   const selectedCategoryName = selectedCategory === 'all'
     ? 'all'
@@ -168,7 +131,7 @@ export function ProductsSection({
               <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                onChange={(e) => onSortByChange(e.target.value as SortOption)}
                 className="text-sm bg-background border border-border/50 rounded-full px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
                 aria-label="Ordenar por"
               >
@@ -181,7 +144,7 @@ export function ProductsSection({
             </div>
             <select
               value={priceRange}
-              onChange={(e) => setPriceRange(e.target.value)}
+              onChange={(e) => onPriceRangeChange(e.target.value)}
               className="text-sm bg-background border border-border/50 rounded-full px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
               aria-label="Filtrar por precio"
             >
@@ -201,7 +164,7 @@ export function ProductsSection({
               <ProductCardSkeleton key={i} />
             ))}
           </div>
-        ) : filteredProducts.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="text-center py-20">
             <ShoppingBag className="h-20 w-20 mx-auto mb-6 text-muted-foreground/30" />
             <p className="text-xl text-muted-foreground">
@@ -211,7 +174,7 @@ export function ProductsSection({
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
-              {filteredProducts.map(product => (
+              {products.map(product => (
                 <ProductCard
                   key={product.id}
                   product={product}

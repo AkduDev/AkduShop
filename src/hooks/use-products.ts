@@ -12,16 +12,18 @@ interface UseProductsOptions {
   featured?: boolean
   onSale?: boolean
   search?: string
+  sortBy?: string
+  priceRange?: string
 }
 
 export function useProducts(options: UseProductsOptions = {}) {
-  const { category: selectedCategory = 'all', limit = 12, featured, onSale, search } = options
+  const { category: selectedCategory = 'all', limit = 12, featured, onSale, search, sortBy = 'default', priceRange = 'all' } = options
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
 
   const queryKey = useMemo(
-    () => ['products', selectedCategory, page, limit, featured, onSale, search],
-    [selectedCategory, page, limit, featured, onSale, search]
+    () => ['products', selectedCategory, page, limit, featured, onSale, search, sortBy, priceRange],
+    [selectedCategory, page, limit, featured, onSale, search, sortBy, priceRange]
   )
 
   const { data, isLoading, isFetching, error } = useQuery({
@@ -35,6 +37,8 @@ export function useProducts(options: UseProductsOptions = {}) {
       if (featured) params.set('featured', 'true')
       if (onSale) params.set('onSale', 'true')
       if (search) params.set('search', search)
+      if (sortBy && sortBy !== 'default') params.set('sortBy', sortBy)
+      if (priceRange && priceRange !== 'all') params.set('priceRange', priceRange)
 
       const res = await fetch(`/api/products?${params.toString()}`)
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
