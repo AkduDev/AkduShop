@@ -139,6 +139,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                         src={item.imageUrl}
                         alt={item.name}
                         fill
+                        sizes="80px"
                         className="object-cover"
                       />
                     </div>

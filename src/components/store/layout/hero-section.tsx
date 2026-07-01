@@ -99,6 +99,7 @@ export function HeroSection({ heroProduct }: HeroSectionProps) {
                     src={heroProduct.imageUrl}
                     alt={heroProduct.name}
                     fill
+                    sizes="320px"
                     className="object-cover"
                     priority
                   />

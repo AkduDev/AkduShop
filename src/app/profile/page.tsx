@@ -33,6 +33,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({ name: '', phone: '', address: '', currentPassword: '', newPassword: '' })
+  const [orders, setOrders] = useState<Order[]>([])
+  const [ordersLoading, setOrdersLoading] = useState(true)
 
   useEffect(() => {
     if (!loading && !isLoggedIn) {
@@ -51,6 +53,16 @@ export default function ProfilePage() {
       })
     }
   }, [customer])
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetch('/api/auth/customer/me/orders')
+        .then(res => res.json())
+        .then(data => setOrders(Array.isArray(data) ? data : []))
+        .catch(() => setOrders([]))
+        .finally(() => setOrdersLoading(false))
+    }
+  }, [isLoggedIn])
 
   const handleReorder = async (order: Order) => {
     if (!order.items) return
@@ -131,8 +143,6 @@ export default function ProfilePage() {
   }
 
   if (!customer) return null
-
-  const orders = customer.orders as Order[]
 
   return (
     <div className="min-h-screen bg-background">
@@ -234,7 +244,13 @@ export default function ProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {orders.length === 0 ? (
+            {ordersLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <Skeleton key={i} className="h-24 w-full rounded-lg" />
+                ))}
+              </div>
+            ) : orders.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No tienes pedidos aún
               </p>

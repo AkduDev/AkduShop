@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Star, Send, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { useCustomerAuth } from '@/hooks/use-customer-auth'
 import { useToast } from '@/hooks/use-toast'
 
@@ -24,70 +24,69 @@ interface ProductReviewsProps {
   productId: string
 }
 
+async function fetchReviews(productId: string): Promise<{ reviews: Review[]; stats: ReviewStats }> {
+  const res = await fetch(`/api/products/${productId}/reviews`)
+  if (!res.ok) return { reviews: [], stats: { average: 0, count: 0 } }
+  return res.json()
+}
+
 export function ProductReviews({ productId }: ProductReviewsProps) {
   const { customer } = useCustomerAuth()
   const { toast } = useToast()
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [stats, setStats] = useState<ReviewStats>({ average: 0, count: 0 })
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
+  const queryClient = useQueryClient()
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [comment, setComment] = useState('')
-  const [loaded, setLoaded] = useState(false)
 
-  const fetchReviews = async () => {
-    try {
-      const res = await fetch(`/api/products/${productId}/reviews`)
-      if (res.ok) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['reviews', productId],
+    queryFn: () => fetchReviews(productId),
+    staleTime: 60_000,
+  })
+
+  const reviews = data?.reviews ?? []
+  const stats = data?.stats ?? { average: 0, count: 0 }
+
+  const submitMutation = useMutation({
+    mutationFn: async ({ rating, comment }: { rating: number; comment: string | null }) => {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, rating, comment }),
+      })
+      if (!res.ok) {
         const data = await res.json()
-        setReviews(data.reviews)
-        setStats(data.stats)
+        throw new Error(data.error || 'Error al publicar')
       }
-    } catch {} finally {
-      setLoading(false)
-      setLoaded(true)
-    }
-  }
+      return res.json()
+    },
+    onSuccess: (newReview) => {
+      queryClient.setQueryData(['reviews', productId], (old: { reviews: Review[]; stats: ReviewStats } | undefined) => {
+        if (!old) return old
+        return {
+          reviews: [newReview, ...old.reviews],
+          stats: {
+            average: (old.stats.average * old.stats.count + newReview.rating) / (old.stats.count + 1),
+            count: old.stats.count + 1,
+          },
+        }
+      })
+      setRating(0)
+      setComment('')
+      toast({ title: '¡Reseña publicada!' })
+    },
+    onError: (e: Error) => {
+      toast({ title: e.message || 'Error al publicar', variant: 'destructive' })
+    },
+  })
 
-  if (!loaded) {
-    fetchReviews()
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (rating === 0) {
       toast({ title: 'Selecciona un rating', variant: 'destructive' })
       return
     }
-
-    setSubmitting(true)
-    try {
-      const res = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, rating, comment: comment.trim() || null }),
-      })
-
-      if (res.ok) {
-        const newReview = await res.json()
-        setReviews((prev) => [newReview, ...prev])
-        setStats((prev) => ({
-          average: (prev.average * prev.count + rating) / (prev.count + 1),
-          count: prev.count + 1,
-        }))
-        setRating(0)
-        setComment('')
-        toast({ title: '¡Reseña publicada!' })
-      } else {
-        const data = await res.json()
-        toast({ title: data.error || 'Error al publicar', variant: 'destructive' })
-      }
-    } catch {
-      toast({ title: 'Error al conectar con el servidor', variant: 'destructive' })
-    } finally {
-      setSubmitting(false)
-    }
+    submitMutation.mutate({ rating, comment: comment.trim() || null })
   }
 
   return (
@@ -156,8 +155,8 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
             rows={3}
             className="w-full px-3 py-2 rounded-xl border border-border/50 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
           />
-          <Button type="submit" disabled={submitting || rating === 0} size="sm" className="rounded-full">
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+          <Button type="submit" disabled={submitMutation.isPending || rating === 0} size="sm" className="rounded-full">
+            {submitMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
             Publicar
           </Button>
         </form>
@@ -168,7 +167,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
       )}
 
       <div className="space-y-4">
-        {loading ? (
+        {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />

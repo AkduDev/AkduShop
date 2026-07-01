@@ -2,11 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Customer, CustomerRegisterData, CustomerLoginData } from '@/types'
-import type { Order } from '@/types'
 
-export interface CustomerProfile extends Customer {
-  orders: Order[]
-}
+export interface CustomerProfile extends Customer {}
 
 async function fetchCustomer(): Promise<CustomerProfile | null> {
   const res = await fetch('/api/auth/customer/me')
@@ -63,7 +60,7 @@ export function useCustomerAuth() {
   const { data: customer, isLoading: loading } = useQuery({
     queryKey: ['customer'],
     queryFn: fetchCustomer,
-    staleTime: 0,
+    staleTime: 60_000,
     refetchOnWindowFocus: false,
   })
 

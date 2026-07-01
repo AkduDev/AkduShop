@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ShoppingCart, Eye, Star, Plus, Minus, Check, Tag, Heart } from 'lucide-react'
@@ -18,7 +18,7 @@ interface ProductCardProps {
   variant?: 'default' | 'featured'
 }
 
-export function ProductCard({ product, onViewDetails, variant = 'default' }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, onViewDetails, variant = 'default' }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem)
   const { toggleItem, items: wishlistItems } = useWishlistStore()
   const { toast } = useToast()
@@ -68,6 +68,7 @@ export function ProductCard({ product, onViewDetails, variant = 'default' }: Pro
             src={product.imageUrl}
             alt={product.name}
             fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           />
 
@@ -224,4 +225,4 @@ export function ProductCard({ product, onViewDetails, variant = 'default' }: Pro
       </CardFooter>
     </Card>
   )
-}
+})

@@ -15,12 +15,13 @@ export async function GET() {
 
     const customer = await db.customer.findUnique({
       where: { id: session.id },
-      include: {
-        orders: {
-          include: { items: true },
-          orderBy: { createdAt: 'desc' },
-          take: 20,
-        },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        address: true,
+        createdAt: true,
       },
     })
 
@@ -28,15 +29,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 })
     }
 
-    return NextResponse.json({
-      id: customer.id,
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      address: customer.address,
-      createdAt: customer.createdAt,
-      orders: customer.orders,
-    })
+    return NextResponse.json(customer)
   } catch (error) {
     logger.error('Error fetching customer profile', 'customer/me', error)
     return NextResponse.json(

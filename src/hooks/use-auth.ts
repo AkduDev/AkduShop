@@ -29,7 +29,7 @@ export function useAuth() {
   const { data: isAdmin = false, isLoading: loading } = useQuery({
     queryKey: ['auth'],
     queryFn: fetchAuthStatus,
-    staleTime: 0,
+    staleTime: 120_000,
     refetchOnWindowFocus: false,
   })
 

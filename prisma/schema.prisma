@@ -75,6 +75,7 @@ model OrderItem {
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
+  @@index([productId])
 }
 
 model Product {
@@ -97,6 +98,8 @@ model Product {
   @@index([featured])
   @@index([onSale])
   @@index([createdAt])
+  @@index([categoryId, featured, onSale, createdAt])
+  @@index([categoryId, onSale, price])
 }
 
 model Review {

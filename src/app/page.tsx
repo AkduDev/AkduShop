@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/store/layout/header'
 import { AnnouncementBar } from '@/components/store/layout/announcement-bar'
@@ -11,13 +12,17 @@ import { ProductsSection } from '@/components/store/products-section'
 import { ContactSection } from '@/components/store/layout/contact-section'
 import { Footer } from '@/components/store/layout/footer'
 import { BackToTop } from '@/components/store/layout/back-to-top'
-import { ProductDetailModal } from '@/components/store/product-detail-modal'
 import { ProductCardSkeleton } from '@/components/ui/skeletons/product-card-skeleton'
 import { useAuth } from '@/hooks/use-auth'
 import { useProducts } from '@/hooks/use-products'
 import { useCategories } from '@/hooks/use-categories'
 import { useCartCheckout } from '@/hooks/use-cart-checkout'
 import type { Product } from '@/types'
+
+const ProductDetailModal = dynamic(
+  () => import('@/components/store/product-detail-modal').then((m) => m.ProductDetailModal),
+  { ssr: false }
+)
 
 export default function Home() {
   return (
@@ -46,8 +51,8 @@ function HomeContent() {
     sortBy: sortBy || undefined,
     priceRange: priceRange !== 'all' ? priceRange : undefined,
   })
-  const { products: featuredProducts, loading: featuredLoading } = useProducts({ featured: true, limit: 50 })
-  const { products: saleProducts, loading: saleLoading } = useProducts({ onSale: true, limit: 50 })
+  const { products: featuredProducts, loading: featuredLoading } = useProducts({ featured: true, limit: 5 })
+  const { products: saleProducts, loading: saleLoading } = useProducts({ onSale: true, limit: 8 })
   const { categories } = useCategories()
   const { handleWhatsAppCheckout } = useCartCheckout()
 
@@ -69,10 +74,10 @@ function HomeContent() {
     updateURL(selectedCategory, searchQuery, 1, sortBy, priceRange)
   }, [selectedCategory]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleViewDetails = (product: Product) => {
+  const handleViewDetails = useCallback((product: Product) => {
     setSelectedProduct(product)
     setIsDetailOpen(true)
-  }
+  }, [])
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)

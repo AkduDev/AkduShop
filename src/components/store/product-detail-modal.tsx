@@ -20,10 +20,9 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
   const addItem = useCartStore((state) => state.addItem)
   const { settings } = useSettings()
   const [zoom, setZoom] = useState(false)
-  const [origin, setOrigin] = useState({ x: 50, y: 50 })
+  const imgRef = useRef<HTMLDivElement>(null)
   const [qty, setQty] = useState(1)
   const [justAdded, setJustAdded] = useState(false)
-  const imgRef = useRef<HTMLDivElement>(null)
 
   if (!product) return null
 
@@ -51,7 +50,10 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
     const rect = imgRef.current.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top) / rect.height) * 100
-    setOrigin({ x, y })
+    const img = imgRef.current.querySelector('img') as HTMLImageElement | null
+    if (img) {
+      img.style.transformOrigin = `${x}% ${y}%`
+    }
   }
 
   const handleShare = async () => {
@@ -84,10 +86,10 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
               src={product.imageUrl}
               alt={product.name}
               fill
+              sizes="(max-width: 768px) 90vw, 45vw"
               className="object-cover transition-transform duration-200 ease-out"
               style={{
                 transform: zoom ? 'scale(1.8)' : 'scale(1)',
-                transformOrigin: `${origin.x}% ${origin.y}%`,
               }}
             />
 

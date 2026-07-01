@@ -31,10 +31,9 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
   const { handleWhatsAppCheckout } = useCartCheckout()
   const { toast } = useToast()
   const [zoom, setZoom] = useState(false)
-  const [origin, setOrigin] = useState({ x: 50, y: 50 })
+  const imgRef = useRef<HTMLDivElement>(null)
   const [qty, setQty] = useState(1)
   const [justAdded, setJustAdded] = useState(false)
-  const imgRef = useRef<HTMLDivElement>(null)
 
   const isOnSale = product.onSale && product.discountPrice != null && product.discountPrice < product.price
   const displayPrice = isOnSale ? product.discountPrice! : product.price
@@ -57,7 +56,10 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
     const rect = imgRef.current.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top) / rect.height) * 100
-    setOrigin({ x, y })
+    const img = imgRef.current.querySelector('img') as HTMLImageElement | null
+    if (img) {
+      img.style.transformOrigin = `${x}% ${y}%`
+    }
   }
 
   const handleShare = async () => {
@@ -107,10 +109,10 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
                 src={product.imageUrl}
                 alt={product.name}
                 fill
+                sizes="(max-width: 768px) 90vw, 45vw"
                 className="object-cover transition-transform duration-200 ease-out"
                 style={{
                   transform: zoom ? 'scale(1.8)' : 'scale(1)',
-                  transformOrigin: `${origin.x}% ${origin.y}%`,
                 }}
                 priority
               />
