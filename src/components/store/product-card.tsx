@@ -143,12 +143,15 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
           <div className="min-w-0">
             {product.onSale && product.discountPrice != null ? (
               <div className="flex items-center gap-1.5">
-                <span className={`font-bold text-red-500 line-through decoration-1 ${isFeatured ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'}`}>
+                <span className={`font-bold text-muted-foreground line-through decoration-1 ${isFeatured ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'}`}>
                   ${product.price.toFixed(2)}
                 </span>
                 <span className={`font-bold text-green-600 ${isFeatured ? 'text-sm sm:text-base' : 'text-base sm:text-xl'}`}>
                   ${product.discountPrice.toFixed(2)}
                 </span>
+                <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border-0 text-[10px] font-semibold px-1.5 py-0">
+                  -{Math.round((1 - product.discountPrice / product.price) * 100)}%
+                </Badge>
               </div>
             ) : (
               <span className={`font-bold text-foreground ${isFeatured ? 'text-sm sm:text-base' : 'text-base sm:text-xl'}`}>

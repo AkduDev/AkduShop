@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { Sparkles, Star, ArrowRight, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSettings } from '@/lib/settings-context'
@@ -94,21 +95,37 @@ export function HeroSection({ heroProduct }: HeroSectionProps) {
             <AnimateOnScroll delay={200}>
               <div className="relative hidden lg:flex items-center justify-center">
                 <div className="absolute w-72 h-72 rounded-full bg-primary/5 blur-3xl" />
-                <div className="relative w-80 h-80 rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 border border-border/20 bg-muted">
+                <Link
+                  href={`/products/${heroProduct.id}`}
+                  className="relative block w-80 h-80 rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 border border-border/20 bg-muted hover:shadow-primary/20 hover:border-primary/30 transition-all duration-300 group"
+                  prefetch={false}
+                >
                   <Image
                     src={heroProduct.imageUrl}
                     alt={heroProduct.name}
                     fill
                     sizes="320px"
-                    className="object-cover"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                     priority
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4">
                     <p className="text-sm font-semibold text-foreground line-clamp-1 drop-shadow-lg">{heroProduct.name}</p>
-                    <p className="text-lg font-bold text-primary drop-shadow-lg">${heroProduct.price.toFixed(2)}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {heroProduct.onSale && heroProduct.discountPrice != null ? (
+                        <>
+                          <span className="text-lg font-bold text-green-400 drop-shadow-lg">${heroProduct.discountPrice.toFixed(2)}</span>
+                          <span className="text-sm text-muted-foreground/80 line-through drop-shadow-lg">${heroProduct.price.toFixed(2)}</span>
+                        </>
+                      ) : (
+                        <span className="text-lg font-bold text-primary drop-shadow-lg">${heroProduct.price.toFixed(2)}</span>
+                      )}
+                    </div>
+                    <span className="inline-flex items-center gap-1 mt-2 text-xs text-primary-foreground/80 group-hover:text-primary-foreground transition-colors">
+                      Ver producto <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                    </span>
                   </div>
-                </div>
+                </Link>
               </div>
             </AnimateOnScroll>
           )}

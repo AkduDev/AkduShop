@@ -38,11 +38,19 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
       imageUrl: product.imageUrl
     }, qty)
     setJustAdded(true)
-    setTimeout(() => {
-      setJustAdded(false)
-      onOpenChange(false)
-      setQty(1)
-    }, 1200)
+  }
+
+  const handleContinueShopping = () => {
+    setJustAdded(false)
+    setQty(1)
+    onOpenChange(false)
+  }
+
+  const handleViewCart = () => {
+    setJustAdded(false)
+    setQty(1)
+    onOpenChange(false)
+    ;(document.querySelector('[data-cart-trigger]') as HTMLElement | null)?.click()
   }
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -147,12 +155,15 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
             <div className="flex items-baseline gap-2 mb-4 sm:mb-6">
               {isOnSale ? (
                 <>
-                  <span className="text-2xl sm:text-4xl font-bold text-red-500">
+                  <span className="text-2xl sm:text-4xl font-bold text-green-600">
                     ${displayPrice.toFixed(2)}
                   </span>
                   <span className="text-lg sm:text-xl text-muted-foreground line-through">
                     ${product.price.toFixed(2)}
                   </span>
+                  <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border-0 text-xs font-semibold">
+                    -{Math.round((1 - displayPrice / product.price) * 100)}%
+                  </Badge>
                 </>
               ) : (
                 <span className="text-2xl sm:text-4xl font-bold text-foreground">
@@ -220,28 +231,42 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
               </div>
             )}
 
-            <Button
-              size="lg"
-              className={`w-full h-12 sm:h-14 text-base sm:text-lg rounded-full transition-all duration-200 ${
-                justAdded
-                  ? 'bg-green-600 hover:bg-green-600 text-white'
-                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
-              }`}
-              onClick={handleAddToCart}
-              disabled={product.stock <= 0}
-            >
-              {justAdded ? (
-                <>
-                  <Check className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  ¡Agregado!
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  Añadir al Carrito{qty > 1 ? ` (${qty})` : ''}
-                </>
-              )}
-            </Button>
+            {justAdded ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-center gap-2 text-green-600 font-medium py-2">
+                  <Check className="h-5 w-5" />
+                  ¡Agregado al carrito!
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="flex-1 h-12 rounded-full"
+                    onClick={handleContinueShopping}
+                  >
+                    Seguir Comprando
+                  </Button>
+                  <Button
+                    size="lg"
+                    className="flex-1 h-12 rounded-full bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleViewCart}
+                  >
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Ver Carrito
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                size="lg"
+                className="w-full h-12 sm:h-14 text-base sm:text-lg rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200"
+                onClick={handleAddToCart}
+                disabled={product.stock <= 0}
+              >
+                <ShoppingCart className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                Añadir al Carrito{qty > 1 ? ` (${qty})` : ''}
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/store/layout/header'
 import { AnnouncementBar } from '@/components/store/layout/announcement-bar'
 import { HeroSection } from '@/components/store/layout/hero-section'
+import { TrustBanner } from '@/components/store/trust-banner'
 import { FeaturedProducts } from '@/components/store/featured-products'
 import { SalesSection } from '@/components/store/sales-section'
 import { ProductsSection } from '@/components/store/products-section'
@@ -125,6 +126,8 @@ function HomeContent() {
 
       <main className="flex-1">
         <HeroSection heroProduct={featuredProducts?.[0] || null} />
+
+        <TrustBanner />
 
         {selectedCategory === 'all' && !searchQuery && (
           featuredLoading && featuredProducts.length === 0 ? (
