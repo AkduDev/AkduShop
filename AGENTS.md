@@ -44,7 +44,8 @@
 ### 3. Órdenes vinculadas al customer autenticado
 - `POST /api/orders` — requiere `customer_session` (401 si no)
 - **Validación server-side**: precios calculados desde DB (`discountPrice` si `onSale`), stock verificado antes de crear
-- `src/hooks/use-cart-checkout.ts` — usa `useCustomerAuth` internamente
+- **Teléfono/dirección del customer** se guardan automáticamente en la orden desde el perfil
+- `src/hooks/use-cart-checkout.ts` — usa `useCustomerAuth` internamente + validación de stock pre-checkout
 - `src/components/store/cart-drawer.tsx` — checkout automático post-login
 
 ### 4. Paleta de colores → Azul
@@ -54,21 +55,23 @@
 - ~75 referencias Tailwind en 17 archivos ahora se renderizan en azul
 
 ### 5. Mejoras de diseño
-- **Tarjetas de producto** (`product-card.tsx`) — rounded-2xl, hover sombra/borde, flex h-full para altura uniforme, **botón corazón favorito** (backdrop-blur-md, shadow-lg, scale animations, dark mode), **overlay "Ver Detalles"** en hover sobre imagen, **botón "Ver Detalles"** outline full-width debajo de "Agregar al Carrito", descripción visible en sm+, sin selector +/- en tarjeta
+- **Tarjetas de producto** (`product-card.tsx`) — rounded-2xl, hover sombra/borde, flex h-full para altura uniforme, **botón corazón favorito** (backdrop-blur-md, shadow-lg, scale animations, dark mode, `aria-pressed`), **overlay "Ver Detalles"** en hover sobre imagen (visible con `group-focus-within`), **botón "Ver Detalles"** outline full-width debajo de "Agregar al Carrito", descripción visible en sm+, sin selector +/- en tarjeta
 - **Skeleton loader** (`product-card-skeleton.tsx`) — sincronizado con diseño actual (sin quantity selector)
 - **Hero Section** (`hero-section.tsx`) — **layout 2 columnas en desktop** (texto + imagen de producto destacado), stats, animaciones
 - **Featured Products** (`featured-products.tsx`) — gradientes con primary
-- **Footer** (`footer.tsx`) — **3 columnas** (marca, enlaces, contacto), WhatsApp icon
+- **Footer** (`footer.tsx`) — **3 columnas** (marca, enlaces, contacto), WhatsApp icon, links funcionales con `router.push` para anclas
 - **Search input** (`products-section.tsx`) — focus ring con primary, **debounce 300ms**
 - **Aria-labels** — carrito, eliminar item, admin login, admin settings, menú móvil, favoritos
 
 ### 6. Funcionalidades UX
 - **Barra de anuncios** (`announcement-bar.tsx`) — mensajes rotativos, auto-rotate 5s
 - **Badges de stock bajo** — "¡Solo quedan X!" cuando stock ≤ 5
-- **Selector de cantidad** — solo en modal detalle (+/- con min 1), tarjeta agrega 1 unidad directo
+- **Selector de cantidad** — componente reutilizable `QuantitySelector` en modal detalle (+/- con min 1), tarjeta agrega 1 unidad directo
 - **Botón volver arriba** (`back-to-top.tsx`) — flotante tras scroll 400px
 - **Animaciones al scroll** (`animate-on-scroll.tsx`) — fade-in + translateY
 - **Zoom de imagen** (`product-detail-modal.tsx`) — hover → zoom 1.8x
+- **Dark mode toggle** (`theme-toggle.tsx`) — persiste en localStorage, respeta prefers-color-scheme
+- **Página 404 personalizada** (`not-found.tsx`) — diseño limpio conCTA para volver
 
 ### 7. Sistema de ofertas/rebajas (COMPLETADO)
 - **Prisma** — `discountPrice Float?` y `onSale Boolean @default(false)` en Product
@@ -115,31 +118,35 @@
 ### 16. TypeScript + ESLint (COMPLETADO)
 - `noImplicitAny: true`, ESLint reglas esenciales en modo `warn`
 
-### 17. Frontend Overhaul (NUEVO — 2025-06-27)
+### 17. Frontend Overhaul (2025-06-27)
 #### Fixes críticos
 - **Búsqueda con debounce** — 300ms con `setTimeout` + estado local en `products-section.tsx`
 - **Catálogo variant default** — products-section usa `variant="default"` (cards grandes con descripción)
 - **Timer countdown falso eliminado** — SalesSection limpia sin countdown engañoso
 - **Botón "Vaciar Carrito" duplicado eliminado** — solo queda en header del drawer
-- **Selector de cantidad en modal detalle** — +/- con min 1, feedback visual "¡Agregado!"
+- **Selector de cantidad en modal detalle** — componente reutilizable `QuantitySelector`
 - **Tipos compartidos** — `product-detail-modal.tsx` usa `Product` desde `@/types`
 
 #### SEO + Performance
 - **URL state sync** — query params `?cat=`, `?q=`, `?page=` — enlaces compartibles
 - **Suspense boundary** — `useSearchParams` envuelto en `<Suspense>` en page.tsx
 - **addItem con qty param** — store acepta `qty?: number`, callers ya no hacen loop
+- **SettingsProvider con React Query** — staleTime 5min, ya no fetch en cada navegación
 
 #### Hero + Footer
 - **Hero 2 columnas** — texto izquierda + imagen producto destacado en desktop
 - **Footer 3 columnas** — marca, enlaces (Productos/Contacto/Mi Cuenta), contacto con dirección/horario
+- **Footer links funcionales** — anclas con `router.push` + `scrollIntoView` para todas las páginas
 
 #### Editar perfil
 - **API PATCH** `/api/auth/customer/me` — actualiza nombre, teléfono, dirección, contraseña
 - **use-customer-auth.ts** — `updateProfile()` exportado, `updateProfileApi` (evita naming conflict)
 - **Profile page** — formulario inline con modo edición, validación de contraseña actual
+- **Toast de éxito** — feedback al actualizar perfil
 
 #### Dark mode
 - **Badges de estado** — `bg-*/15` + `dark:text-*` en vez de `bg-*-100` (funciona en ambos temas)
+- **ThemeToggle** (`src/components/ui/theme-toggle.tsx`) — persiste en localStorage, respeta prefers-color-scheme
 
 #### Skeleton loading
 - **Homepage** — skeletons para FeaturedProducts y SalesSection mientras cargan
@@ -151,11 +158,11 @@
 #### Wishlist / Favoritos
 - **Store** (`src/store/wishlist.ts`) — Zustand + persist, `addItem`/`removeItem`/`toggleItem`/`isInWishlist`
 - **Página** (`src/app/wishlist/page.tsx`) — lista de favoritos, agregar al carrito, eliminar
-- **Botón corazón** en product card — hover overlay + always-visible heart icon
+- **Botón corazón** en product card — hover overlay + always-visible heart icon + `aria-pressed`
 - **Badge** en header — contador de favoritos con hidratación
 
 #### Share button
-- **Modal detalle** — botón compartir (Web Share API + clipboard fallback)
+- **Hook `useShare`** (`src/hooks/use-share.ts`) — Web Share API + clipboard fallback reutilizable
 - Comparte URL con query `?q=nombre producto`
 
 #### Toast notifications
@@ -164,11 +171,11 @@
 
 #### Reordenar
 - **Profile** — botón "Volver a comprar" en cada pedido
-- Fetch de `/api/products/[id]` para obtener imagen real (no placeholder)
+- **Promise.allSettled** — fetch paralelo de productos (no secuencial)
 
 ### 18. Product Card Redesign (2025-07-01)
-- **Botón favorito** — circular con backdrop-blur-md, shadow-lg, scale animations, dark mode
-- **Overlay "Ver Detalles"** — aparece al hover sobre la imagen con blur
+- **Botón favorito** — circular con backdrop-blur-md, shadow-lg, scale animations, dark mode, `aria-pressed`
+- **Overlay "Ver Detalles"** — aparece al hover sobre la imagen con blur, visible con `group-focus-within`
 - **Botón "Ver Detalles"** — outline full-width debajo de "Agregar al Carrito"
 - **Descripción** — visible en sm+, sin descripción placeholder si está vacía
 - **Sin selector +/-** — tarjeta agrega 1 unidad directo, cantidad se elige en modal detalle
@@ -180,6 +187,33 @@
 - **Fix:** `vercel-build` ejecuta `node scripts/switch-db.js prod` antes de `prisma db push`
 - **`switch-db.js`** cambia provider a `postgresql` + regenera Prisma client en build time
 - `.env.production.bak` no se sube a git; Vercel usa `DATABASE_URL` del dashboard
+
+### 20. Seguridad + Performance + SEO (2025-07-01)
+#### Seguridad
+- **Password fallback eliminado** — `authenticateUser` solo acepta passwords hasheados (scrypt)
+- **Rate limit** — soporte `x-vercel-forwarded-for` header para IP real en Vercel
+- **Validación de stock pre-checkout** — endpoint `/api/orders/validate-stock` antes de crear orden
+- **Teléfono/dirección del customer** se guardan automáticamente en la orden
+
+#### Performance
+- **SettingsProvider con React Query** — staleTime 5min, gcTime 10min, sin fetch en cada navegación
+- **Reorder paralelo** — `Promise.allSettled` en vez de N llamadas secuenciales
+
+#### SEO
+- **Sitemap.xml dinámico** (`src/app/sitemap.ts`) — incluye todos los productos
+- **JSON-LD Product schema** (`src/app/products/[id]/page.tsx`) — rich results en Google
+- **Página 404 personalizada** (`src/app/not-found.tsx`)
+
+#### Accesibilidad
+- **`aria-current="page"`** en botón activo de paginación
+- **`aria-pressed`** en botón favorito de tarjeta
+- **Overlay "Ver Detalles"** visible con `group-focus-within` (teclado)
+
+#### Código limpio
+- **`useShare` hook** (`src/hooks/use-share.ts`) — Web Share API + clipboard reutilizable
+- **`QuantitySelector`** (`src/components/ui/quantity-selector.tsx`) — componente reutilizable (elimina 3 copias)
+- **`getDisplayPrice`** (`src/lib/product-utils.ts`) — utility para cálculo de precio (elimina 4 copias)
+- **`product-detail-modal.tsx`** — refactorizado para usar shared utilities
 
 ---
 
@@ -205,12 +239,21 @@
 | `updateProfileApi` (no `updateProfile`) | Evita naming conflict con la función del hook |
 | Sin quantity selector en tarjeta | Cantidad se elige en modal detalle, tarjeta agrega 1 directo |
 | `switch-db.js prod` en vercel-build | Corrige provider sqlite→postgresql durante build en Vercel |
+| SettingsProvider con React Query | staleTime 5min, evita fetch en cada navegación |
+| Password solo hasheado | Elimina riesgo de passwords en texto plano en DB |
+| Validación stock pre-checkout | Previene órdenes con items agotados |
+| Promise.allSettled en reorder | Paralelo es más rápido que secuencial |
+| Sitemap dinámico | SEO: motores de búsqueda descubren productos |
+| JSON-LD Product schema | Rich results en Google (precio, disponibilidad) |
+| Dark mode con localStorage | Persiste preferencia del usuario entre sesiones |
+| `group-focus-within` en overlay | Overlay visible con teclado (accesibilidad) |
+| `aria-pressed` en favorito | Screen readers anuncian estado del botón |
 
 ---
 
 ## Pendiente — Futuro
 ### Seguridad
-- **Rate limiting** — usar Redis/Upstash en vez de in-memory Map (inútil en Vercel serverless)
+- **Rate limiting Upstash Redis** — in-memory inútil en Vercel serverless; considerar Upstash para producción
 - **Input validation con Zod** — schemas para todos los API routes
 
 ### Performance
@@ -224,10 +267,13 @@
 
 ### Funcionalidad
 - **Cuentas admin con roles** — considerar roles adicionales (viewer, editor)
-- **Páginas de producto individuales** — `/products/[id]` para SEO y sharing
 - **Newsletter signup** — formulario en footer
 - **Reseñas/ratings** — sistema de valoraciones de productos
 - **Paginación con infinite scroll** — alternativa a paginación tradicional
+- **Carrito server-side** — persistir entre dispositivos si el usuario está logueado
+- **Email de confirmación** — fallback cuando WhatsApp falla
+- **Términos y Privacidad** — páginas legales para GDPR
+- **"Notificame cuando esté disponible"** — para productos agotados
 
 ---
 
@@ -236,13 +282,16 @@
 - `prisma/schema.prisma` — modelos: User, Customer, Category, Product, SiteSetting, Order, OrderItem
 - `src/lib/auth.ts` — JWT + hashing + session helpers (admin + customer)
 - `src/lib/providers.tsx` — QueryClientProvider
-- `src/lib/settings-context.tsx` — SettingsProvider con fetch de /api/settings
+- `src/lib/settings-context.tsx` — SettingsProvider con React Query (staleTime 5min)
+- `src/lib/product-utils.ts` — `getDisplayPrice()` utility para cálculo de precio
+- `src/lib/rate-limit.ts` — rate limiting con soporte Vercel headers
 
 ### Hooks
 - `src/hooks/use-products.ts` — React Query para productos (options object)
 - `src/hooks/use-categories.ts` — React Query para categorías (paginación)
 - `src/hooks/use-customer-auth.ts` — auth de clientes + `updateProfile()`
-- `src/hooks/use-cart-checkout.ts` — checkout con datos del customer logueado
+- `src/hooks/use-cart-checkout.ts` — checkout con validación de stock pre-checkout
+- `src/hooks/use-share.ts` — Web Share API + clipboard fallback reutilizable
 
 ### Stores
 - `src/store/cart.ts` — Zustand cart con `addItem(item, qty?)`, persist localStorage
@@ -253,26 +302,34 @@
 - `src/types/api.ts` — SiteSettings, DEFAULT_SETTINGS, PaginationData
 - `src/types/order.ts` — Order, OrderItem, ORDER_STATUS_LABELS
 
+### UI Components
+- `src/components/ui/quantity-selector.tsx` — selector de cantidad reutilizable (+/-)
+- `src/components/ui/theme-toggle.tsx` — toggle dark mode con persistencia
+
 ### Store Frontend
 - `src/components/store/layout/announcement-bar.tsx` — barra de anuncios rotativa
 - `src/components/store/layout/back-to-top.tsx` — botón volver arriba
-- `src/components/store/layout/header.tsx` — store header responsive + badge favoritos
+- `src/components/store/layout/header.tsx` — store header responsive + badge favoritos + theme toggle
 - `src/components/store/layout/hero-section.tsx` — hero 2 columnas con producto destacado
-- `src/components/store/layout/footer.tsx` — footer 3 columnas
+- `src/components/store/layout/footer.tsx` — footer 3 columnas con links funcionales
 - `src/components/store/layout/contact-section.tsx` — sección contacto
 - `src/components/store/animate-on-scroll.tsx` — wrapper animaciones scroll
-- `src/components/store/product-card.tsx` — card con badges, favoritos, toast, sin quantity selector
-- `src/components/store/product-detail-modal.tsx` — modal con zoom, cantidad, share, tipos compartidos
+- `src/components/store/product-card.tsx` — card con badges, favoritos (aria-pressed), overlay focus-within
+- `src/components/store/product-detail-modal.tsx` — modal con zoom, QuantitySelector, share, shared utils
 - `src/components/store/featured-products.tsx` — sección destacados
 - `src/components/store/products-section.tsx` — catálogo con debounce, sort, filtros precio
 - `src/components/store/sales-section.tsx` — sección ofertas (sin countdown)
 - `src/components/store/cart-drawer.tsx` — carrito lateral con toast
 - `src/components/store/customer-auth-modal.tsx` — login/register modal
+- `src/components/store/pagination.tsx` — paginación con `aria-current="page"`
 
 ### Pages
 - `src/app/page.tsx` — homepage con Suspense, URL state sync, skeleton loading
-- `src/app/profile/page.tsx` — perfil editable + historial + reordenar
+- `src/app/not-found.tsx` — página 404 personalizada
+- `src/app/sitemap.ts` — sitemap dinámico con productos
+- `src/app/profile/page.tsx` — perfil editable + historial + reordenar paralelo
 - `src/app/wishlist/page.tsx` — página de favoritos
+- `src/app/products/[id]/page.tsx` — página de producto con JSON-LD schema
 - `src/app/admin/page.tsx` — página admin
 
 ### API Routes
@@ -280,8 +337,9 @@
 - `src/app/api/products/[id]/route.ts` — GET/PUT/DELETE producto
 - `src/app/api/categories/route.ts` — GET/POST categorías (paginación + auth en POST)
 - `src/app/api/categories/[id]/route.ts` — GET/PUT/DELETE categoría (auth en PUT/DELETE)
-- `src/app/api/orders/route.ts` — GET/POST órdenes (paginación + validación server-side)
+- `src/app/api/orders/route.ts` — GET/POST órdenes (paginación + validación server-side + customer phone/address)
 - `src/app/api/orders/[id]/route.ts` — GET/PUT orden
+- `src/app/api/orders/validate-stock/route.ts` — POST validación de stock pre-checkout
 - `src/app/api/auth/customer/me/route.ts` — GET perfil + PATCH actualizar perfil
 - `src/app/api/auth/customer/register/route.ts` — registro
 - `src/app/api/auth/customer/login/route.ts` — login
