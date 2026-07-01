@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { getSettings, invalidateSettingsCache } from '@/lib/settings'
 import { DEFAULT_SETTINGS, SiteSettings } from '@/types'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
   const settings = await getSettings()
@@ -37,7 +38,7 @@ export async function PUT(request: Request) {
     const settings = await getSettings()
     return NextResponse.json(settings)
   } catch (error) {
-    console.error('Error updating settings:', error)
+    logger.error('Error updating settings', 'settings', error)
     return NextResponse.json(
       { error: 'Error al actualizar configuración' },
       { status: 500 }

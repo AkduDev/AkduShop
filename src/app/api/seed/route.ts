@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { hashPassword, getSession } from '@/lib/auth'
 import { DEFAULT_SETTINGS } from '@/types'
+import { logger } from '@/lib/logger'
 
 export async function POST() {
   try {
@@ -126,7 +127,7 @@ export async function POST() {
       message: 'Base de datos inicializada correctamente'
     })
   } catch (error) {
-    console.error('Seed error:', error)
+    logger.error('Seed error', 'seed', error)
     return NextResponse.json(
       { error: 'Error al inicializar base de datos' },
       { status: 500 }

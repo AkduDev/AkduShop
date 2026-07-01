@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getCustomerSession } from '@/lib/auth'
+import { getCustomerSession, verifyPassword, hashPassword } from '@/lib/auth'
 import { updateProfileSchema } from '@/lib/validations'
 import { logger } from '@/lib/logger'
-import bcrypt from 'bcryptjs'
 
 export async function GET() {
   try {
@@ -68,7 +67,7 @@ export async function PATCH(request: Request) {
     }
 
     if (newPassword && currentPassword) {
-      const valid = await bcrypt.compare(currentPassword, customer.password)
+      const valid = await verifyPassword(currentPassword, customer.password)
       if (!valid) {
         return NextResponse.json({ error: 'Contraseña actual incorrecta' }, { status: 400 })
       }
@@ -78,7 +77,7 @@ export async function PATCH(request: Request) {
     if (name !== undefined) updateData.name = name
     if (phone !== undefined) updateData.phone = phone ?? null
     if (address !== undefined) updateData.address = address ?? null
-    if (newPassword && currentPassword) updateData.password = await bcrypt.hash(newPassword, 10)
+    if (newPassword && currentPassword) updateData.password = await hashPassword(newPassword)
 
     const updated = await db.customer.update({
       where: { id: session.id },

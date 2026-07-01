@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { orderStatusSchema } from '@/lib/validations'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   _request: Request,
@@ -26,7 +27,7 @@ export async function GET(
 
     return NextResponse.json(order)
   } catch (error) {
-    console.error('Error fetching order:', error)
+    logger.error('Error fetching order', 'orders/[id]', error)
     return NextResponse.json(
       { error: 'Error al obtener la orden' },
       { status: 500 }
@@ -66,7 +67,7 @@ export async function PUT(
 
     return NextResponse.json(order)
   } catch (error) {
-    console.error('Error updating order:', error)
+    logger.error('Error updating order', 'orders/[id]', error)
     return NextResponse.json(
       { error: 'Error al actualizar la orden' },
       { status: 500 }
@@ -90,7 +91,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Orden eliminada' })
   } catch (error) {
-    console.error('Error deleting order:', error)
+    logger.error('Error deleting order', 'orders/[id]', error)
     return NextResponse.json(
       { error: 'Error al eliminar la orden' },
       { status: 500 }

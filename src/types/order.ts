@@ -2,6 +2,7 @@ export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'c
 
 export interface Order {
   id: string
+  customerId: string | null
   customerName: string
   customerPhone: string | null
   customerAddress: string | null

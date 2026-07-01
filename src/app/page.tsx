@@ -46,11 +46,12 @@ function HomeContent() {
   const [priceRange, setPriceRange] = useState<string>(searchParams.get('price') || 'all')
 
   const { isAdmin, login, logout } = useAuth()
-  const { products, loading, pagination, fetchProducts } = useProducts({
+  const { products, loading, pagination, fetchProducts, fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts({
     category: selectedCategory,
     search: searchQuery || undefined,
     sortBy: sortBy || undefined,
     priceRange: priceRange !== 'all' ? priceRange : undefined,
+    infinite: true,
   })
   const { products: featuredProducts, loading: featuredLoading } = useProducts({ featured: true, limit: 5 })
   const { products: saleProducts, loading: saleLoading } = useProducts({ onSale: true, limit: 8 })
@@ -188,6 +189,10 @@ function HomeContent() {
           onSortByChange={handleSortByChange}
           onPriceRangeChange={handlePriceRangeChange}
           onViewDetails={handleViewDetails}
+          infinite
+          fetchNextPage={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
         />
       </main>
 

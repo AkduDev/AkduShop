@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { categorySchema } from '@/lib/validations'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   request: NextRequest,
@@ -25,7 +26,7 @@ export async function GET(
 
     return NextResponse.json(category)
   } catch (error) {
-    console.error('Error fetching category:', error)
+    logger.error('Error fetching category', 'categories/[id]', error)
     return NextResponse.json(
       { error: 'Error al obtener categoría' },
       { status: 500 }
@@ -67,7 +68,7 @@ export async function PUT(
 
     return NextResponse.json(category)
   } catch (error) {
-    console.error('Error updating category:', error)
+    logger.error('Error updating category', 'categories/[id]', error)
     return NextResponse.json(
       { error: 'Error al actualizar categoría' },
       { status: 500 }
@@ -104,7 +105,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting category:', error)
+    logger.error('Error deleting category', 'categories/[id]', error)
     return NextResponse.json(
       { error: 'Error al eliminar categoría' },
       { status: 500 }

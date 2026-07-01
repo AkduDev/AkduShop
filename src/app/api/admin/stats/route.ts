@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
   try {
@@ -39,10 +40,13 @@ export async function GET() {
       }),
     ])
 
-    const inventoryResult = await db.$queryRaw<[{ inventoryValue: number }]>`
-      SELECT COALESCE(SUM("price" * "stock"), 0) as "inventoryValue" FROM "Product"
-    `
-    const inventoryValue = Number(inventoryResult[0]?.inventoryValue ?? 0)
+    const productsForValue = await db.product.findMany({
+      select: { price: true, stock: true },
+    })
+    const inventoryValue = productsForValue.reduce(
+      (sum, p) => sum + p.price * p.stock,
+      0
+    )
 
     return NextResponse.json({
       totalProducts,
@@ -54,7 +58,7 @@ export async function GET() {
       inventoryValue
     })
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error)
+    logger.error('Error fetching dashboard stats', 'admin/stats', error)
     return NextResponse.json(
       { error: 'Error al obtener estadísticas' },
       { status: 500 }

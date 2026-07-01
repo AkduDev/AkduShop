@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { v2 as cloudinary } from 'cloudinary'
+import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
         (error: unknown, result: unknown) => {
           if (error) {
             const errStr = typeof error === 'string' ? error : JSON.stringify(error)
-            console.error('Cloudinary stream error:', errStr)
+            logger.error('Cloudinary stream error', 'upload', errStr)
             reject(new Error(errStr))
           } else {
             resolve(result as Record<string, unknown>)
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error)
-    console.error('Upload error:', msg)
+    logger.error('Upload error', 'upload', msg)
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

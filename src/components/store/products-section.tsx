@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { ShoppingBag, ArrowUpDown } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { ShoppingBag, ArrowUpDown, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { ProductCard } from '@/components/store/product-card'
 import { Pagination } from '@/components/store/pagination'
@@ -26,6 +26,10 @@ interface ProductsSectionProps {
   onSortByChange: (sort: SortOption) => void
   onPriceRangeChange: (range: string) => void
   onViewDetails: (product: Product) => void
+  infinite?: boolean
+  fetchNextPage?: () => void
+  hasNextPage?: boolean
+  isFetchingNextPage?: boolean
 }
 
 export function ProductsSection({
@@ -42,11 +46,35 @@ export function ProductsSection({
   onSearch,
   onSortByChange,
   onPriceRangeChange,
-  onViewDetails
+  onViewDetails,
+  infinite = false,
+  fetchNextPage,
+  hasNextPage = false,
+  isFetchingNextPage = false,
 }: ProductsSectionProps) {
   const { settings } = useSettings()
   const [localSearch, setLocalSearch] = useState(searchQuery)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+
+  const handleLoadMore = useCallback(() => {
+    if (fetchNextPage && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
+
+  useEffect(() => {
+    if (!infinite || !sentinelRef.current) return
+    const sentinel = sentinelRef.current
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) handleLoadMore()
+      },
+      { rootMargin: '200px' }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [infinite, handleLoadMore])
 
   useEffect(() => {
     setLocalSearch(searchQuery)
@@ -183,13 +211,27 @@ export function ProductsSection({
                 />
               ))}
             </div>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={pagination.totalPages}
-              hasNextPage={pagination.hasNextPage}
-              hasPrevPage={pagination.hasPrevPage}
-              onPageChange={onPageChange}
-            />
+            {infinite ? (
+              <div ref={sentinelRef} className="py-8 flex justify-center">
+                {isFetchingNextPage && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm">Cargando más productos...</span>
+                  </div>
+                )}
+                {!hasNextPage && products.length > 0 && (
+                  <p className="text-sm text-muted-foreground">No hay más productos</p>
+                )}
+              </div>
+            ) : (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={pagination.totalPages}
+                hasNextPage={pagination.hasNextPage}
+                hasPrevPage={pagination.hasPrevPage}
+                onPageChange={onPageChange}
+              />
+            )}
           </>
         )}
       </div>

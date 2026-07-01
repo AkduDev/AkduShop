@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import fs from 'fs'
 import path from 'path'
+import { logger } from '@/lib/logger'
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'products')
 
@@ -18,7 +19,7 @@ function base64ToImage(base64String: string, fileName: string): string | null {
     const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
     
     if (!matches || matches.length !== 3) {
-      console.error('Formato Base64 inválido')
+      logger.warn('Formato Base64 inválido', 'migrate-images')
       return null
     }
     
@@ -34,7 +35,7 @@ function base64ToImage(base64String: string, fileName: string): string | null {
     
     return `/uploads/products/${fileName}.${extension}`
   } catch (error) {
-    console.error('Error convirtiendo Base64 a imagen:', error)
+    logger.error('Error convirtiendo Base64 a imagen', 'migrate-images', error)
     return null
   }
 }
@@ -66,10 +67,10 @@ export async function POST() {
             data: { imageUrl: newUrl }
           })
           migrated++
-          console.log(`✓ Migrado: ${product.name}`)
+          logger.info(`Migrado: ${product.name}`, 'migrate-images')
         } else {
           errors++
-          console.error(`✗ Error migrando: ${product.name}`)
+          logger.error(`Error migrando: ${product.name}`, 'migrate-images')
         }
       } else {
         skipped++
@@ -87,7 +88,7 @@ export async function POST() {
       }
     })
   } catch (error) {
-    console.error('Error en migración:', error)
+    logger.error('Error en migración', 'migrate-images', error)
     return NextResponse.json(
       { error: 'Error durante la migración' },
       { status: 500 }

@@ -1,3 +1,5 @@
+'use client'
+
 import { Truck, CreditCard, MessageCircle, ShieldCheck } from 'lucide-react'
 import { useSettings } from '@/lib/settings-context'
 

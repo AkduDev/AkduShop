@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { hashPassword, createSession } from '@/lib/auth'
 import { registerSchema } from '@/lib/validations'
 import { rateLimit, getClientIp, REGISTER_RATE_LIMIT } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('Customer register error:', error)
+    logger.error('Customer register error', 'auth/customer/register', error)
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser, createSession } from '@/lib/auth'
 import { loginSchema } from '@/lib/validations'
 import { rateLimit, getClientIp, AUTH_RATE_LIMIT } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('Login error:', error)
+    logger.error('Login error', 'auth/login', error)
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

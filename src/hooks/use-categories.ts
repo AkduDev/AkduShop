@@ -64,10 +64,6 @@ export function useCategories() {
     onSuccess: () => invalidate(),
   })
 
-  const fetchCategories = useCallback(async () => {
-    return true
-  }, [])
-
   const createCategory = useCallback(async (payload: CategoryFormData): Promise<boolean> => {
     try { return await createMutation.mutateAsync(payload) }
     catch { return false }
