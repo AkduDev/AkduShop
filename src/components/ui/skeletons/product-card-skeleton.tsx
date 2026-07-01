@@ -15,10 +15,7 @@ export function ProductCardSkeleton() {
         <Skeleton className="h-5 sm:h-6 w-20 mt-1" />
       </div>
 
-      <div className="px-3 pb-3 sm:px-4 sm:pb-4 flex flex-col gap-2.5">
-        <div className="flex items-center justify-center">
-          <Skeleton className="h-9 sm:h-10 w-28 rounded-full" />
-        </div>
+      <div className="px-3 pb-3 sm:px-4 sm:pb-4 flex flex-col gap-2">
         <Skeleton className="h-9 sm:h-10 w-full rounded-full" />
         <Skeleton className="h-8 sm:h-9 w-full rounded-full" />
       </div>

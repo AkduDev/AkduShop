@@ -3,7 +3,7 @@
 import { memo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ShoppingCart, Eye, Star, Plus, Minus, Check, Tag, Heart, Info } from 'lucide-react'
+import { ShoppingCart, Eye, Star, Check, Tag, Heart, Info } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,7 +23,6 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
   const { toggleItem, items: wishlistItems } = useWishlistStore()
   const { toast } = useToast()
   const isFeatured = variant === 'featured'
-  const [qty, setQty] = useState(0)
   const [justAdded, setJustAdded] = useState(false)
   const isWishlisted = wishlistItems.some((i) => i.id === product.id)
 
@@ -31,18 +30,16 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
   const isOutOfStock = product.stock <= 0
 
   const handleAddToCart = () => {
-    const addQty = qty > 0 ? qty : 1
     const priceToAdd = product.onSale && product.discountPrice != null ? product.discountPrice : product.price
     addItem({
       id: product.id,
       name: product.name,
       price: priceToAdd,
       imageUrl: product.imageUrl
-    }, addQty)
+    })
     setJustAdded(true)
     setTimeout(() => setJustAdded(false), 1500)
-    setQty(0)
-    toast({ title: 'Agregado al carrito', description: `${product.name} × ${addQty}` })
+    toast({ title: 'Agregado al carrito', description: product.name })
   }
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
@@ -184,31 +181,6 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
 
       {/* === ACTIONS SECTION === */}
       <CardFooter className={`pt-0 ${isFeatured ? 'px-2.5 pb-2.5 sm:px-3 sm:pb-3' : 'px-3 pb-3 sm:px-4 sm:pb-4'} flex flex-col gap-2.5`}>
-        {/* Quantity selector - centered pill */}
-        {product.stock > 0 && !isFeatured && (
-          <div className="flex items-center justify-center">
-            <div className="flex items-center border border-border/60 rounded-full bg-muted/30 h-9 sm:h-10">
-              <button
-                className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all rounded-full active:scale-90"
-                onClick={(e) => { e.stopPropagation(); setQty(Math.max(0, qty - 1)) }}
-                aria-label="Reducir cantidad"
-                disabled={qty <= 0}
-              >
-                <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </button>
-              <span className="w-7 sm:w-8 text-center text-sm font-semibold tabular-nums text-foreground">{qty}</span>
-              <button
-                className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all rounded-full active:scale-90"
-                onClick={(e) => { e.stopPropagation(); setQty(Math.min(product.stock, qty + 1)) }}
-                aria-label="Aumentar cantidad"
-                disabled={qty >= product.stock}
-              >
-                <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Action buttons */}
         {product.stock > 0 ? (
           <div className="flex flex-col gap-2 w-full">
@@ -230,7 +202,7 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
               ) : (
                 <>
                   <ShoppingCart className="h-4 w-4" />
-                  {qty > 0 ? `Agregar (${qty})` : 'Agregar al Carrito'}
+                  Agregar al Carrito
                 </>
               )}
             </Button>
