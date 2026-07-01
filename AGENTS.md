@@ -54,18 +54,18 @@
 - ~75 referencias Tailwind en 17 archivos ahora se renderizan en azul
 
 ### 5. Mejoras de diseño
-- **Tarjetas de producto** (`product-card.tsx`) — rounded-2xl, hover sombra/borde, badge azul, overlay "Ver", **botón corazón favoritos**
-- **Skeleton loader** (`product-card-skeleton.tsx`) — sincronizado con diseño actual
+- **Tarjetas de producto** (`product-card.tsx`) — rounded-2xl, hover sombra/borde, flex h-full para altura uniforme, **botón corazón favorito** (backdrop-blur-md, shadow-lg, scale animations, dark mode), **overlay "Ver Detalles"** en hover sobre imagen, **botón "Ver Detalles"** outline full-width debajo de "Agregar al Carrito", descripción visible en sm+, sin selector +/- en tarjeta
+- **Skeleton loader** (`product-card-skeleton.tsx`) — sincronizado con diseño actual (sin quantity selector)
 - **Hero Section** (`hero-section.tsx`) — **layout 2 columnas en desktop** (texto + imagen de producto destacado), stats, animaciones
 - **Featured Products** (`featured-products.tsx`) — gradientes con primary
 - **Footer** (`footer.tsx`) — **3 columnas** (marca, enlaces, contacto), WhatsApp icon
 - **Search input** (`products-section.tsx`) — focus ring con primary, **debounce 300ms**
-- **Aria-labels** — carrito, cantidades +/-, eliminar item, admin login, admin settings, menú móvil, favoritos
+- **Aria-labels** — carrito, eliminar item, admin login, admin settings, menú móvil, favoritos
 
 ### 6. Funcionalidades UX
 - **Barra de anuncios** (`announcement-bar.tsx`) — mensajes rotativos, auto-rotate 5s
 - **Badges de stock bajo** — "¡Solo quedan X!" cuando stock ≤ 5
-- **Selector de cantidad** — +/- en tarjeta + modal detalle, botón "Agregar" con feedback
+- **Selector de cantidad** — solo en modal detalle (+/- con min 1), tarjeta agrega 1 unidad directo
 - **Botón volver arriba** (`back-to-top.tsx`) — flotante tras scroll 400px
 - **Animaciones al scroll** (`animate-on-scroll.tsx`) — fade-in + translateY
 - **Zoom de imagen** (`product-detail-modal.tsx`) — hover → zoom 1.8x
@@ -80,7 +80,7 @@
 - **Proyecto Vercel:** `akdushop` (`akdulaydev-8764s-projects/akdushop`)
 - **URL producción:** `https://akdushop.vercel.app`
 - **CI/CD:** cada push a `main` auto-deploya
-- **Build:** `vercel-build` script → `prisma generate && prisma db push --skip-generate && next build`
+- **Build:** `vercel-build` script → `node scripts/switch-db.js prod && prisma db push --skip-generate && next build`
 
 ### 9. Admin Panel — Responsive + Visual (COMPLETADO)
 - Hamburger menu mobile, nav desktop
@@ -166,6 +166,21 @@
 - **Profile** — botón "Volver a comprar" en cada pedido
 - Fetch de `/api/products/[id]` para obtener imagen real (no placeholder)
 
+### 18. Product Card Redesign (2025-07-01)
+- **Botón favorito** — circular con backdrop-blur-md, shadow-lg, scale animations, dark mode
+- **Overlay "Ver Detalles"** — aparece al hover sobre la imagen con blur
+- **Botón "Ver Detalles"** — outline full-width debajo de "Agregar al Carrito"
+- **Descripción** — visible en sm+, sin descripción placeholder si está vacía
+- **Sin selector +/-** — tarjeta agrega 1 unidad directo, cantidad se elige en modal detalle
+- **Layout flex** — `flex flex-col h-full` para altura uniforme en el grid
+- **Skeleton sync** — `product-card-skeleton.tsx` actualizado sin quantity selector
+
+### 19. Fix Vercel Build — PostgreSQL Provider (2025-07-01)
+- **Problema:** `schema.prisma` tiene `provider = "sqlite"` pero Vercel usa Neon PostgreSQL
+- **Fix:** `vercel-build` ejecuta `node scripts/switch-db.js prod` antes de `prisma db push`
+- **`switch-db.js`** cambia provider a `postgresql` + regenera Prisma client en build time
+- `.env.production.bak` no se sube a git; Vercel usa `DATABASE_URL` del dashboard
+
 ---
 
 ## Decisiones clave
@@ -185,10 +200,11 @@
 | ESLint en modo warn, no error | Evita que builds fallen pero alerta sobre código problemático |
 | Debounce búsqueda 300ms | Evita 1 API call por tecla, balance speed/responsiveness |
 | `addItem(item, qty)` con param opcional | Un solo state update en vez de N loops |
-| Cart minus elimina en qty ≤ 1 | Evita ghost items con quantity 0 |
 | URL state sync con `router.replace` | Permite compartir enlaces con filtros sin recargar |
 | Suspense para useSearchParams | Requerido por Next.js 14+ App Router |
 | `updateProfileApi` (no `updateProfile`) | Evita naming conflict con la función del hook |
+| Sin quantity selector en tarjeta | Cantidad se elige en modal detalle, tarjeta agrega 1 directo |
+| `switch-db.js prod` en vercel-build | Corrige provider sqlite→postgresql durante build en Vercel |
 
 ---
 
@@ -245,7 +261,7 @@
 - `src/components/store/layout/footer.tsx` — footer 3 columnas
 - `src/components/store/layout/contact-section.tsx` — sección contacto
 - `src/components/store/animate-on-scroll.tsx` — wrapper animaciones scroll
-- `src/components/store/product-card.tsx` — card con quantity, badges, favoritos, toast
+- `src/components/store/product-card.tsx` — card con badges, favoritos, toast, sin quantity selector
 - `src/components/store/product-detail-modal.tsx` — modal con zoom, cantidad, share, tipos compartidos
 - `src/components/store/featured-products.tsx` — sección destacados
 - `src/components/store/products-section.tsx` — catálogo con debounce, sort, filtros precio
