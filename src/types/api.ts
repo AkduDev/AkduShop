@@ -63,6 +63,9 @@ export interface SiteSettings {
   cartTitle: string
   noProductsText: string
   noSearchResultsText: string
+  legalEmail: string
+  legalPhone: string
+  legalJurisdiction: string
 }
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -91,4 +94,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   cartTitle: 'Tu Carrito',
   noProductsText: 'No hay productos en esta categoría',
   noSearchResultsText: 'No se encontraron productos para',
+  legalEmail: '',
+  legalPhone: '',
+  legalJurisdiction: 'La Habana, Cuba',
 }

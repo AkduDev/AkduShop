@@ -118,6 +118,16 @@ export function Footer() {
                   Mi Cuenta
                 </Link>
               </li>
+              <li>
+                <Link href="/terms" className="hover:text-primary-foreground transition-colors">
+                  Términos y Condiciones
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="hover:text-primary-foreground transition-colors">
+                  Política de Privacidad
+                </Link>
+              </li>
             </ul>
           </div>
 

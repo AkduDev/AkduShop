@@ -11,6 +11,7 @@ const SETTINGS_KEYS: (keyof SiteSettings)[] = [
   'heroCtaText', 'heroCtaContactText',
   'contactTitle', 'contactSubtitle', 'cartTitle',
   'noProductsText', 'noSearchResultsText',
+  'legalEmail', 'legalPhone', 'legalJurisdiction',
 ]
 
 let cachedSettings: SiteSettings | null = null

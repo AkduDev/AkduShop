@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, Settings, Store, Phone, Palette, Layout, Tag, Globe, ShoppingBag, MoreHorizontal, Check } from 'lucide-react'
+import { Save, Settings, Store, Phone, Palette, Layout, Tag, Globe, ShoppingBag, MoreHorizontal, Check, Scale } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -191,6 +191,19 @@ export function SettingsPanel() {
         { key: 'primaryColor', label: 'Color primario (hex)', placeholder: '#3b82f6' },
         { key: 'logoUrl', label: 'URL del logo', placeholder: 'https://...' },
         { key: 'faviconUrl', label: 'URL del favicon', placeholder: 'https://...' },
+      ],
+    },
+    {
+      title: 'Información Legal',
+      shortLabel: 'Legal',
+      description: 'Datos para términos y privacidad',
+      icon: <Scale className="h-4 w-4" />,
+      color: 'text-indigo-600 dark:text-indigo-400',
+      bgColor: 'bg-indigo-500/10',
+      fields: [
+        { key: 'legalEmail', label: 'Email de contacto legal', placeholder: 'legal@mitienda.com' },
+        { key: 'legalPhone', label: 'Teléfono de contacto legal', placeholder: '+53 555 1234' },
+        { key: 'legalJurisdiction', label: 'Jurisdicción legal', placeholder: 'La Habana, Cuba' },
       ],
     },
   ]
