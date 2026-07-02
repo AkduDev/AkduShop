@@ -118,21 +118,6 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
           {isOutOfStock && (
             <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px]" />
           )}
-
-          {/* Hover "Ver detalles" overlay text */}
-          {onViewDetails && (
-            <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 group-focus-within:translate-y-0 z-10">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="w-full bg-white/95 dark:bg-black/80 text-foreground hover:bg-white dark:hover:bg-black/90 backdrop-blur-sm shadow-lg text-xs sm:text-sm gap-1.5 h-8 sm:h-9"
-                onClick={(e) => { e.stopPropagation(); onViewDetails(product) }}
-              >
-                <Eye className="h-3.5 w-3.5" />
-                Ver Detalles
-              </Button>
-            </div>
-          )}
         </div>
       </CardHeader>
 
@@ -205,6 +190,18 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
                 </>
               )}
             </Button>
+
+            {onViewDetails && (
+              <Button
+                variant="outline"
+                className="w-full rounded-full border-border/60 hover:bg-muted/50 hover:border-primary/30 transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9 gap-1.5 active:scale-[0.97]"
+                onClick={(e) => { e.stopPropagation(); onViewDetails(product) }}
+                aria-label={`Ver detalles de ${product.name}`}
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Ver Detalles
+              </Button>
+            )}
           </div>
         ) : (
           <Button
