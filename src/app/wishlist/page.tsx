@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, Heart, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, Heart, ShoppingCart, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useWishlistStore } from '@/store/wishlist'
 import { useCartStore } from '@/store/cart'
@@ -15,30 +15,54 @@ export default function WishlistPage() {
   const addItem = useCartStore((state) => state.addItem)
   const { toast } = useToast()
 
-  const handleAddToCart = (item: typeof items[0]) => {
+  const handleAddToCart = (item: typeof items[0], keepInWishlist = false) => {
     addItem({
       id: item.id,
       name: item.name,
       price: item.discountPrice != null ? item.discountPrice : item.price,
       imageUrl: item.imageUrl,
     })
-    removeItem(item.id)
+    if (!keepInWishlist) removeItem(item.id)
     toast({ title: 'Agregado al carrito', description: item.name })
+  }
+
+  const handleAddAllToCart = () => {
+    items.forEach(item => {
+      addItem({
+        id: item.id,
+        name: item.name,
+        price: item.discountPrice != null ? item.discountPrice : item.price,
+        imageUrl: item.imageUrl,
+      })
+    })
+    items.forEach(item => removeItem(item.id))
+    toast({ title: `${items.length} productos agregados al carrito` })
   }
 
   return (
     <StoreLayout>
       <div className="container mx-auto px-4 py-8 max-w-3xl">
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Heart className="h-6 w-6 text-red-500 dark:text-red-400" />
-            Mis Favoritos
-          </h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/">
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+            </Button>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Heart className="h-6 w-6 text-red-500 dark:text-red-400" />
+              Mis Favoritos
+              {items.length > 0 && (
+                <Badge variant="secondary" className="ml-1">{items.length}</Badge>
+              )}
+            </h1>
+          </div>
+          {items.length > 1 && (
+            <Button onClick={handleAddAllToCart} className="rounded-full gap-2">
+              <ShoppingCart className="h-4 w-4" />
+              Agregar todo
+            </Button>
+          )}
         </div>
 
         {items.length === 0 ? (
@@ -54,13 +78,15 @@ export default function WishlistPage() {
           <div className="space-y-4">
             {items.map((item) => (
               <div key={item.id} className="flex gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                <Link href={`/products/${item.id}`} className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0 hover:opacity-80 transition-opacity">
                   <Image src={item.imageUrl} alt={item.name} fill sizes="80px" className="object-cover" />
-                </div>
+                </Link>
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
                     <Badge variant="outline" className="text-[10px] border-primary/20 mb-1">{item.category}</Badge>
-                    <h3 className="font-semibold line-clamp-1 text-sm">{item.name}</h3>
+                    <Link href={`/products/${item.id}`}>
+                      <h3 className="font-semibold line-clamp-1 text-sm hover:text-primary transition-colors">{item.name}</h3>
+                    </Link>
                   </div>
                   <div className="flex items-center gap-2">
                     {item.discountPrice != null ? (
@@ -78,6 +104,7 @@ export default function WishlistPage() {
                     size="sm"
                     className="rounded-full h-8 text-xs"
                     onClick={() => handleAddToCart(item)}
+                    aria-label={`Agregar ${item.name} al carrito`}
                   >
                     <ShoppingCart className="h-3 w-3 mr-1" />
                     Agregar
@@ -90,7 +117,9 @@ export default function WishlistPage() {
                       removeItem(item.id)
                       toast({ title: 'Eliminado de favoritos', description: item.name })
                     }}
+                    aria-label={`Quitar ${item.name} de favoritos`}
                   >
+                    <Trash2 className="h-3 w-3 mr-1" />
                     Quitar
                   </Button>
                 </div>

@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useSettings } from '@/lib/settings-context'
 import { Product } from '@/types'
 
 interface ProductsCardsProps {
@@ -22,6 +23,7 @@ interface ProductsCardsProps {
 }
 
 export function ProductsCards({ products, onEdit, onDelete, onToggleFeatured }: ProductsCardsProps) {
+  const { settings } = useSettings()
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1 sm:p-3 max-h-[600px] overflow-y-auto">
       {products.map((product) => (
@@ -106,15 +108,15 @@ export function ProductsCards({ products, onEdit, onDelete, onToggleFeatured }: 
                     {product.onSale && product.discountPrice != null ? (
                       <div className="flex items-baseline gap-1.5">
                         <span className="text-lg font-bold text-white drop-shadow-lg">
-                          ${product.discountPrice.toFixed(2)}
+                          {settings.currencySymbol}{product.discountPrice.toFixed(2)}
                         </span>
                         <span className="text-xs text-white/70 line-through drop-shadow">
-                          ${product.price.toFixed(2)}
+                          {settings.currencySymbol}{product.price.toFixed(2)}
                         </span>
                       </div>
                     ) : (
                       <span className="text-lg font-bold text-white drop-shadow-lg">
-                        ${product.price.toFixed(2)}
+                        {settings.currencySymbol}{product.price.toFixed(2)}
                       </span>
                     )}
                   </div>

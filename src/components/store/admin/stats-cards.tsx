@@ -2,6 +2,7 @@
 
 import { Package, Folder, ShoppingCart, AlertTriangle, Star, DollarSign, Tag } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { useSettings } from '@/lib/settings-context'
 import { DashboardStats } from '@/types'
 
 interface StatsCardsProps {
@@ -9,6 +10,7 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ stats }: StatsCardsProps) {
+  const { settings } = useSettings()
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-3 sm:gap-4">
       <Card className="border-border/50">
@@ -104,7 +106,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Valor Inventario</p>
-              <p className="text-lg font-bold">${stats.inventoryValue.toFixed(2)}</p>
+              <p className="text-lg font-bold">{settings.currencySymbol}{stats.inventoryValue.toFixed(2)}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-[var(--gold)]/10 flex items-center justify-center">
               <DollarSign className="h-5 w-5 text-[var(--gold)]" />

@@ -90,7 +90,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[80vh] sm:max-h-[85vh] p-0 bg-card w-[90vw] sm:w-auto" showCloseButton={false}>
+      <DialogContent className="sm:max-w-4xl max-h-[80vh] sm:max-h-[85vh] p-0 bg-card w-[95vw] sm:w-auto pb-[env(safe-area-inset-bottom)]" showCloseButton={false}>
         <DialogHeader className="sr-only">
           <DialogTitle>{product.name}</DialogTitle>
         </DialogHeader>
@@ -105,25 +105,25 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
               className="object-cover"
             />
 
-            {isOnSale && (
-              <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-500 dark:bg-red-600 text-white font-medium text-xs sm:text-sm">
-                <Tag className="w-3 h-3 mr-1" />
-                Oferta
-              </Badge>
-            )}
-
-            {product.featured && (
-              <Badge className={`absolute top-2 left-2 sm:top-4 sm:left-4 ${isOnSale ? 'mt-6 sm:mt-10' : ''} bg-[var(--gold)] text-primary font-medium text-xs sm:text-sm`}>
-                <Star className="w-3 h-3 mr-1 fill-primary" />
-                Destacado
-              </Badge>
-            )}
-
-            {lowStock && (
-              <Badge className={`absolute top-2 left-2 sm:top-4 sm:left-4 ${isOnSale || product.featured ? 'mt-12 sm:mt-20' : ''} bg-amber-500/90 dark:bg-amber-600/90 text-white font-medium text-xs sm:text-sm`}>
-                ¡Solo quedan {product.stock}!
-              </Badge>
-            )}
+            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-1.5">
+              {isOnSale && (
+                <Badge className="bg-red-500 dark:bg-red-600 text-white font-medium text-xs sm:text-sm w-fit">
+                  <Tag className="w-3 h-3 mr-1" />
+                  Oferta
+                </Badge>
+              )}
+              {product.featured && (
+                <Badge className="bg-[var(--gold)] text-primary font-medium text-xs sm:text-sm w-fit">
+                  <Star className="w-3 h-3 mr-1 fill-primary" />
+                  Destacado
+                </Badge>
+              )}
+              {lowStock && (
+                <Badge className="bg-amber-500/90 dark:bg-amber-600/90 text-white font-medium text-xs sm:text-sm w-fit">
+                  ¡Solo quedan {product.stock}!
+                </Badge>
+              )}
+            </div>
 
             <Button
               variant="ghost"

@@ -93,18 +93,18 @@ export function HeroSection({ heroProduct }: HeroSectionProps) {
 
           {heroProduct && (
             <AnimateOnScroll delay={200}>
-              <div className="relative hidden lg:flex items-start justify-center">
+              <div className="relative flex items-start justify-center">
                 <div className="absolute w-72 h-72 rounded-full bg-primary/5 blur-3xl" />
                 <Link
                   href={`/products/${heroProduct.id}`}
-                  className="relative block w-80 h-80 rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 border border-border/20 bg-muted hover:shadow-primary/20 hover:border-primary/30 transition-all duration-300 group"
+                  className="relative block w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 border border-border/20 bg-muted hover:shadow-primary/20 hover:border-primary/30 transition-all duration-300 group"
                   prefetch={false}
                 >
                   <Image
                     src={heroProduct.imageUrl}
-                    alt={heroProduct.name}
+                    alt={`${heroProduct.name} - Producto destacado`}
                     fill
-                    sizes="320px"
+                    sizes="(max-width: 640px) 256px, (max-width: 1024px) 288px, 320px"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                     priority
                   />

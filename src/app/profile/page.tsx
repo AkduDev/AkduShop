@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Package, Mail, Phone, MapPin, Pencil, Save, X, Lock, RotateCcw, AlertCircle } from 'lucide-react'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { ArrowLeft, Package, Mail, Phone, MapPin, Pencil, Save, X, Lock, RotateCcw, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -34,9 +35,6 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({ name: '', phone: '', address: '', currentPassword: '', newPassword: '' })
-  const [orders, setOrders] = useState<Order[]>([])
-  const [ordersLoading, setOrdersLoading] = useState(true)
-  const [ordersError, setOrdersError] = useState(false)
 
   useEffect(() => {
     if (!loading && !isLoggedIn) {
@@ -56,52 +54,55 @@ export default function ProfilePage() {
     }
   }, [customer])
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetch('/api/auth/customer/me/orders')
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch orders')
-          return res.json()
+  const { data: orders = [], isLoading: ordersLoading, isError: ordersError, refetch: refetchOrders } = useQuery<Order[]>({
+    queryKey: ['customer-orders'],
+    queryFn: async () => {
+      const res = await fetch('/api/auth/customer/me/orders')
+      if (!res.ok) throw new Error('Failed to fetch orders')
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
+    },
+    enabled: isLoggedIn,
+    staleTime: 30_000,
+  })
+
+  const reorderMutation = useMutation({
+    mutationFn: async (order: Order) => {
+      if (!order.items) return { addedCount: 0 }
+      const validItems = order.items.filter(i => i.productId)
+
+      const results = await Promise.allSettled(
+        validItems.map(async (item) => {
+          try {
+            const res = await fetch(`/api/products/${item.productId}`)
+            if (res.ok) {
+              const product = await res.json()
+              return { ...item, imageUrl: product.imageUrl || '/placeholder.svg' }
+            }
+          } catch {}
+          return { ...item, imageUrl: '/placeholder.svg' }
         })
-        .then(data => setOrders(Array.isArray(data) ? data : []))
-        .catch(() => { setOrders([]); setOrdersError(true) })
-        .finally(() => setOrdersLoading(false))
-    }
-  }, [isLoggedIn])
+      )
 
-  const handleReorder = async (order: Order) => {
-    if (!order.items) return
-    const validItems = order.items.filter(i => i.productId)
-
-    const results = await Promise.allSettled(
-      validItems.map(async (item) => {
-        try {
-          const res = await fetch(`/api/products/${item.productId}`)
-          if (res.ok) {
-            const product = await res.json()
-            return { ...item, imageUrl: product.imageUrl || '/placeholder.svg' }
-          }
-        } catch {}
-        return { ...item, imageUrl: '/placeholder.svg' }
-      })
-    )
-
-    let addedCount = 0
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        const item = result.value
-        addItem({
-          id: item.productId!,
-          name: item.name,
-          price: item.unitPrice,
-          imageUrl: item.imageUrl,
-        })
-        addedCount++
+      let addedCount = 0
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          const item = result.value
+          addItem({
+            id: item.productId!,
+            name: item.name,
+            price: item.unitPrice,
+            imageUrl: item.imageUrl,
+          }, item.quantity)
+          addedCount++
+        }
       }
-    }
-
-    toast({ title: 'Pedido agregado al carrito', description: `${addedCount} producto(s) agregado(s)` })
-  }
+      return { addedCount }
+    },
+    onSuccess: (data) => {
+      toast({ title: 'Pedido agregado al carrito', description: `${data.addedCount} producto(s) agregado(s)` })
+    },
+  })
 
   const handleSave = async () => {
     setSaving(true)
@@ -172,7 +173,7 @@ export default function ProfilePage() {
                   Cancelar
                 </Button>
                 <Button size="sm" onClick={handleSave} disabled={saving}>
-                  <Save className="h-4 w-4 mr-1" />
+                  {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
                   {saving ? 'Guardando...' : 'Guardar'}
                 </Button>
               </div>
@@ -256,6 +257,9 @@ export default function ProfilePage() {
                 <AlertCircle className="h-10 w-10 mx-auto mb-3 text-destructive/50" />
                 <p className="text-destructive font-medium">Error al cargar pedidos</p>
                 <p className="text-sm text-muted-foreground mt-1">Intenta recargar la página</p>
+                <Button variant="outline" size="sm" className="mt-3 rounded-full" onClick={() => refetchOrders()}>
+                  Reintentar
+                </Button>
               </div>
             ) : orders.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
@@ -310,10 +314,15 @@ export default function ProfilePage() {
                       variant="outline"
                       size="sm"
                       className="rounded-full text-xs mt-2"
-                      onClick={() => handleReorder(order)}
+                      onClick={() => reorderMutation.mutate(order)}
+                      disabled={reorderMutation.isPending}
                     >
-                      <RotateCcw className="h-3 w-3 mr-1" />
-                      Volver a comprar
+                      {reorderMutation.isPending ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                      )}
+                      {reorderMutation.isPending ? 'Agregando...' : 'Volver a comprar'}
                     </Button>
                   </div>
                 ))}

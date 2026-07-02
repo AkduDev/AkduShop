@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -20,7 +21,12 @@ export function Pagination({
 }: PaginationProps) {
   if (totalPages <= 1) return null
 
-  const getPageNumbers = () => {
+  const handlePageChange = (page: number) => {
+    onPageChange(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const pageNumbers = useMemo(() => {
     const pages: (number | string)[] = []
     const maxVisible = 5
     
@@ -47,35 +53,37 @@ export function Pagination({
     }
     
     return pages
-  }
+  }, [currentPage, totalPages])
 
   return (
-    <div className="flex items-center justify-center gap-1 mt-6 md:mt-12">
+    <div className="flex items-center justify-center gap-1.5 mt-6 md:mt-12">
       {/* Primera página */}
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8 md:h-10 md:w-10 rounded-full border-[var(--gold)]/30 hover:bg-[var(--gold)]/10 disabled:opacity-50"
+        className="h-10 w-10 md:h-11 md:w-11 rounded-full border-primary/30 hover:bg-primary/10 disabled:opacity-50"
         disabled={!hasPrevPage}
-        onClick={() => onPageChange(1)}
+        onClick={() => handlePageChange(1)}
+        aria-label="Primera página"
       >
-        <ChevronsLeft className="h-3.5 w-3.5 md:h-4 md:w-4" />
+        <ChevronsLeft className="h-4 w-4" />
       </Button>
 
       {/* Página anterior */}
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8 md:h-10 md:w-10 rounded-full border-[var(--gold)]/30 hover:bg-[var(--gold)]/10 disabled:opacity-50"
+        className="h-10 w-10 md:h-11 md:w-11 rounded-full border-primary/30 hover:bg-primary/10 disabled:opacity-50"
         disabled={!hasPrevPage}
-        onClick={() => onPageChange(currentPage - 1)}
+        onClick={() => handlePageChange(currentPage - 1)}
+        aria-label="Página anterior"
       >
-        <ChevronLeft className="h-3.5 w-3.5 md:h-4 md:w-4" />
+        <ChevronLeft className="h-4 w-4" />
       </Button>
 
       {/* Números de página */}
-      <div className="flex items-center gap-0.5 md:gap-1">
-        {getPageNumbers().map((page, index) => (
+      <div className="flex items-center gap-1 md:gap-1.5">
+        {pageNumbers.map((page, index) => (
           page === '...' ? (
             <span key={`ellipsis-${index}`} className="px-1 text-muted-foreground">
               ...
@@ -85,12 +93,12 @@ export function Pagination({
               key={page}
               variant={currentPage === page ? 'default' : 'outline'}
               size="icon"
-              className={`h-8 w-8 md:h-10 md:w-10 rounded-full ${
+              className={`h-10 w-10 md:h-11 md:w-11 rounded-full ${
                 currentPage === page
-                  ? 'bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary'
-                  : 'border-[var(--gold)]/30 hover:bg-[var(--gold)]/10'
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                  : 'border-primary/30 hover:bg-primary/10'
               }`}
-              onClick={() => onPageChange(page as number)}
+              onClick={() => handlePageChange(page as number)}
               aria-current={currentPage === page ? 'page' : undefined}
             >
               {page}
@@ -103,25 +111,27 @@ export function Pagination({
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8 md:h-10 md:w-10 rounded-full border-[var(--gold)]/30 hover:bg-[var(--gold)]/10 disabled:opacity-50"
+        className="h-10 w-10 md:h-11 md:w-11 rounded-full border-primary/30 hover:bg-primary/10 disabled:opacity-50"
         disabled={!hasNextPage}
-        onClick={() => onPageChange(currentPage + 1)}
+        onClick={() => handlePageChange(currentPage + 1)}
+        aria-label="Página siguiente"
       >
-        <ChevronRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
+        <ChevronRight className="h-4 w-4" />
       </Button>
 
       {/* Última página */}
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8 md:h-10 md:w-10 rounded-full border-[var(--gold)]/30 hover:bg-[var(--gold)]/10 disabled:opacity-50"
+        className="h-10 w-10 md:h-11 md:w-11 rounded-full border-primary/30 hover:bg-primary/10 disabled:opacity-50"
         disabled={!hasNextPage}
-        onClick={() => onPageChange(totalPages)}
+        onClick={() => handlePageChange(totalPages)}
+        aria-label="Última página"
       >
-        <ChevronsRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
+        <ChevronsRight className="h-4 w-4" />
       </Button>
 
-      {/* Info de páginas - solo en escritorio */}
+      {/* Info de páginas */}
       <span className="hidden md:ml-4 md:text-sm text-muted-foreground">
         Página {currentPage} de {totalPages}
       </span>

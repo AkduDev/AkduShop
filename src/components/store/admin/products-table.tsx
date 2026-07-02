@@ -13,6 +13,7 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useSettings } from '@/lib/settings-context'
 import { Product, PaginationData } from '@/types'
 
 interface ProductsTableProps {
@@ -25,6 +26,7 @@ interface ProductsTableProps {
 }
 
 export function ProductsTable({ products, pagination, onPageChange, onEdit, onDelete, onToggleFeatured }: ProductsTableProps) {
+  const { settings } = useSettings()
   return (
     <div>
       <ScrollArea className="h-[400px]">
@@ -61,7 +63,7 @@ export function ProductsTable({ products, pagination, onPageChange, onEdit, onDe
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right font-semibold text-sm">
-                  ${product.price.toFixed(2)}
+                  {settings.currencySymbol}{product.price.toFixed(2)}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge
@@ -79,7 +81,7 @@ export function ProductsTable({ products, pagination, onPageChange, onEdit, onDe
                         Oferta
                       </Badge>
                       {product.discountPrice != null && (
-                        <span className="text-xs font-bold text-green-600 dark:text-green-400">${product.discountPrice.toFixed(2)}</span>
+                        <span className="text-xs font-bold text-green-600 dark:text-green-400">{settings.currencySymbol}{product.discountPrice.toFixed(2)}</span>
                       )}
                     </div>
                   ) : (

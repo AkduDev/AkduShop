@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -106,6 +107,7 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
                   id="login-email"
                   type="email"
                   placeholder="tu@email.com"
+                  autoComplete="email"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   required
@@ -117,6 +119,7 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
                   id="login-password"
                   type="password"
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
@@ -126,7 +129,14 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
                 <p className="text-sm text-destructive">{loginError}</p>
               )}
               <Button type="submit" className="w-full" disabled={loginSubmitting}>
-                {loginSubmitting ? 'Entrando...' : 'Iniciar Sesión'}
+                {loginSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Entrando...
+                  </>
+                ) : (
+                  'Iniciar Sesión'
+                )}
               </Button>
             </form>
           </TabsContent>
@@ -138,6 +148,7 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
                 <Input
                   id="reg-name"
                   placeholder="Tu nombre"
+                  autoComplete="name"
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
                   required
@@ -149,6 +160,7 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
                   id="reg-email"
                   type="email"
                   placeholder="tu@email.com"
+                  autoComplete="email"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
                   required
@@ -158,7 +170,9 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
                 <Label htmlFor="reg-phone">Teléfono (opcional)</Label>
                 <Input
                   id="reg-phone"
-                  placeholder="+52 55 1234 5678"
+                  type="tel"
+                  placeholder="+53 55 123 4567"
+                  autoComplete="tel"
                   value={regPhone}
                   onChange={(e) => setRegPhone(e.target.value)}
                 />
@@ -167,7 +181,8 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
                 <Label htmlFor="reg-address">Dirección (opcional)</Label>
                 <Input
                   id="reg-address"
-                  placeholder="Calle, colonia, ciudad"
+                  placeholder="Calle, ciudad"
+                  autoComplete="street-address"
                   value={regAddress}
                   onChange={(e) => setRegAddress(e.target.value)}
                 />
@@ -178,6 +193,7 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
                   id="reg-password"
                   type="password"
                   placeholder="Mínimo 6 caracteres"
+                  autoComplete="new-password"
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
                   required
@@ -188,7 +204,14 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
                 <p className="text-sm text-destructive">{regError}</p>
               )}
               <Button type="submit" className="w-full" disabled={regSubmitting}>
-                {regSubmitting ? 'Registrando...' : 'Crear Cuenta'}
+                {regSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Registrando...
+                  </>
+                ) : (
+                  'Crear Cuenta'
+                )}
               </Button>
             </form>
           </TabsContent>

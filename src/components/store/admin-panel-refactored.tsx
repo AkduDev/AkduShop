@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Package, Folder, Settings, LayoutDashboard, Box, Tag, ChevronLeft, ShoppingBag, Menu, X } from 'lucide-react'
+import { Plus, Package, Folder, Settings, LayoutDashboard, Box, Tag, ChevronLeft, ShoppingBag, Menu, X, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -12,6 +12,16 @@ import {
 } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { StatsCards } from './admin/stats-cards'
 import { DashboardWelcome } from './admin/dashboard-welcome'
 import { ProductsTable } from './admin/products-table'
@@ -71,6 +81,9 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
     name: '',
     description: ''
   })
+
+  // Estado para AlertDialog de confirmación de eliminación
+  const [deleteDialog, setDeleteDialog] = useState<{ type: 'product' | 'category'; id: string; name: string } | null>(null)
 
 
   useEffect(() => {
@@ -133,10 +146,20 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
   }
 
   const handleDeleteProduct = async (id: string) => {
-    if (confirm('¿Estás seguro de eliminar este producto?')) {
-      const success = await deleteProduct(id)
+    const product = products.find(p => p.id === id)
+    setDeleteDialog({ type: 'product', id, name: product?.name || 'este producto' })
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteDialog) return
+    if (deleteDialog.type === 'product') {
+      const success = await deleteProduct(deleteDialog.id)
+      if (success) onProductChange()
+    } else {
+      const success = await deleteCategory(deleteDialog.id)
       if (success) onProductChange()
     }
+    setDeleteDialog(null)
   }
 
   const handleToggleFeatured = async (product: Product) => {
@@ -181,10 +204,8 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
   }
 
   const handleDeleteCategory = async (id: string) => {
-    if (confirm('¿Estás seguro de eliminar esta categoría?')) {
-      const success = await deleteCategory(id)
-      if (success) onProductChange()
-    }
+    const category = (categories as Category[]).find((c: Category) => c.id === id)
+    setDeleteDialog({ type: 'category', id, name: category?.name || 'esta categoría' })
   }
 
   const handleEditCategory = (category: Category) => {
@@ -494,6 +515,32 @@ export function AdminPanel({ onProductChange }: AdminPanelProps) {
           setShowCategoryForm(false)
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteDialog} onOpenChange={(open) => { if (!open) setDeleteDialog(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-destructive" />
+              Confirmar eliminación
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de eliminar {deleteDialog?.type === 'product' ? 'el producto' : 'la categoría'}{' '}
+              <span className="font-medium text-foreground">{deleteDialog?.name}</span>?
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

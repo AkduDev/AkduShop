@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ShoppingCart, ArrowLeft, Star, Check, Tag, Share2, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -33,6 +34,7 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
   const { isAdmin, login, logout } = useAuth()
   const { handleWhatsAppCheckout } = useCartCheckout()
   const { toast } = useToast()
+  const router = useRouter()
   const [qty, setQty] = useState(1)
   const [justAdded, setJustAdded] = useState(false)
   const ctaRef = useRef<HTMLDivElement>(null)
@@ -78,13 +80,17 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
     if (result) toast({ title: 'Enlace copiado al portapapeles' })
   }
 
+  const handleCategoryChange = (catId: string) => {
+    router.push(catId === 'all' ? '/' : `/?cat=${catId}`)
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <AnnouncementBar />
       <Header
         selectedCategory="all"
         categories={categories ?? []}
-        onCategoryChange={() => {}}
+        onCategoryChange={handleCategoryChange}
         onCheckout={handleWhatsAppCheckout}
         isAdmin={isAdmin}
         onLogin={login}
@@ -130,25 +136,25 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
                 priority
               />
 
-              {isOnSale && (
-                <Badge className="absolute top-4 left-4 bg-red-500 text-white font-medium">
-                  <Tag className="w-3 h-3 mr-1" />
-                  Oferta
-                </Badge>
-              )}
-
-              {product.featured && (
-                <Badge className={`absolute top-4 left-4 ${isOnSale ? 'mt-10' : ''} bg-[var(--gold)] text-primary font-medium`}>
-                  <Star className="w-3 h-3 mr-1 fill-primary" />
-                  Destacado
-                </Badge>
-              )}
-
-              {lowStock && (
-                <Badge className={`absolute top-4 left-4 ${isOnSale || product.featured ? 'mt-20' : ''} bg-amber-500/90 text-white font-medium`}>
-                  ¡Solo quedan {product.stock}!
-                </Badge>
-              )}
+              <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+                {isOnSale && (
+                  <Badge className="bg-red-500 dark:bg-red-600 text-white font-medium w-fit">
+                    <Tag className="w-3 h-3 mr-1" />
+                    Oferta
+                  </Badge>
+                )}
+                {product.featured && (
+                  <Badge className="bg-[var(--gold)] text-primary font-medium w-fit">
+                    <Star className="w-3 h-3 mr-1 fill-primary" />
+                    Destacado
+                  </Badge>
+                )}
+                {lowStock && (
+                  <Badge className="bg-amber-500/90 dark:bg-amber-600/90 text-white font-medium w-fit">
+                    ¡Solo quedan {product.stock}!
+                  </Badge>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-col">
@@ -280,7 +286,7 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
       <BackToTop />
 
       {product.stock > 0 && (
-        <div className={`fixed bottom-0 left-0 right-0 md:hidden bg-background border-t border-border p-3 z-40 transition-transform duration-300 ${showStickyCta ? 'translate-y-0' : 'translate-y-full'}`}>
+        <div className={`fixed bottom-0 left-0 right-0 md:hidden bg-background border-t border-border p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 transition-transform duration-300 ${showStickyCta ? 'translate-y-0' : 'translate-y-full'}`}>
           <div className="flex items-center gap-3">
             <QuantitySelector
               value={qty}

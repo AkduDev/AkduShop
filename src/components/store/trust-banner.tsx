@@ -19,7 +19,7 @@ export function TrustBanner() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {items.map((item, i) => (
             <div key={i} className="flex items-center justify-center gap-2.5 text-center">
-              <item.icon className="h-5 w-5 text-primary shrink-0" />
+              <item.icon className="h-5 w-5 text-primary shrink-0" aria-hidden="true" />
               <span className="text-xs sm:text-sm text-muted-foreground font-medium">{item.text}</span>
             </div>
           ))}

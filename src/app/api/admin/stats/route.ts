@@ -59,7 +59,7 @@ export async function GET() {
       inventoryValue
     })
   } catch (error) {
-    logger.error('Error fetching dashboard stats', 'admin/stats', error)
+    logger.error('Error fetching dashboard stats', 'admin/stats', error as Error)
     return NextResponse.json(
       { error: 'Error al obtener estadísticas' },
       { status: 500 }

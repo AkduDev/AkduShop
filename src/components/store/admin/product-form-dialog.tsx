@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Product, Category } from '@/types'
+import { logger } from '@/lib/logger'
 
 interface ProductFormDialogProps {
   open: boolean
@@ -106,7 +107,7 @@ export function ProductFormDialog({
       setImagePreview(imageUrl)
       onChange({ ...formData, imageUrl })
     } catch (error) {
-      console.error('Error uploading image:', error)
+      logger.error('Error uploading image', 'product-form', error)
       setUploadError(error instanceof Error ? error.message : 'Error al subir la imagen.')
       setImagePreview(formData.imageUrl || null)
     } finally {
@@ -135,11 +136,20 @@ export function ProductFormDialog({
     onSubmit()
   }
 
+  const isFormValid = formData.name.trim() !== '' &&
+    formData.price !== '' && parseFloat(formData.price) > 0 &&
+    formData.categoryId !== '' &&
+    formData.stock !== '' && parseInt(formData.stock) >= 0 &&
+    formData.imageUrl !== '' &&
+    (!formData.onSale || !formData.discountPrice || parseFloat(formData.discountPrice) < parseFloat(formData.price))
+
   const discountPercent = formData.discountPrice && formData.price
     ? Math.round((1 - parseFloat(formData.discountPrice) / parseFloat(formData.price)) * 100)
     : 0
 
   const isEditing = !!product
+
+  const hasMissingFields = !formData.name || !formData.price || !formData.categoryId || !formData.stock || !formData.imageUrl
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -231,6 +241,9 @@ export function ProductFormDialog({
             {uploadError && (
               <p className="text-sm text-destructive">{uploadError}</p>
             )}
+            {!formData.imageUrl && !isUploading && (
+              <p className="text-xs text-destructive">La imagen del producto es requerida</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -240,7 +253,11 @@ export function ProductFormDialog({
               value={formData.name}
               onChange={(e) => onChange({ ...formData, name: e.target.value })}
               placeholder="Ej: Cartera Elegance"
+              className={!formData.name ? 'border-destructive/50' : ''}
             />
+            {!formData.name && (
+              <p className="text-xs text-destructive">El nombre es requerido</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -261,20 +278,30 @@ export function ProductFormDialog({
                 id="price"
                 type="number"
                 step="0.01"
+                min="0.01"
                 value={formData.price}
                 onChange={(e) => onChange({ ...formData, price: e.target.value })}
                 placeholder="0.00"
+                className={!formData.price || parseFloat(formData.price) <= 0 ? 'border-destructive/50' : ''}
               />
+              {formData.price && parseFloat(formData.price) <= 0 && (
+                <p className="text-xs text-destructive">El precio debe ser mayor a 0</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="stock">Stock *</Label>
               <Input
                 id="stock"
                 type="number"
+                min="0"
                 value={formData.stock}
                 onChange={(e) => onChange({ ...formData, stock: e.target.value })}
                 placeholder="0"
+                className={formData.stock !== '' && parseInt(formData.stock) < 0 ? 'border-destructive/50' : ''}
               />
+              {formData.stock !== '' && parseInt(formData.stock) < 0 && (
+                <p className="text-xs text-destructive">El stock no puede ser negativo</p>
+              )}
             </div>
           </div>
 
@@ -330,7 +357,7 @@ export function ProductFormDialog({
                     className="flex-1"
                   />
                   {discountPercent > 0 && (
-                    <span className="text-sm font-medium text-green-600 bg-green-50 px-2 py-1 rounded">
+                    <span className="text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2 py-1 rounded">
                       -{discountPercent}%
                     </span>
                   )}
@@ -363,10 +390,19 @@ export function ProductFormDialog({
           <Button variant="outline" onClick={onCancel} className="flex-1">
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} className="flex-1" disabled={isUploading}>
+          <Button
+            onClick={handleSubmit}
+            className="flex-1"
+            disabled={isUploading || !isFormValid}
+          >
             {isEditing ? 'Actualizar' : 'Crear'} Producto
           </Button>
         </div>
+        {hasMissingFields && (
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            Completa todos los campos requeridos (*)
+          </p>
+        )}
       </DialogContent>
     </Dialog>
   )

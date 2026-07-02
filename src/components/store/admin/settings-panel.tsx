@@ -1,19 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Save, Settings, Store, Phone, Palette, Layout, Tag, Globe, ShoppingBag, MoreHorizontal, Check, Scale } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Separator } from '@/components/ui/separator'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/hooks/use-toast'
 import { SiteSettings, DEFAULT_SETTINGS } from '@/types'
@@ -30,17 +28,32 @@ interface SectionConfig {
 
 export function SettingsPanel() {
   const [form, setForm] = useState<SiteSettings>(DEFAULT_SETTINGS)
+  const [originalForm, setOriginalForm] = useState<SiteSettings>(DEFAULT_SETTINGS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const { toast } = useToast()
+  const isDirty = JSON.stringify(form) !== JSON.stringify(originalForm)
+
+  const handleBeforeUnload = useCallback((e: BeforeUnloadEvent) => {
+    if (isDirty) {
+      e.preventDefault()
+    }
+  }, [isDirty])
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [handleBeforeUnload])
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const res = await fetch('/api/settings')
         if (res.ok) {
-          setForm(await res.json())
+          const data = await res.json()
+          setForm(data)
+          setOriginalForm(data)
         }
       } catch {
         // fallback
@@ -65,6 +78,7 @@ export function SettingsPanel() {
       })
 
       if (res.ok) {
+        setOriginalForm(form)
         toast({
           title: 'Configuración guardada',
           description: 'Los cambios se aplicarán inmediatamente.',
@@ -343,7 +357,7 @@ export function SettingsPanel() {
           <div className={`${currentSection.bgColor} border-b border-border/30`}>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-white/80 shadow-sm ${currentSection.color}`}>
+                <div className={`p-2 rounded-lg bg-white/80 dark:bg-card/80 shadow-sm ${currentSection.color}`}>
                   {currentSection.icon}
                 </div>
                 <div>
@@ -395,13 +409,34 @@ export function SettingsPanel() {
       <Card className="border-border/50">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              Los cambios se aplicarán inmediatamente
-            </p>
-            <Button onClick={handleSave} disabled={saving} className="px-6">
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Guardando...' : 'Guardar Cambios'}
-            </Button>
+            <div className="flex items-center gap-2">
+              {isDirty && (
+                <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                  Cambios sin guardar
+                </span>
+              )}
+              {!isDirty && (
+                <p className="text-xs text-muted-foreground">
+                  Los cambios se aplicarán inmediatamente
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {isDirty && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setForm(originalForm) }}
+                  className="text-xs"
+                >
+                  Descartar
+                </Button>
+              )}
+              <Button onClick={handleSave} disabled={saving || !isDirty} className="px-6">
+                <Save className="h-4 w-4 mr-2" />
+                {saving ? 'Guardando...' : 'Guardar Cambios'}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

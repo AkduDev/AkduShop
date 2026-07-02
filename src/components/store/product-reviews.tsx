@@ -108,7 +108,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
         <div className="flex-1">
           {[5, 4, 3, 2, 1].map((s) => {
             const count = reviews.filter((r) => r.rating === s).length
-            const pct = stats.count > 0 ? (count / stats.count) * 100 : 0
+            const pct = stats.count > 0 ? (count / Math.max(stats.count, reviews.length)) * 100 : 0
             return (
               <div key={s} className="flex items-center gap-2 text-xs">
                 <span className="w-3 text-muted-foreground">{s}</span>
@@ -161,9 +161,10 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
           </Button>
         </form>
       ) : (
-        <p className="text-sm text-muted-foreground text-center py-4 border border-border/50 rounded-2xl">
-          Inicia sesión para dejar una reseña
-        </p>
+        <div className="text-sm text-muted-foreground text-center py-4 border border-border/50 rounded-2xl">
+          <p>Inicia sesión para dejar una reseña</p>
+          <p className="text-xs mt-1 text-muted-foreground/70">Haz clic en &ldquo;Mi Cuenta&rdquo; en la barra superior</p>
+        </div>
       )}
 
       <div className="space-y-4">

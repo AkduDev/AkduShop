@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { ShoppingCart, Trash2, MessageCircle, Trash } from 'lucide-react'
+import { ShoppingCart, Trash2, MessageCircle, Trash, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -168,7 +168,14 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
               <ShoppingCart className="h-10 w-10 opacity-50" />
             </div>
             <p className="text-lg font-medium">Tu carrito está vacío</p>
-            <p className="text-sm mt-1">Añade productos para continuar</p>
+            <p className="text-sm mt-1 mb-4">Añade productos para continuar</p>
+            <Button
+              variant="outline"
+              className="rounded-full"
+              onClick={() => setOpen(false)}
+            >
+              Explorar productos
+            </Button>
           </div>
         ) : (
           <>
@@ -194,18 +201,37 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                         <QuantitySelector
                           value={item.quantity}
                           onChange={(qty) => {
-                            if (qty < item.quantity) {
-                              if (qty <= 0) {
-                                removeItem(item.id)
-                                syncToServer('remove', item.id)
-                                toast({ title: 'Producto eliminado', description: item.name })
-                              } else {
-                                updateQuantity(item.id, qty)
-                                syncToServer('add', item.id, qty - item.quantity)
-                              }
+                            if (qty <= 0) {
+                              const removedItem = { ...item }
+                              removeItem(item.id)
+                              syncToServer('remove', item.id)
+                              toast({
+                                title: 'Producto eliminado',
+                                description: removedItem.name,
+                                action: (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-full gap-1.5"
+                                    onClick={() => {
+                                      addItem({
+                                        id: removedItem.id,
+                                        name: removedItem.name,
+                                        price: removedItem.price,
+                                        imageUrl: removedItem.imageUrl,
+                                      }, removedItem.quantity)
+                                      syncToServer('add', removedItem.id, removedItem.quantity)
+                                    }}
+                                  >
+                                    <Undo2 className="h-3.5 w-3.5" />
+                                    Deshacer
+                                  </Button>
+                                ),
+                              })
                             } else {
+                              const delta = qty - item.quantity
                               updateQuantity(item.id, qty)
-                              syncToServer('add', item.id, qty - item.quantity)
+                              syncToServer('add', item.id, delta)
                             }
                           }}
                           min={1}
@@ -217,9 +243,32 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                           size="icon"
                           className="h-8 w-8 ml-auto text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => {
+                            const removedItem = { ...item }
                             removeItem(item.id)
                             syncToServer('remove', item.id)
-                            toast({ title: 'Producto eliminado', description: item.name })
+                            toast({
+                              title: 'Producto eliminado',
+                              description: removedItem.name,
+                              action: (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="rounded-full gap-1.5"
+                                  onClick={() => {
+                                    addItem({
+                                      id: removedItem.id,
+                                      name: removedItem.name,
+                                      price: removedItem.price,
+                                      imageUrl: removedItem.imageUrl,
+                                    }, removedItem.quantity)
+                                    syncToServer('add', removedItem.id, removedItem.quantity)
+                                  }}
+                                >
+                                  <Undo2 className="h-3.5 w-3.5" />
+                                  Deshacer
+                                </Button>
+                              ),
+                            })
                           }}
                           aria-label={`Eliminar ${item.name} del carrito`}
                         >
