@@ -16,7 +16,7 @@ export function FeaturedProducts({ products, onViewDetails }: FeaturedProductsPr
   if (products.length === 0) return null
 
   return (
-    <section className="py-12 bg-gradient-to-b from-muted/30 to-transparent">
+    <section className="py-16 bg-gradient-to-b from-muted/30 to-transparent">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="h-px flex-1 max-w-32 bg-gradient-to-r from-transparent via-primary/30 to-primary/60" />

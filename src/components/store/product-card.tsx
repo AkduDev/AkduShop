@@ -3,7 +3,7 @@
 import { memo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ShoppingCart, Eye, Star, Check, Tag, Heart, Info } from 'lucide-react'
+import { ShoppingCart, Eye, Star, Check, Tag, Heart } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -59,7 +59,7 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
   }
 
   return (
-    <Card className="group relative overflow-hidden rounded-2xl border-border/40 bg-card transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1 flex flex-col h-full">
+    <Card className="group relative overflow-hidden rounded-2xl border-border/40 bg-card transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1 motion-safe:hover:-translate-y-1 flex flex-col h-full">
       {/* === IMAGE SECTION === */}
       <CardHeader className="p-0 relative">
         <div className={`relative overflow-hidden bg-muted ${isFeatured ? 'aspect-[3/4]' : 'aspect-square'}`}>
@@ -182,10 +182,8 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
 
       {/* === ACTIONS SECTION === */}
       <CardFooter className={`pt-0 ${isFeatured ? 'px-2.5 pb-2.5 sm:px-3 sm:pb-3' : 'px-3 pb-3 sm:px-4 sm:pb-4'} flex flex-col gap-2.5`}>
-        {/* Action buttons */}
         {product.stock > 0 ? (
           <div className="flex flex-col gap-2 w-full">
-            {/* Add to cart - primary button */}
             <Button
               className={`w-full rounded-full shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm h-9 sm:h-10 gap-1.5 active:scale-[0.97] font-semibold ${
                 justAdded
@@ -207,19 +205,6 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
                 </>
               )}
             </Button>
-
-            {/* Details - outline button */}
-            {onViewDetails && (
-              <Button
-                variant="outline"
-                className="w-full rounded-full border-border/60 hover:bg-muted/50 hover:border-primary/30 transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9 gap-1.5 active:scale-[0.97]"
-                onClick={(e) => { e.stopPropagation(); onViewDetails(product) }}
-                aria-label={`Ver detalles de ${product.name}`}
-              >
-                <Info className="h-3.5 w-3.5" />
-                Ver Detalles
-              </Button>
-            )}
           </div>
         ) : (
           <Button

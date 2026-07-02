@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Package, Mail, Phone, MapPin, Pencil, Save, X, Lock, RotateCcw } from 'lucide-react'
+import { ArrowLeft, Package, Mail, Phone, MapPin, Pencil, Save, X, Lock, RotateCcw, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +14,7 @@ import { useCustomerAuth } from '@/hooks/use-customer-auth'
 import { useCartStore } from '@/store/cart'
 import { useToast } from '@/hooks/use-toast'
 import { ORDER_STATUS_LABELS } from '@/types'
+import { StoreLayout } from '@/components/store/layout/store-layout'
 import type { Order } from '@/types'
 
 const statusColors: Record<string, string> = {
@@ -35,6 +36,7 @@ export default function ProfilePage() {
   const [form, setForm] = useState({ name: '', phone: '', address: '', currentPassword: '', newPassword: '' })
   const [orders, setOrders] = useState<Order[]>([])
   const [ordersLoading, setOrdersLoading] = useState(true)
+  const [ordersError, setOrdersError] = useState(false)
 
   useEffect(() => {
     if (!loading && !isLoggedIn) {
@@ -57,9 +59,12 @@ export default function ProfilePage() {
   useEffect(() => {
     if (isLoggedIn) {
       fetch('/api/auth/customer/me/orders')
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch orders')
+          return res.json()
+        })
         .then(data => setOrders(Array.isArray(data) ? data : []))
-        .catch(() => setOrders([]))
+        .catch(() => { setOrders([]); setOrdersError(true) })
         .finally(() => setOrdersLoading(false))
     }
   }, [isLoggedIn])
@@ -123,7 +128,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <StoreLayout>
         <div className="container mx-auto px-4 py-8 max-w-3xl">
           <Skeleton className="h-8 w-48 mb-8" />
           <Card>
@@ -134,14 +139,14 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </StoreLayout>
     )
   }
 
   if (!customer) return null
 
   return (
-    <div className="min-h-screen bg-background">
+    <StoreLayout>
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="icon" asChild>
@@ -246,6 +251,12 @@ export default function ProfilePage() {
                   <Skeleton key={i} className="h-24 w-full rounded-lg" />
                 ))}
               </div>
+            ) : ordersError ? (
+              <div className="text-center py-8">
+                <AlertCircle className="h-10 w-10 mx-auto mb-3 text-destructive/50" />
+                <p className="text-destructive font-medium">Error al cargar pedidos</p>
+                <p className="text-sm text-muted-foreground mt-1">Intenta recargar la página</p>
+              </div>
             ) : orders.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No tienes pedidos aún
@@ -311,6 +322,6 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </StoreLayout>
   )
 }

@@ -8,6 +8,7 @@ import { useCartStore } from '@/store/cart'
 import { useToast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
+import { StoreLayout } from '@/components/store/layout/store-layout'
 
 export default function WishlistPage() {
   const { items, removeItem } = useWishlistStore()
@@ -26,7 +27,7 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <StoreLayout>
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="icon" asChild>
@@ -54,7 +55,7 @@ export default function WishlistPage() {
             {items.map((item) => (
               <div key={item.id} className="flex gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                 <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                  <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                  <Image src={item.imageUrl} alt={item.name} fill sizes="80px" className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
@@ -98,6 +99,6 @@ export default function WishlistPage() {
           </div>
         )}
       </div>
-    </div>
+    </StoreLayout>
   )
 }

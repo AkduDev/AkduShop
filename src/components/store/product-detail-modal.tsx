@@ -156,7 +156,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
             <div className="flex items-baseline gap-2 mb-4 sm:mb-6">
               {isOnSale ? (
                 <>
-                  <span className="text-2xl sm:text-4xl font-bold text-green-600">
+                  <span className="text-2xl sm:text-4xl font-bold text-green-600 dark:text-green-400">
                     ${displayPrice.toFixed(2)}
                   </span>
                   <span className="text-lg sm:text-xl text-muted-foreground line-through">
@@ -183,8 +183,8 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
             <div className="flex items-center gap-2 mb-4 sm:mb-6">
               {product.stock > 0 ? (
                 <>
-                  <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${lowStock ? 'bg-amber-500' : 'bg-green-500'}`} />
-                  <span className={`text-xs sm:text-sm font-medium ${lowStock ? 'text-amber-600' : 'text-green-600'}`}>
+                    <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${lowStock ? 'bg-amber-500' : 'bg-green-500'}`} />
+                    <span className={`text-xs sm:text-sm font-medium ${lowStock ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'}`}>
                     {lowStock ? `¡Solo quedan ${product.stock}!` : `En Stock (${product.stock} disponibles)`}
                   </span>
                 </>
@@ -225,7 +225,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
 
             {justAdded ? (
               <div className="space-y-2">
-                <div className="flex items-center justify-center gap-2 text-green-600 font-medium py-2">
+                <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 font-medium py-2">
                   <Check className="h-5 w-5" />
                   ¡Agregado al carrito!
                 </div>

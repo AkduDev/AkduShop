@@ -110,15 +110,15 @@ export function HeroSection({ heroProduct }: HeroSectionProps) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4">
-                    <p className="text-sm font-semibold text-foreground line-clamp-1 drop-shadow-lg">{heroProduct.name}</p>
+                    <p className="text-sm font-semibold text-foreground line-clamp-2 drop-shadow-lg">{heroProduct.name}</p>
                     <div className="flex items-center gap-2 mt-1">
                       {heroProduct.onSale && heroProduct.discountPrice != null ? (
                         <>
                           <span className="text-lg font-bold text-green-400 drop-shadow-lg">${heroProduct.discountPrice.toFixed(2)}</span>
-                          <span className="text-sm text-muted-foreground/80 line-through drop-shadow-lg">${heroProduct.price.toFixed(2)}</span>
+                          <span className="text-sm text-primary-foreground/60 line-through drop-shadow-lg">${heroProduct.price.toFixed(2)}</span>
                         </>
                       ) : (
-                        <span className="text-lg font-bold text-primary drop-shadow-lg">${heroProduct.price.toFixed(2)}</span>
+                        <span className="text-lg font-bold text-primary-foreground drop-shadow-lg">${heroProduct.price.toFixed(2)}</span>
                       )}
                     </div>
                     <span className="inline-flex items-center gap-1 mt-2 text-xs text-primary-foreground/80 group-hover:text-primary-foreground transition-colors">

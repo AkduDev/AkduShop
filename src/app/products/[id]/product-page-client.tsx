@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ShoppingCart, ArrowLeft, Star, Check, Tag, Plus, Minus, Share2, ChevronRight } from 'lucide-react'
+import { ShoppingCart, ArrowLeft, Star, Check, Tag, Share2, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { QuantitySelector } from '@/components/ui/quantity-selector'
 import { Header } from '@/components/store/layout/header'
 import { AnnouncementBar } from '@/components/store/layout/announcement-bar'
 import { Footer } from '@/components/store/layout/footer'
@@ -18,6 +19,7 @@ import { useCategories } from '@/hooks/use-categories'
 import { useAuth } from '@/hooks/use-auth'
 import { useCartCheckout } from '@/hooks/use-cart-checkout'
 import { useToast } from '@/hooks/use-toast'
+import { useShare } from '@/hooks/use-share'
 import type { Product } from '@/types'
 
 interface ProductPageClientProps {
@@ -68,26 +70,12 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
     return () => { if (addedTimerRef.current) clearTimeout(addedTimerRef.current) }
   }, [])
 
+  const { share } = useShare()
+
   const handleShare = async () => {
     const url = `${window.location.origin}/products/${product.id}`
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: product.name, text: `Mira este producto: ${product.name}`, url })
-      } catch {}
-    } else {
-      try {
-        await navigator.clipboard.writeText(url)
-        toast({ title: 'Enlace copiado al portapapeles' })
-      } catch {
-        const textarea = document.createElement('textarea')
-        textarea.value = url
-        document.body.appendChild(textarea)
-        textarea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textarea)
-        toast({ title: 'Enlace copiado al portapapeles' })
-      }
-    }
+    const result = await share(url, product.name, `Mira este producto: ${product.name}`)
+    if (result) toast({ title: 'Enlace copiado al portapapeles' })
   }
 
   return (
@@ -103,7 +91,7 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
         onLogout={logout}
       />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <div className="container mx-auto px-4 py-8">
           <nav aria-label="Breadcrumb" className="mb-4">
             <ol className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
@@ -173,7 +161,7 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
               <div className="flex items-baseline gap-3 mb-6">
                 {isOnSale ? (
                   <>
-                    <span className="text-4xl font-bold text-green-600">
+                    <span className="text-4xl font-bold text-green-600 dark:text-green-400">
                       ${displayPrice.toFixed(2)}
                     </span>
                     <span className="text-xl text-muted-foreground line-through">
@@ -199,7 +187,7 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
                 {product.stock > 0 ? (
                   <>
                     <div className={`w-3 h-3 rounded-full ${lowStock ? 'bg-amber-500' : 'bg-green-500'}`} />
-                    <span className={`text-sm font-medium ${lowStock ? 'text-amber-600' : 'text-green-600'}`}>
+                    <span className={`text-sm font-medium ${lowStock ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'}`}>
                       {lowStock ? `¡Solo quedan ${product.stock}!` : `En Stock (${product.stock} disponibles)`}
                     </span>
                   </>
@@ -229,23 +217,13 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
               {product.stock > 0 && (
                 <div className="flex items-center gap-4 mb-6">
                   <span className="text-sm text-muted-foreground">Cantidad:</span>
-                  <div className="flex items-center border border-border/60 rounded-full h-12">
-                    <button
-                      className="h-12 w-12 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full"
-                      onClick={() => setQty(Math.max(1, qty - 1))}
-                      aria-label="Reducir cantidad"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="w-10 text-center font-medium tabular-nums">{qty}</span>
-                    <button
-                      className="h-12 w-12 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full"
-                      onClick={() => setQty(Math.min(product.stock, qty + 1))}
-                      aria-label="Aumentar cantidad"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
+                  <QuantitySelector
+                    value={qty}
+                    onChange={setQty}
+                    min={1}
+                    max={product.stock}
+                    size="lg"
+                  />
                 </div>
               )}
 
@@ -304,23 +282,13 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
       {product.stock > 0 && (
         <div className={`fixed bottom-0 left-0 right-0 md:hidden bg-background border-t border-border p-3 z-40 transition-transform duration-300 ${showStickyCta ? 'translate-y-0' : 'translate-y-full'}`}>
           <div className="flex items-center gap-3">
-            <div className="flex items-center border border-border/60 rounded-full h-10">
-              <button
-                className="h-10 w-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full"
-                onClick={() => setQty(Math.max(1, qty - 1))}
-                aria-label="Reducir cantidad"
-              >
-                <Minus className="h-4 w-4" />
-              </button>
-              <span className="w-8 text-center text-sm font-medium tabular-nums">{qty}</span>
-              <button
-                className="h-10 w-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full"
-                onClick={() => setQty(Math.min(product.stock, qty + 1))}
-                aria-label="Aumentar cantidad"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
+            <QuantitySelector
+              value={qty}
+              onChange={setQty}
+              min={1}
+              max={product.stock}
+              size="sm"
+            />
             <Button
               size="lg"
               className={`flex-1 h-10 rounded-full text-sm ${

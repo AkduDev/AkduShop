@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { ShoppingCart, Trash2, Plus, Minus, MessageCircle, Trash } from 'lucide-react'
+import { ShoppingCart, Trash2, MessageCircle, Trash } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -12,6 +12,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { QuantitySelector } from '@/components/ui/quantity-selector'
 import { useCartStore } from '@/store/cart'
 import {
   AlertDialog,
@@ -123,7 +124,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative rounded-full border-border/50 hover:border-[var(--gold)] hover:text-[var(--gold)]" aria-label="Abrir carrito de compras">
+        <Button variant="outline" size="icon" className="relative rounded-full border-border/50 hover:border-[var(--gold)] hover:text-[var(--gold)]" aria-label="Abrir carrito de compras" data-cart-trigger>
           <ShoppingCart className="h-5 w-5" />
           <CartBadge />
         </Button>
@@ -190,37 +191,27 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                         ${item.price.toFixed(2)}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 rounded-full border-border/50"
-                          onClick={() => {
-                            if (item.quantity <= 1) {
-                              removeItem(item.id)
-                              syncToServer('remove', item.id)
-                              toast({ title: 'Producto eliminado', description: item.name })
+                        <QuantitySelector
+                          value={item.quantity}
+                          onChange={(qty) => {
+                            if (qty < item.quantity) {
+                              if (qty <= 0) {
+                                removeItem(item.id)
+                                syncToServer('remove', item.id)
+                                toast({ title: 'Producto eliminado', description: item.name })
+                              } else {
+                                updateQuantity(item.id, qty)
+                                syncToServer('add', item.id, qty - item.quantity)
+                              }
                             } else {
-                              updateQuantity(item.id, item.quantity - 1)
-                              syncToServer('add', item.id, -1)
+                              updateQuantity(item.id, qty)
+                              syncToServer('add', item.id, qty - item.quantity)
                             }
                           }}
-                          aria-label={`Reducir cantidad de ${item.name}`}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="w-8 text-center font-medium" aria-label={`Cantidad: ${item.quantity}`}>{item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 rounded-full border-border/50"
-                          onClick={() => {
-                            updateQuantity(item.id, item.quantity + 1)
-                            syncToServer('add', item.id, 1)
-                          }}
-                          aria-label={`Aumentar cantidad de ${item.name}`}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
+                          min={1}
+                          max={99}
+                          size="sm"
+                        />
                         <Button
                           variant="ghost"
                           size="icon"

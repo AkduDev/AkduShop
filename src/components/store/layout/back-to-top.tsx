@@ -20,7 +20,7 @@ export function BackToTop() {
   return (
     <Button
       size="icon"
-      className="fixed bottom-6 right-6 z-50 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 hover:shadow-xl transition-all duration-300 h-11 w-11"
+      className="fixed bottom-24 right-6 z-50 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 hover:shadow-xl transition-all duration-300 h-11 w-11 md:bottom-6"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       aria-label="Volver arriba"
     >

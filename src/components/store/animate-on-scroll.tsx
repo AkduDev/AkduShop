@@ -15,6 +15,13 @@ export function AnimateOnScroll({ children, className = '', delay = 0 }: Animate
     const el = ref.current
     if (!el) return
 
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) {
+      el.style.opacity = '1'
+      el.style.transform = 'translateY(0)'
+      return
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {

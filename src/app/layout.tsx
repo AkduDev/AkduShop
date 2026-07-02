@@ -58,6 +58,9 @@ export default function RootLayout({
         <ErrorBoundary>
           <Providers>
             <SettingsProvider>
+              <a href="#main-content" className="skip-to-content">
+                Saltar al contenido
+              </a>
               {children}
             </SettingsProvider>
           </Providers>

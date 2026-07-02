@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Menu, X, User, LogOut, ChevronDown, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -62,6 +62,25 @@ export function Header({
   const { items: wishlistItems } = useWishlistStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    const menu = mobileMenuRef.current
+    if (!menu) return
+    const focusable = menu.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+    if (focusable.length > 0) focusable[0].focus()
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [mobileMenuOpen])
 
   const handleCategoryChange = (categoryId: string) => {
     onCategoryChange(categoryId)
@@ -175,11 +194,14 @@ export function Header({
 
             {/* Mobile hamburger */}
             <Button
+              ref={menuButtonRef}
               variant="ghost"
               size="icon"
               className="md:hidden h-9 w-9"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -188,7 +210,7 @@ export function Header({
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border/50 space-y-3">
+          <div ref={mobileMenuRef} id="mobile-menu" role="dialog" aria-label="Menú de navegación" className="md:hidden py-4 border-t border-border/50 space-y-3">
             {/* Categories */}
             <div className="flex flex-wrap gap-2">
               <Button

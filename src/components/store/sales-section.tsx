@@ -14,7 +14,7 @@ export function SalesSection({ products, onViewDetails }: SalesSectionProps) {
   if (products.length === 0) return null
 
   return (
-    <section className="py-12 bg-gradient-to-b from-red-500/5 via-transparent to-transparent">
+    <section className="py-16 bg-gradient-to-b from-red-500/5 via-transparent to-transparent">
       <div className="container mx-auto px-4">
         <AnimateOnScroll>
           <div className="flex flex-col items-center gap-4 mb-8">
