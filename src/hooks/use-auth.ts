@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 async function fetchAuthStatus(): Promise<boolean> {
@@ -48,21 +49,21 @@ export function useAuth() {
     },
   })
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
       return await loginMutation.mutateAsync({ email, password })
     } catch {
       return false
     }
-  }
+  }, [loginMutation])
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await logoutMutation.mutateAsync()
-  }
+  }, [logoutMutation])
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ['auth'] })
-  }
+  }, [queryClient])
 
   return {
     isAdmin,

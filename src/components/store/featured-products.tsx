@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { Heart } from 'lucide-react'
 import { ProductCard } from '@/components/store/product-card'
 import { useSettings } from '@/lib/settings-context'
@@ -10,7 +11,7 @@ interface FeaturedProductsProps {
   onViewDetails: (product: Product) => void
 }
 
-export function FeaturedProducts({ products, onViewDetails }: FeaturedProductsProps) {
+export const FeaturedProducts = memo(function FeaturedProducts({ products, onViewDetails }: FeaturedProductsProps) {
   const { settings } = useSettings()
 
   if (products.length === 0) return null
@@ -41,4 +42,4 @@ export function FeaturedProducts({ products, onViewDetails }: FeaturedProductsPr
       </div>
     </section>
   )
-}
+})

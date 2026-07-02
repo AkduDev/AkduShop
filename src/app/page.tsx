@@ -56,7 +56,8 @@ function HomeContent() {
   const { products: featuredProducts, loading: featuredLoading } = useProducts({ featured: true, limit: 5 })
   const { products: saleProducts, loading: saleLoading } = useProducts({ onSale: true, limit: 8 })
   const { categories } = useCategories()
-  const { handleWhatsAppCheckout } = useCartCheckout()
+  const cartCheckout = useCartCheckout()
+  const handleWhatsAppCheckout = useCallback(() => cartCheckout.handleWhatsAppCheckout(), [cartCheckout.handleWhatsAppCheckout])
 
   const defaultPagination = { total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false }
 
@@ -88,10 +89,10 @@ function HomeContent() {
     document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const handleCategoryChange = (categoryId: string) => {
+  const handleCategoryChange = useCallback((categoryId: string) => {
     setSelectedCategory(categoryId)
     setCurrentPage(1)
-  }
+  }, [])
 
   const handleSearch = (query: string) => {
     setSearchQuery(query)

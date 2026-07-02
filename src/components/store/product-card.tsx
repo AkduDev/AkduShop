@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useState } from 'react'
+import { memo, useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ShoppingCart, Eye, Star, Check, Tag, Heart } from 'lucide-react'
@@ -25,9 +25,14 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
   const { toast } = useToast()
   const isFeatured = variant === 'featured'
   const [justAdded, setJustAdded] = useState(false)
+  const addedTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const lowStock = product.stock > 0 && product.stock <= 5
   const isOutOfStock = product.stock <= 0
+
+  useEffect(() => {
+    return () => { if (addedTimerRef.current) clearTimeout(addedTimerRef.current) }
+  }, [])
 
   const handleAddToCart = () => {
     const priceToAdd = product.onSale && product.discountPrice != null ? product.discountPrice : product.price
@@ -38,7 +43,8 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
       imageUrl: product.imageUrl
     })
     setJustAdded(true)
-    setTimeout(() => setJustAdded(false), 1500)
+    if (addedTimerRef.current) clearTimeout(addedTimerRef.current)
+    addedTimerRef.current = setTimeout(() => setJustAdded(false), 1500)
     toast({ title: 'Agregado al carrito', description: product.name })
   }
 
@@ -77,7 +83,7 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
           {/* Badges - top left */}
           <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 z-10">
             {product.onSale && (
-              <Badge className="bg-red-500 dark:bg-red-600 text-white border-0 text-[10px] sm:text-xs font-bold px-2 py-0.5 shadow-lg w-fit">
+              <Badge className="bg-red-500 dark:bg-warm-accent text-white dark:text-warm-accent-foreground border-0 text-[10px] sm:text-xs font-bold px-2 py-0.5 shadow-lg w-fit">
                 <Tag className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 fill-current" />
                 Oferta
               </Badge>
@@ -153,7 +159,7 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
               <span className="font-bold text-green-600 dark:text-green-400 text-sm sm:text-base">
                 ${product.discountPrice.toFixed(2)}
               </span>
-              <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border-0 text-[10px] font-bold px-1.5 py-0">
+              <Badge className="bg-red-500/10 text-red-600 dark:text-warm-accent border-0 text-[10px] font-bold px-1.5 py-0">
                 -{Math.round((1 - product.discountPrice / product.price) * 100)}%
               </Badge>
             </div>

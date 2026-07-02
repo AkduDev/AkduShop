@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { ArrowLeft, Package, Mail, Phone, MapPin, Pencil, Save, X, Lock, RotateCcw, AlertCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, Package, Mail, Phone, MapPin, Pencil, Save, X, Lock, RotateCcw, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -172,8 +172,8 @@ export default function ProfilePage() {
                   <X className="h-4 w-4 mr-1" />
                   Cancelar
                 </Button>
-                <Button size="sm" onClick={handleSave} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
+                <Button size="sm" onClick={handleSave} loading={saving}>
+                  {!saving && <Save className="h-4 w-4 mr-1" />}
                   {saving ? 'Guardando...' : 'Guardar'}
                 </Button>
               </div>
@@ -315,13 +315,9 @@ export default function ProfilePage() {
                       size="sm"
                       className="rounded-full text-xs mt-2"
                       onClick={() => reorderMutation.mutate(order)}
-                      disabled={reorderMutation.isPending}
+                      loading={reorderMutation.isPending}
                     >
-                      {reorderMutation.isPending ? (
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                      ) : (
-                        <RotateCcw className="h-3 w-3 mr-1" />
-                      )}
+                      {!reorderMutation.isPending && <RotateCcw className="h-3 w-3 mr-1" />}
                       {reorderMutation.isPending ? 'Agregando...' : 'Volver a comprar'}
                     </Button>
                   </div>

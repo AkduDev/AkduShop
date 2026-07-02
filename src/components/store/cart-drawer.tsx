@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react'
 import Image from 'next/image'
 import { ShoppingCart, Trash2, MessageCircle, Trash, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -14,20 +14,13 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { QuantitySelector } from '@/components/ui/quantity-selector'
 import { useCartStore } from '@/store/cart'
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from '@/components/ui/alert-dialog'
 import { useCustomerAuth } from '@/hooks/use-customer-auth'
 import { useToast } from '@/hooks/use-toast'
 import { CustomerAuthModal } from '@/components/store/customer-auth-modal'
+
+const ClearCartDialog = lazy(() =>
+  import('@/components/store/clear-cart-dialog').then((m) => ({ default: m.ClearCartDialog }))
+)
 
 interface CartDrawerProps {
   onCheckout: () => void
@@ -133,32 +126,16 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
         <SheetHeader className="flex items-center justify-between border-b p-4 bg-background sticky top-0 z-10">
           <SheetTitle className="text-2xl">Tu Carrito</SheetTitle>
           {items.length > 0 && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
-                  aria-label="Vaciar carrito"
-                >
-                  <Trash className="h-5 w-5" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="max-w-md">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Vaciar carrito?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Se eliminarán todos los {items.length} producto{items.length !== 1 ? 's' : ''} del carrito. Esta acción no se puede deshacer.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => { clearCart(); syncToServer('clear') }} className="bg-destructive hover:bg-destructive/90">
-                    Vaciar carrito
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Suspense fallback={
+              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full" aria-label="Vaciar carrito" disabled>
+                <Trash className="h-5 w-5" />
+              </Button>
+            }>
+              <ClearCartDialog
+                itemCount={items.length}
+                onClear={() => { clearCart(); syncToServer('clear') }}
+              />
+            </Suspense>
           )}
         </SheetHeader>
 

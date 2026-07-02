@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { Tag, Zap, Flame } from 'lucide-react'
 import { ProductCard } from '@/components/store/product-card'
 import { AnimateOnScroll } from '@/components/store/animate-on-scroll'
@@ -10,7 +11,7 @@ interface SalesSectionProps {
   onViewDetails: (product: Product) => void
 }
 
-export function SalesSection({ products, onViewDetails }: SalesSectionProps) {
+export const SalesSection = memo(function SalesSection({ products, onViewDetails }: SalesSectionProps) {
   if (products.length === 0) return null
 
   return (
@@ -45,4 +46,4 @@ export function SalesSection({ products, onViewDetails }: SalesSectionProps) {
       </div>
     </section>
   )
-}
+})

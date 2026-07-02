@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -128,15 +127,8 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
               {loginError && (
                 <p className="text-sm text-destructive">{loginError}</p>
               )}
-              <Button type="submit" className="w-full" disabled={loginSubmitting}>
-                {loginSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Entrando...
-                  </>
-                ) : (
-                  'Iniciar Sesión'
-                )}
+              <Button type="submit" className="w-full" loading={loginSubmitting}>
+                {loginSubmitting ? 'Entrando...' : 'Iniciar Sesión'}
               </Button>
             </form>
           </TabsContent>
@@ -203,15 +195,8 @@ export function CustomerAuthModal({ open, onOpenChange }: CustomerAuthModalProps
               {regError && (
                 <p className="text-sm text-destructive">{regError}</p>
               )}
-              <Button type="submit" className="w-full" disabled={regSubmitting}>
-                {regSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Registrando...
-                  </>
-                ) : (
-                  'Crear Cuenta'
-                )}
+              <Button type="submit" className="w-full" loading={regSubmitting}>
+                {regSubmitting ? 'Registrando...' : 'Crear Cuenta'}
               </Button>
             </form>
           </TabsContent>

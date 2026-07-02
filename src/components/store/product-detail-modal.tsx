@@ -107,7 +107,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
 
             <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-1.5">
               {isOnSale && (
-                <Badge className="bg-red-500 dark:bg-red-600 text-white font-medium text-xs sm:text-sm w-fit">
+                <Badge className="bg-red-500 dark:bg-warm-accent text-white dark:text-warm-accent-foreground font-medium text-xs sm:text-sm w-fit">
                   <Tag className="w-3 h-3 mr-1" />
                   Oferta
                 </Badge>
@@ -163,7 +163,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
                     ${product.price.toFixed(2)}
                   </span>
                   {discountPercent !== null && (
-                    <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border-0 text-xs font-semibold">
+                    <Badge className="bg-red-500/10 text-red-600 dark:text-warm-accent border-0 text-xs font-semibold">
                       -{discountPercent}%
                     </Badge>
                   )}

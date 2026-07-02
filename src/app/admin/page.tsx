@@ -2,9 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AdminPanel } from '@/components/store/admin-panel-refactored'
+import dynamic from 'next/dynamic'
 import { useAuth } from '@/hooks/use-auth'
 import { useProducts } from '@/hooks/use-products'
+
+const AdminPanel = dynamic(
+  () => import('@/components/store/admin-panel-refactored').then((m) => m.AdminPanel),
+  { ssr: false }
+)
 
 export default function AdminPage() {
   const router = useRouter()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, memo, useCallback } from 'react'
 import { Menu, X, User, LogOut, ChevronDown, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -48,7 +48,7 @@ interface HeaderProps {
   onLogout: () => Promise<void>
 }
 
-export function Header({
+export const Header = memo(function Header({
   selectedCategory,
   categories,
   onCategoryChange,
@@ -270,4 +270,4 @@ export function Header({
       <CustomerAuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </header>
   )
-}
+})

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Clock, MessageCircle, Mail, MapPin, Send, Check } from 'lucide-react'
 import { useSettings } from '@/lib/settings-context'
 import { useToast } from '@/hooks/use-toast'
@@ -11,7 +11,6 @@ export function Footer() {
   const { settings } = useSettings()
   const { toast } = useToast()
   const router = useRouter()
-  const pathname = usePathname()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [subscribed, setSubscribed] = useState(false)
@@ -64,7 +63,8 @@ export function Footer() {
   }
 
   const handleNavClick = (href: string, isAnchor: boolean) => {
-    if (isAnchor && pathname !== '/') {
+    const currentPath = window.location.pathname
+    if (isAnchor && currentPath !== '/') {
       router.push('/' + href)
     } else if (isAnchor) {
       const el = document.querySelector(href)

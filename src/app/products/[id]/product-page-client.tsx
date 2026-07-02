@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ShoppingCart, ArrowLeft, Star, Check, Tag, Share2, ChevronRight } from 'lucide-react'
+import { ShoppingCart, ArrowLeft, Star, Check, Tag, Share2, ChevronRight, Home, Truck, Shield, CreditCard, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { QuantitySelector } from '@/components/ui/quantity-selector'
@@ -12,8 +12,18 @@ import { Header } from '@/components/store/layout/header'
 import { AnnouncementBar } from '@/components/store/layout/announcement-bar'
 import { Footer } from '@/components/store/layout/footer'
 import { BackToTop } from '@/components/store/layout/back-to-top'
-import { ProductReviews } from '@/components/store/product-reviews'
-import { RelatedProducts } from '@/components/store/related-products'
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@/components/ui/skeleton'
+
+const ProductReviews = dynamic(
+  () => import('@/components/store/product-reviews').then((m) => m.ProductReviews),
+  { ssr: false }
+)
+
+const RelatedProducts = dynamic(
+  () => import('@/components/store/related-products').then((m) => m.RelatedProducts),
+  { ssr: false }
+)
 import { useCartStore } from '@/store/cart'
 import { useSettings } from '@/lib/settings-context'
 import { useCategories } from '@/hooks/use-categories'
@@ -102,7 +112,10 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
           <nav aria-label="Breadcrumb" className="mb-4">
             <ol className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
               <li>
-                <Link href="/" className="hover:text-foreground transition-colors">Inicio</Link>
+                <Link href="/" className="hover:text-foreground transition-colors inline-flex items-center gap-1">
+                  <Home className="h-3.5 w-3.5" />
+                  Inicio
+                </Link>
               </li>
               <li><ChevronRight className="h-3.5 w-3.5" /></li>
               <li>
@@ -126,19 +139,19 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
           </Link>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-            <div className="relative aspect-square bg-muted overflow-hidden rounded-2xl">
+            <div className="relative aspect-square bg-muted overflow-hidden rounded-2xl group/image">
               <Image
                 src={product.imageUrl}
                 alt={product.name}
                 fill
                 sizes="(max-width: 768px) 90vw, 45vw"
-                className="object-cover"
+                className="object-cover transition-transform duration-500 ease-out group-hover/image:scale-[1.8]"
                 priority
               />
 
               <div className="absolute top-4 left-4 flex flex-col gap-1.5">
                 {isOnSale && (
-                  <Badge className="bg-red-500 dark:bg-red-600 text-white font-medium w-fit">
+                  <Badge className="bg-red-500 dark:bg-warm-accent text-white dark:text-warm-accent-foreground font-medium w-fit">
                     <Tag className="w-3 h-3 mr-1" />
                     Oferta
                   </Badge>
@@ -173,7 +186,7 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
                     <span className="text-xl text-muted-foreground line-through">
                       ${product.price.toFixed(2)}
                     </span>
-                    <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border-0 text-sm font-semibold">
+                    <Badge className="bg-red-500/10 text-red-600 dark:text-warm-accent border-0 text-sm font-semibold">
                       -{Math.round((1 - displayPrice / product.price) * 100)}%
                     </Badge>
                   </>
@@ -205,18 +218,30 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
                 )}
               </div>
 
-              <div className="space-y-3 mb-8">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Check className="w-4 h-4 text-primary" />
-                  <span>{settings.shippingText}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/30">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary shrink-0">
+                    <Truck className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium leading-tight">{settings.shippingText || 'Envío a toda Cuba'}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Check className="w-4 h-4 text-primary" />
-                  <span>Garantía de calidad</span>
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/30">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary shrink-0">
+                    <Shield className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium leading-tight">Garantía de calidad</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Check className="w-4 h-4 text-primary" />
-                  <span>Pago contra entrega</span>
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/30">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary shrink-0">
+                    <CreditCard className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium leading-tight">Pago contra entrega</p>
+                  </div>
                 </div>
               </div>
 
@@ -271,13 +296,43 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
           </div>
 
           <div className="mt-12 border-t border-border/50 pt-8">
+            <h2 className="text-2xl font-bold mb-6">Detalles del producto</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/30 text-center">
+                <Package className="h-5 w-5 mx-auto mb-2 text-primary" />
+                <p className="text-xs text-muted-foreground">Categoría</p>
+                <p className="text-sm font-medium">{product.category}</p>
+              </div>
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/30 text-center">
+                <div className={`h-2.5 w-2.5 rounded-full mx-auto mb-2.5 ${product.stock > 0 ? 'bg-green-500' : 'bg-destructive'}`} />
+                <p className="text-xs text-muted-foreground">Disponibilidad</p>
+                <p className="text-sm font-medium">{product.stock > 0 ? `${product.stock} en stock` : 'Agotado'}</p>
+              </div>
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/30 text-center">
+                <Truck className="h-5 w-5 mx-auto mb-2 text-primary" />
+                <p className="text-xs text-muted-foreground">Envío</p>
+                <p className="text-sm font-medium">A toda Cuba</p>
+              </div>
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/30 text-center">
+                <CreditCard className="h-5 w-5 mx-auto mb-2 text-primary" />
+                <p className="text-xs text-muted-foreground">Pago</p>
+                <p className="text-sm font-medium">Contra entrega</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 border-t border-border/50 pt-8">
             <h2 className="text-2xl font-bold mb-6">Reseñas</h2>
-            <ProductReviews productId={product.id} />
+            <Suspense fallback={<div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full rounded-lg" />)}</div>}>
+              <ProductReviews productId={product.id} />
+            </Suspense>
           </div>
 
           <div className="mt-12 border-t border-border/50 pt-8">
             <h2 className="text-2xl font-bold mb-6">También te puede gustar</h2>
-            <RelatedProducts categoryId={product.categoryId} currentProductId={product.id} />
+            <Suspense fallback={<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">{[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-72 rounded-2xl" />)}</div>}>
+              <RelatedProducts categoryId={product.categoryId} currentProductId={product.id} />
+            </Suspense>
           </div>
         </div>
       </main>

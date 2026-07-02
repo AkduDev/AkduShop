@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Star, Send, Loader2 } from 'lucide-react'
+import { Star, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCustomerAuth } from '@/hooks/use-customer-auth'
 import { useToast } from '@/hooks/use-toast'
@@ -155,8 +155,8 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
             rows={3}
             className="w-full px-3 py-2 rounded-xl border border-border/50 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
           />
-          <Button type="submit" disabled={submitMutation.isPending || rating === 0} size="sm" className="rounded-full">
-            {submitMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+          <Button type="submit" disabled={rating === 0} size="sm" className="rounded-full" loading={submitMutation.isPending}>
+            {!submitMutation.isPending && <Send className="h-4 w-4 mr-2" />}
             Publicar
           </Button>
         </form>
