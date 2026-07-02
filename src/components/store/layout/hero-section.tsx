@@ -21,7 +21,7 @@ export function HeroSection({ heroProduct }: HeroSectionProps) {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--gold-light)_0%,_transparent_50%)]" />
 
       <div className="container mx-auto px-4 py-16 md:py-24 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start lg:items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div className="max-w-xl">
             <AnimateOnScroll>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
@@ -93,7 +93,7 @@ export function HeroSection({ heroProduct }: HeroSectionProps) {
 
           {heroProduct && (
             <AnimateOnScroll delay={200}>
-              <div className="relative hidden lg:flex items-start justify-center pt-4">
+              <div className="relative hidden lg:flex items-start justify-center">
                 <div className="absolute w-72 h-72 rounded-full bg-primary/5 blur-3xl" />
                 <Link
                   href={`/products/${heroProduct.id}`}
