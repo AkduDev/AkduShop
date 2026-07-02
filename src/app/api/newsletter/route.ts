@@ -2,9 +2,16 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { newsletterSchema } from '@/lib/validations'
 import { logger } from '@/lib/logger'
+import { rateLimitWrite, getClientIp } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request)
+    const { success } = await rateLimitWrite(ip)
+    if (!success) {
+      return NextResponse.json({ error: 'Demasiadas solicitudes. Intenta más tarde.' }, { status: 429 })
+    }
+
     const body = await request.json()
     const parsed = newsletterSchema.safeParse(body)
 

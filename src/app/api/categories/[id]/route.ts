@@ -13,7 +13,13 @@ export async function GET(
     const category = await db.category.findUnique({
       where: { id },
       include: {
-        products: true
+        products: {
+          select: {
+            id: true, name: true, price: true, discountPrice: true,
+            imageUrl: true, stock: true, featured: true, onSale: true,
+            categoryId: true, createdAt: true,
+          }
+        }
       }
     })
 

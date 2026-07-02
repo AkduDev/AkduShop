@@ -4,6 +4,7 @@ import { Redis } from '@upstash/redis'
 let redis: Redis | null = null
 let authLimiter: Ratelimit | null = null
 let registerLimiter: Ratelimit | null = null
+let writeLimiter: Ratelimit | null = null
 
 function getRedis(): Redis {
   if (!redis) {
@@ -39,6 +40,18 @@ function getRegisterLimiter(): Ratelimit {
   return registerLimiter
 }
 
+function getWriteLimiter(): Ratelimit {
+  if (!writeLimiter) {
+    writeLimiter = new Ratelimit({
+      redis: getRedis(),
+      limiter: Ratelimit.slidingWindow(10, '60 s'),
+      analytics: true,
+      prefix: 'ratelimit:write',
+    })
+  }
+  return writeLimiter
+}
+
 export interface RateLimitConfig {
   interval: number
   maxRequests: number
@@ -65,6 +78,11 @@ export async function rateLimit(
     remaining,
     resetAt: reset,
   }
+}
+
+export async function rateLimitWrite(ip: string): Promise<RateLimitResult> {
+  const { success, remaining, reset } = await getWriteLimiter().limit(ip)
+  return { success, remaining, resetAt: reset }
 }
 
 export function getClientIp(request: Request): string {

@@ -64,6 +64,8 @@ model Order {
   @@index([customerId])
   @@index([status])
   @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([customerId, createdAt])
 }
 
 model OrderItem {
@@ -103,6 +105,9 @@ model Product {
   @@index([createdAt])
   @@index([categoryId, featured, onSale, createdAt])
   @@index([categoryId, onSale, price])
+  @@index([onSale, stock])
+  @@index([price])
+  @@index([featured, createdAt])
 }
 
 model Review {

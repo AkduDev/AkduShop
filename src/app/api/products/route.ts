@@ -78,8 +78,11 @@ export async function GET(request: NextRequest) {
     const [products, total] = await Promise.all([
       db.product.findMany({
         where,
-        include: {
-          category: true
+        select: {
+          id: true, name: true, price: true, discountPrice: true,
+          imageUrl: true, categoryId: true, stock: true,
+          featured: true, onSale: true, createdAt: true, updatedAt: true,
+          category: { select: { name: true } },
         },
         orderBy,
         skip,
@@ -91,7 +94,6 @@ export async function GET(request: NextRequest) {
     const formattedProducts = products.map(p => ({
       id: p.id,
       name: p.name,
-      description: p.description,
       price: toNumber(p.price),
       discountPrice: p.discountPrice != null ? toNumber(p.discountPrice) : null,
       imageUrl: p.imageUrl,
@@ -114,6 +116,8 @@ export async function GET(request: NextRequest) {
         hasNextPage: page < Math.ceil(total / limit),
         hasPrevPage: page > 1
       }
+    }, {
+      headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=120' }
     })
   } catch (error) {
     logger.error('Error fetching products', 'products', error)
@@ -146,6 +150,11 @@ export async function POST(request: NextRequest) {
     }
 
     const data = parsed.data
+
+    const category = await db.category.findUnique({ where: { id: data.categoryId } })
+    if (!category) {
+      return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 400 })
+    }
 
     const product = await db.product.create({
       data: {

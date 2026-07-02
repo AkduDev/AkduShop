@@ -12,9 +12,15 @@ export async function GET() {
 
     const cartItems = await db.cartItem.findMany({
       where: { customerId: session.id },
-      include: {
+      select: {
+        quantity: true,
         product: {
-          include: { category: true },
+          select: {
+            id: true, name: true, price: true, discountPrice: true,
+            imageUrl: true, categoryId: true, stock: true,
+            featured: true, onSale: true,
+            category: { select: { name: true } },
+          },
         },
       },
     })
@@ -22,7 +28,6 @@ export async function GET() {
     const items = cartItems.map((item) => ({
       id: item.product.id,
       name: item.product.name,
-      description: item.product.description,
       price: Number(item.product.price),
       discountPrice: item.product.discountPrice != null ? Number(item.product.discountPrice) : null,
       imageUrl: item.product.imageUrl,
@@ -60,24 +65,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
     }
 
-    const existing = await db.cartItem.findUnique({
+    await db.cartItem.upsert({
       where: { customerId_productId: { customerId: session.id, productId } },
+      update: { quantity: { increment: quantity } },
+      create: { customerId: session.id, productId, quantity },
     })
-
-    if (existing) {
-      await db.cartItem.update({
-        where: { id: existing.id },
-        data: { quantity: existing.quantity + quantity },
-      })
-    } else {
-      await db.cartItem.create({
-        data: {
-          customerId: session.id,
-          productId,
-          quantity,
-        },
-      })
-    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

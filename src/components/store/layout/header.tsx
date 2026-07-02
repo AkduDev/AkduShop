@@ -59,7 +59,7 @@ export function Header({
 }: HeaderProps) {
   const { settings } = useSettings()
   const { customer, isLoggedIn, logout } = useCustomerAuth()
-  const { items: wishlistItems } = useWishlistStore()
+  const wishlistCount = useWishlistStore((state) => state.items.length)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
@@ -159,7 +159,7 @@ export function Header({
               <Link href="/wishlist">
                 <Button variant="outline" size="icon" className="relative rounded-full border-border/50 hover:border-red-500 hover:text-red-500 dark:hover:border-red-400 dark:hover:text-red-400" aria-label="Favoritos">
                   <Heart className="h-5 w-5" />
-                  <WishlistBadge count={wishlistItems.length} />
+                  <WishlistBadge count={wishlistCount} />
                 </Button>
               </Link>
             )}

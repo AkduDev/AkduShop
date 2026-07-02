@@ -4,9 +4,16 @@ import { getSession, getCustomerSession, hasPermission } from '@/lib/auth'
 import { createOrderSchema } from '@/lib/validations'
 import { logger } from '@/lib/logger'
 import { toNumber } from '@/lib/product-utils'
+import { rateLimitWrite, getClientIp } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request)
+    const { success } = await rateLimitWrite(ip)
+    if (!success) {
+      return NextResponse.json({ error: 'Demasiadas solicitudes. Intenta más tarde.' }, { status: 429 })
+    }
+
     const customerSession = await getCustomerSession()
 
     if (!customerSession) {
@@ -110,7 +117,14 @@ export async function POST(request: Request) {
       })
     })
 
-    return NextResponse.json(order, { status: 201 })
+    return NextResponse.json({
+      ...order,
+      total: toNumber(order.total),
+      items: order.items.map(item => ({
+        ...item,
+        unitPrice: toNumber(item.unitPrice),
+      })),
+    }, { status: 201 })
   } catch (error) {
     logger.error('Error creating order', 'orders', error)
     const message = error instanceof Error ? error.message : 'Error al crear la orden'

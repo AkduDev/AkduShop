@@ -15,9 +15,11 @@ const SETTINGS_KEYS: (keyof SiteSettings)[] = [
 ]
 
 let cachedSettings: SiteSettings | null = null
+let cacheTimestamp = 0
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 export async function getSettings(): Promise<SiteSettings> {
-  if (cachedSettings) return cachedSettings
+  if (cachedSettings && Date.now() - cacheTimestamp < CACHE_TTL) return cachedSettings
 
   try {
     const rows = await db.siteSetting.findMany({
@@ -35,6 +37,7 @@ export async function getSettings(): Promise<SiteSettings> {
     }
 
     cachedSettings = settings
+    cacheTimestamp = Date.now()
     return settings
   } catch {
     return DEFAULT_SETTINGS
@@ -43,4 +46,5 @@ export async function getSettings(): Promise<SiteSettings> {
 
 export function invalidateSettingsCache(): void {
   cachedSettings = null
+  cacheTimestamp = 0
 }

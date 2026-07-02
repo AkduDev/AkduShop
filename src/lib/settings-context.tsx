@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, ReactNode } from 'react'
+import { createContext, useContext, useMemo, ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { SiteSettings, DEFAULT_SETTINGS } from '@/types'
 
@@ -27,8 +27,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     retry: false,
   })
 
+  const value = useMemo(
+    () => ({ settings: settings || DEFAULT_SETTINGS, loading: isLoading }),
+    [settings, isLoading]
+  )
+
   return (
-    <SettingsContext.Provider value={{ settings: settings || DEFAULT_SETTINGS, loading: isLoading }}>
+    <SettingsContext.Provider value={value}>
       {children}
     </SettingsContext.Provider>
   )

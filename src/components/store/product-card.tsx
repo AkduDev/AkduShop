@@ -20,11 +20,11 @@ interface ProductCardProps {
 
 export const ProductCard = memo(function ProductCard({ product, onViewDetails, variant = 'default' }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem)
-  const { toggleItem, items: wishlistItems } = useWishlistStore()
+  const toggleItem = useWishlistStore((state) => state.toggleItem)
+  const isWishlisted = useWishlistStore((state) => state.items.some((i) => i.id === product.id))
   const { toast } = useToast()
   const isFeatured = variant === 'featured'
   const [justAdded, setJustAdded] = useState(false)
-  const isWishlisted = wishlistItems.some((i) => i.id === product.id)
 
   const lowStock = product.stock > 0 && product.stock <= 5
   const isOutOfStock = product.stock <= 0

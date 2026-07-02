@@ -1,4 +1,7 @@
 import { z } from 'zod'
+import { DEFAULT_SETTINGS, SiteSettings } from '@/types'
+
+const SETTINGS_KEYS = Object.keys(DEFAULT_SETTINGS) as [string, ...string[]]
 
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email es requerido').email('Email inválido'),
@@ -78,7 +81,10 @@ export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
 export type NewsletterInput = z.infer<typeof newsletterSchema>
 export type ReviewInput = z.infer<typeof reviewSchema>
 
-export const settingsSchema = z.record(z.string(), z.string())
+export const settingsSchema = z.record(
+  z.enum(SETTINGS_KEYS),
+  z.string()
+)
 
 export const validateStockSchema = z.object({
   items: z.array(z.object({

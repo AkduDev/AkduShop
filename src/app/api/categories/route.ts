@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
         hasNextPage: page < Math.ceil(total / limit),
         hasPrevPage: page > 1,
       },
+    }, {
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' }
     })
   } catch (error) {
     logger.error('Error fetching categories', 'categories', error)

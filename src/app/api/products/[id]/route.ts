@@ -76,6 +76,11 @@ export async function PUT(
 
     const data = parsed.data
 
+    const category = await db.category.findUnique({ where: { id: data.categoryId } })
+    if (!category) {
+      return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 400 })
+    }
+
     const product = await db.product.update({
       where: { id },
       data: {

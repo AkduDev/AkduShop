@@ -64,6 +64,16 @@ export async function verifySession(token: string): Promise<SessionUser | null> 
 }
 
 export async function getSession(): Promise<SessionUser | null> {
+  const { headers } = await import('next/headers')
+  const headerStore = await headers()
+  const verifiedSession = headerStore.get('x-verified-session')
+  if (verifiedSession) {
+    try {
+      const parsed = JSON.parse(verifiedSession)
+      return parsed.user as SessionUser
+    } catch {}
+  }
+
   const cookieStore = await cookies()
   const token = cookieStore.get('session')?.value
   
@@ -73,6 +83,17 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 export async function getCustomerSession(): Promise<CustomerSessionUser | null> {
+  const { headers } = await import('next/headers')
+  const headerStore = await headers()
+  const verifiedSession = headerStore.get('x-verified-session')
+  if (verifiedSession) {
+    try {
+      const parsed = JSON.parse(verifiedSession)
+      const user = parsed.user as SessionUser
+      if (user.role === 'customer') return user as CustomerSessionUser
+    } catch {}
+  }
+
   const cookieStore = await cookies()
   const token = cookieStore.get('customer_session')?.value
 
