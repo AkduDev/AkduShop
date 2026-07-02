@@ -93,7 +93,7 @@ export const Header = memo(function Header({
   const hasMoreCategories = extraCategories.length > 0
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50">
+    <header className="sticky top-0 z-50 bg-header dark:bg-header-surface/95 backdrop-blur-md border-b border-border/50 dark:border-border/30">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Left: Logo */}

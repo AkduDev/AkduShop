@@ -16,9 +16,9 @@ export function HeroSection({ heroProduct }: HeroSectionProps) {
   const { settings } = useSettings()
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-muted/50 via-background to-muted/50">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--gold-light)_0%,_transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--gold-light)_0%,_transparent_50%)]" />
+    <section className="relative overflow-hidden bg-gradient-to-br from-muted/50 via-background to-muted/50 dark:from-background dark:via-surface-1 dark:to-background">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--gold-light)_0%,_transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top_right,_oklch(0.65_0.16_250_/_0.12)_0%,_transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--gold-light)_0%,_transparent_50%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_oklch(0.65_0.16_250_/_0.08)_0%,_transparent_50%)]" />
 
       <div className="container mx-auto px-4 py-16 md:py-24 relative">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
@@ -49,7 +49,7 @@ export function HeroSection({ heroProduct }: HeroSectionProps) {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   size="lg"
-                  className="rounded-full px-7 py-5 text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 group"
+                  className="rounded-full px-7 py-5 text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl dark:cta-glow transition-all duration-300 group"
                   onClick={() => document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })}
                 >
                   {settings.heroCtaText}

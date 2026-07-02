@@ -90,7 +90,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[80vh] sm:max-h-[85vh] p-0 bg-card w-[95vw] sm:w-auto pb-[env(safe-area-inset-bottom)]" showCloseButton={false}>
+      <DialogContent className="sm:max-w-4xl max-h-[80vh] sm:max-h-[85vh] p-0 bg-card dark:bg-surface-1 w-[95vw] sm:w-auto pb-[env(safe-area-inset-bottom)]" showCloseButton={false}>
         <DialogHeader className="sr-only">
           <DialogTitle>{product.name}</DialogTitle>
         </DialogHeader>

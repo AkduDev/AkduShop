@@ -65,7 +65,7 @@ export const ProductCard = memo(function ProductCard({ product, onViewDetails, v
   }
 
   return (
-    <Card className="group relative overflow-hidden rounded-2xl border-border/40 bg-card transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1 motion-safe:hover:-translate-y-1 flex flex-col h-full">
+    <Card className="group relative overflow-hidden rounded-2xl border-border/40 dark:border-border/25 bg-card dark:bg-gradient-to-br dark:from-card dark:to-surface-1 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 dark:hover:shadow-primary/10 hover:border-primary/20 dark:hover:border-primary/15 hover:-translate-y-1 motion-safe:hover:-translate-y-1 flex flex-col h-full dark:hover-glow">
       {/* === IMAGE SECTION === */}
       <CardHeader className="p-0 relative">
         <div className={`relative overflow-hidden bg-muted ${isFeatured ? 'aspect-[3/4]' : 'aspect-square'}`}>

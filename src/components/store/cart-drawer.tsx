@@ -122,7 +122,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
           <CartBadge />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg flex flex-col h-[90vh] max-h-[90vh]">
+      <SheetContent className="w-full sm:max-w-lg flex flex-col h-[90vh] max-h-[90vh] dark:bg-surface-1">
         <SheetHeader className="flex items-center justify-between border-b p-4 bg-background sticky top-0 z-10">
           <SheetTitle className="text-2xl">Tu Carrito</SheetTitle>
           {items.length > 0 && (
