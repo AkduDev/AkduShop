@@ -7,15 +7,27 @@ export interface ProductPrice {
   discountPercent: number | null
 }
 
+export function toNumber(value: unknown): number {
+  if (typeof value === 'number') return value
+  if (typeof value === 'string') return parseFloat(value)
+  if (value && typeof value === 'object' && 'toNumber' in value) {
+    return (value as { toNumber: () => number }).toNumber()
+  }
+  return 0
+}
+
 export function getDisplayPrice(product: Product): ProductPrice {
-  const isOnSale = product.onSale && product.discountPrice != null && product.discountPrice < product.price
-  const displayPrice = isOnSale ? product.discountPrice! : product.price
-  const discountPercent = isOnSale ? Math.round((1 - displayPrice / product.price) * 100) : null
+  const price = toNumber(product.price)
+  const discountPrice = product.discountPrice != null ? toNumber(product.discountPrice) : null
+
+  const isOnSale = product.onSale && discountPrice != null && discountPrice < price
+  const displayPrice = isOnSale && discountPrice != null ? discountPrice : price
+  const discountPercent = isOnSale ? Math.round((1 - displayPrice / price) * 100) : null
 
   return {
     isOnSale,
     displayPrice,
-    originalPrice: product.price,
+    originalPrice: price,
     discountPercent,
   }
 }

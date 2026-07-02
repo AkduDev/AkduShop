@@ -17,6 +17,7 @@ interface CartStore {
   clearCart: () => void
   getTotal: () => number
   getTotalItems: () => number
+  syncWithServer: (serverItems: CartItem[]) => void
 }
 
 export const useCartStore = create<CartStore>()(
@@ -71,7 +72,11 @@ export const useCartStore = create<CartStore>()(
       getTotalItems: () => {
         const state = get()
         return state.items.reduce((count, item) => count + item.quantity, 0)
-      }
+      },
+
+      syncWithServer: (serverItems) => {
+        set({ items: serverItems })
+      },
     }),
     {
       name: 'ecommerce-cart'

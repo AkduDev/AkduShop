@@ -12,6 +12,29 @@ const scrypt = promisify(_scrypt)
 const SALT_LENGTH = 16
 const KEY_LENGTH = 64
 
+export type AdminRole = 'admin' | 'editor' | 'viewer'
+
+export const ADMIN_ROLES: Record<AdminRole, { label: string; permissions: string[] }> = {
+  admin: {
+    label: 'Administrador',
+    permissions: ['read', 'write', 'delete', 'settings', 'users'],
+  },
+  editor: {
+    label: 'Editor',
+    permissions: ['read', 'write'],
+  },
+  viewer: {
+    label: 'Visor',
+    permissions: ['read'],
+  },
+}
+
+export function hasPermission(role: string, permission: string): boolean {
+  const adminRole = ADMIN_ROLES[role as AdminRole]
+  if (!adminRole) return false
+  return adminRole.permissions.includes(permission)
+}
+
 export interface SessionUser {
   id: string
   email: string

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getSession, getCustomerSession } from '@/lib/auth'
+import { getSession, getCustomerSession, hasPermission } from '@/lib/auth'
 import { createOrderSchema } from '@/lib/validations'
 import { logger } from '@/lib/logger'
+import { toNumber } from '@/lib/product-utils'
 
 export async function POST(request: Request) {
   try {
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
         )
       }
 
-      const unitPrice = product.onSale && product.discountPrice ? product.discountPrice : product.price
+      const unitPrice = product.onSale && product.discountPrice ? toNumber(product.discountPrice) : toNumber(product.price)
       total += unitPrice * item.quantity
 
       validatedItems.push({
@@ -124,7 +125,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
 
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'read')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -149,7 +150,14 @@ export async function GET(request: NextRequest) {
     ])
 
     return NextResponse.json({
-      orders,
+      orders: orders.map(order => ({
+        ...order,
+        total: toNumber(order.total),
+        items: order.items.map(item => ({
+          ...item,
+          unitPrice: toNumber(item.unitPrice),
+        })),
+      })),
       pagination: {
         page,
         limit,

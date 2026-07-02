@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth'
 export async function GET() {
   const session = await getSession()
   
-  if (!session || session.role !== 'admin') {
+  if (!session || !['admin', 'editor', 'viewer'].includes(session.role)) {
     return NextResponse.json({ isAdmin: false }, { status: 401 })
   }
   

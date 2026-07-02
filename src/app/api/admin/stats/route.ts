@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession, hasPermission } from '@/lib/auth'
 import { logger } from '@/lib/logger'
+import { toNumber } from '@/lib/product-utils'
 
 export async function GET() {
   try {
     const session = await getSession()
 
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'read')) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
@@ -44,7 +45,7 @@ export async function GET() {
       select: { price: true, stock: true },
     })
     const inventoryValue = productsForValue.reduce(
-      (sum, p) => sum + p.price * p.stock,
+      (sum, p) => sum + toNumber(p.price) * p.stock,
       0
     )
 

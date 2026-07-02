@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession, hasPermission } from '@/lib/auth'
 import { productSchema } from '@/lib/validations'
 import { logger } from '@/lib/logger'
+import { toNumber } from '@/lib/product-utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -91,8 +92,8 @@ export async function GET(request: NextRequest) {
       id: p.id,
       name: p.name,
       description: p.description,
-      price: p.price,
-      discountPrice: p.discountPrice,
+      price: toNumber(p.price),
+      discountPrice: p.discountPrice != null ? toNumber(p.discountPrice) : null,
       imageUrl: p.imageUrl,
       category: p.category.name,
       categoryId: p.categoryId,
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
 
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'write')) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
@@ -167,8 +168,8 @@ export async function POST(request: NextRequest) {
       id: product.id,
       name: product.name,
       description: product.description,
-      price: product.price,
-      discountPrice: product.discountPrice,
+      price: toNumber(product.price),
+      discountPrice: product.discountPrice != null ? toNumber(product.discountPrice) : null,
       imageUrl: product.imageUrl,
       category: product.category.name,
       categoryId: product.categoryId,

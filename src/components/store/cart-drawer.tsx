@@ -56,13 +56,33 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
   const [open, setOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const items = useCartStore((s) => s.items)
+  const addItem = useCartStore((s) => s.addItem)
   const removeItem = useCartStore((s) => s.removeItem)
   const updateQuantity = useCartStore((s) => s.updateQuantity)
   const clearCart = useCartStore((s) => s.clearCart)
+  const syncWithServer = useCartStore((s) => s.syncWithServer)
   const total = useMemo(() => items.reduce((t, i) => t + i.price * i.quantity, 0), [items])
   const { isLoggedIn } = useCustomerAuth()
   const { toast } = useToast()
   const pendingCheckout = useRef(false)
+  const hasSynced = useRef(false)
+
+  useEffect(() => {
+    if (isLoggedIn && !hasSynced.current) {
+      hasSynced.current = true
+      fetch('/api/cart')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.items) {
+            syncWithServer(data.items)
+          }
+        })
+        .catch(() => {})
+    }
+    if (!isLoggedIn) {
+      hasSynced.current = false
+    }
+  }, [isLoggedIn, syncWithServer])
 
   useEffect(() => {
     if (isLoggedIn && pendingCheckout.current) {
@@ -81,6 +101,23 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
     }
     onCheckout()
     setOpen(false)
+  }
+
+  const syncToServer = async (action: 'add' | 'remove' | 'clear', productId?: string, quantity?: number) => {
+    if (!isLoggedIn) return
+    try {
+      if (action === 'add' && productId) {
+        await fetch('/api/cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, quantity }),
+        })
+      } else if (action === 'remove' && productId) {
+        await fetch(`/api/cart?productId=${productId}`, { method: 'DELETE' })
+      } else if (action === 'clear') {
+        await fetch('/api/cart', { method: 'DELETE' })
+      }
+    } catch {}
   }
 
   return (
@@ -115,7 +152,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={clearCart} className="bg-destructive hover:bg-destructive/90">
+                  <AlertDialogAction onClick={() => { clearCart(); syncToServer('clear') }} className="bg-destructive hover:bg-destructive/90">
                     Vaciar carrito
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -160,9 +197,11 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                           onClick={() => {
                             if (item.quantity <= 1) {
                               removeItem(item.id)
+                              syncToServer('remove', item.id)
                               toast({ title: 'Producto eliminado', description: item.name })
                             } else {
                               updateQuantity(item.id, item.quantity - 1)
+                              syncToServer('add', item.id, -1)
                             }
                           }}
                           aria-label={`Reducir cantidad de ${item.name}`}
@@ -174,7 +213,10 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                           variant="outline"
                           size="icon"
                           className="h-8 w-8 rounded-full border-border/50"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => {
+                            updateQuantity(item.id, item.quantity + 1)
+                            syncToServer('add', item.id, 1)
+                          }}
                           aria-label={`Aumentar cantidad de ${item.name}`}
                         >
                           <Plus className="h-3 w-3" />
@@ -183,7 +225,11 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 ml-auto text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => { removeItem(item.id); toast({ title: 'Producto eliminado', description: item.name }) }}
+                          onClick={() => {
+                            removeItem(item.id)
+                            syncToServer('remove', item.id)
+                            toast({ title: 'Producto eliminado', description: item.name })
+                          }}
                           aria-label={`Eliminar ${item.name} del carrito`}
                         >
                           <Trash2 className="h-4 w-4" />

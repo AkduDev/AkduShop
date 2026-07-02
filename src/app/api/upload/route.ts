@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { getSession, hasPermission } from '@/lib/auth'
 import { v2 as cloudinary } from 'cloudinary'
 import { logger } from '@/lib/logger'
 
@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
 
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'write')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 

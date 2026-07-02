@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession, hasPermission } from '@/lib/auth'
 import fs from 'fs'
 import path from 'path'
 import { logger } from '@/lib/logger'
@@ -43,7 +43,7 @@ function base64ToImage(base64String: string, fileName: string): string | null {
 export async function POST() {
   try {
     const session = await getSession()
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'write')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 

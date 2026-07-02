@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession, hasPermission } from '@/lib/auth'
 import { getSettings, invalidateSettingsCache } from '@/lib/settings'
 import { DEFAULT_SETTINGS, SiteSettings } from '@/types'
 import { settingsSchema } from '@/lib/validations'
@@ -15,7 +15,7 @@ export async function PUT(request: Request) {
   try {
     const session = await getSession()
 
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'settings')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 

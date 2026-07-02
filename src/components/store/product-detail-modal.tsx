@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { ShoppingCart, X, Star, Check, Tag, Share2 } from 'lucide-react'
+import { ShoppingCart, X, Star, Check, Tag, Share2, Bell } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +10,7 @@ import { QuantitySelector } from '@/components/ui/quantity-selector'
 import { useCartStore } from '@/store/cart'
 import { useSettings } from '@/lib/settings-context'
 import { useShare } from '@/hooks/use-share'
+import { useToast } from '@/hooks/use-toast'
 import { getDisplayPrice } from '@/lib/product-utils'
 import type { Product } from '@/types'
 
@@ -23,13 +24,18 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
   const addItem = useCartStore((state) => state.addItem)
   const { settings } = useSettings()
   const { share } = useShare()
+  const { toast } = useToast()
   const [qty, setQty] = useState(1)
   const [justAdded, setJustAdded] = useState(false)
+  const [alertEmail, setAlertEmail] = useState('')
+  const [alertSubmitted, setAlertSubmitted] = useState(false)
+  const [alertLoading, setAlertLoading] = useState(false)
 
   if (!product) return null
 
   const { isOnSale, displayPrice, discountPercent } = getDisplayPrice(product)
   const lowStock = product.stock > 0 && product.stock <= 5
+  const isOutOfStock = product.stock <= 0
 
   const handleAddToCart = () => {
     addItem({
@@ -57,6 +63,29 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
   const handleShare = async () => {
     const url = `${window.location.origin}/products/${product.id}`
     await share(url, product.name, `Mira este producto: ${product.name}`)
+  }
+
+  const handleAlertSubmit = async () => {
+    if (!alertEmail) return
+    setAlertLoading(true)
+    try {
+      const res = await fetch('/api/stock-alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: alertEmail, productId: product.id }),
+      })
+      if (res.ok) {
+        setAlertSubmitted(true)
+        toast({ title: '¡Listo!', description: 'Te notificaremos cuando esté disponible.' })
+      } else {
+        const data = await res.json()
+        toast({ title: 'Error', description: data.error || 'No se pudo registrar', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Error de conexión', variant: 'destructive' })
+    } finally {
+      setAlertLoading(false)
+    }
   }
 
   return (
@@ -219,12 +248,43 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
                   </Button>
                 </div>
               </div>
+            ) : isOutOfStock ? (
+              <div className="space-y-3">
+                {alertSubmitted ? (
+                  <div className="flex items-center justify-center gap-2 text-green-600 font-medium py-3 bg-green-50 dark:bg-green-950/30 rounded-xl">
+                    <Bell className="h-5 w-5" />
+                    Te notificaremos cuando esté disponible
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground text-center">Avísame cuando esté disponible</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        placeholder="Tu email"
+                        value={alertEmail}
+                        onChange={(e) => setAlertEmail(e.target.value)}
+                        className="flex-1 px-4 py-3 rounded-full border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+                        onKeyDown={(e) => e.key === 'Enter' && handleAlertSubmit()}
+                      />
+                      <Button
+                        size="lg"
+                        className="h-12 px-6 rounded-full"
+                        onClick={handleAlertSubmit}
+                        disabled={!alertEmail || alertLoading}
+                      >
+                        <Bell className="mr-2 h-4 w-4" />
+                        {alertLoading ? '...' : 'Notificarme'}
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
             ) : (
               <Button
                 size="lg"
                 className="w-full h-12 sm:h-14 text-base sm:text-lg rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200"
                 onClick={handleAddToCart}
-                disabled={product.stock <= 0}
               >
                 <ShoppingCart className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Añadir al Carrito{qty > 1 ? ` (${qty})` : ''}

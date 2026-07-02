@@ -18,16 +18,17 @@ model User {
 }
 
 model Customer {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   name      String
-  email     String   @unique
+  email     String      @unique
   phone     String?
   address   String?
   password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   orders    Order[]
   reviews   Review[]
+  cartItems CartItem[]
 }
 
 model Category {
@@ -55,7 +56,7 @@ model Order {
   customerAddress String?
   notes           String?
   status          String      @default("pending")
-  total           Float
+  total           Decimal
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   items           OrderItem[]
@@ -71,7 +72,7 @@ model OrderItem {
   productId String?
   name      String
   quantity  Int
-  unitPrice Float
+  unitPrice Decimal
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
@@ -82,8 +83,8 @@ model Product {
   id            String   @id @default(cuid())
   name          String
   description   String
-  price         Float
-  discountPrice Float?
+  price         Decimal
+  discountPrice Decimal?
   imageUrl      String
   categoryId    String
   stock         Int      @default(0)
@@ -93,6 +94,8 @@ model Product {
   updatedAt     DateTime @updatedAt
   category      Category @relation(fields: [categoryId], references: [id])
   reviews       Review[]
+  cartItems     CartItem[]
+  stockAlerts   StockAlert[]
 
   @@index([categoryId])
   @@index([featured])
@@ -123,4 +126,32 @@ model Newsletter {
   email     String   @unique
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  customerId String
+  productId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  customer  Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, productId])
+  @@index([customerId])
+  @@index([productId])
+}
+
+model StockAlert {
+  id        String   @id @default(cuid())
+  email     String
+  productId String
+  notified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([email, productId])
+  @@index([productId])
+  @@index([email])
 }

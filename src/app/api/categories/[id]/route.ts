@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession, hasPermission } from '@/lib/auth'
 import { categorySchema } from '@/lib/validations'
 import { logger } from '@/lib/logger'
 
@@ -40,7 +40,7 @@ export async function PUT(
 ) {
   try {
     const session = await getSession()
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'write')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -82,7 +82,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getSession()
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'delete')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 

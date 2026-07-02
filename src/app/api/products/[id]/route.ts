@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession, hasPermission } from '@/lib/auth'
 import { productSchema } from '@/lib/validations'
 import { logger } from '@/lib/logger'
+import { toNumber } from '@/lib/product-utils'
 
 export async function GET(
   request: NextRequest,
@@ -28,8 +29,8 @@ export async function GET(
       id: product.id,
       name: product.name,
       description: product.description,
-      price: product.price,
-      discountPrice: product.discountPrice,
+      price: toNumber(product.price),
+      discountPrice: product.discountPrice != null ? toNumber(product.discountPrice) : null,
       imageUrl: product.imageUrl,
       category: product.category.name,
       categoryId: product.categoryId,
@@ -55,7 +56,7 @@ export async function PUT(
   try {
     const session = await getSession()
 
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'write')) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
@@ -97,8 +98,8 @@ export async function PUT(
       id: product.id,
       name: product.name,
       description: product.description,
-      price: product.price,
-      discountPrice: product.discountPrice,
+      price: toNumber(product.price),
+      discountPrice: product.discountPrice != null ? toNumber(product.discountPrice) : null,
       imageUrl: product.imageUrl,
       category: product.category.name,
       categoryId: product.categoryId,
@@ -124,7 +125,7 @@ export async function DELETE(
   try {
     const session = await getSession()
 
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'delete')) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }

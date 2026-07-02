@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
+import { toNumber } from '@/lib/product-utils'
 import { ProductPageClient } from './product-page-client'
 
 interface PageProps {
@@ -19,8 +20,8 @@ async function getProduct(id: string) {
     id: product.id,
     name: product.name,
     description: product.description,
-    price: product.price,
-    discountPrice: product.discountPrice,
+    price: toNumber(product.price),
+    discountPrice: product.discountPrice != null ? toNumber(product.discountPrice) : null,
     imageUrl: product.imageUrl,
     category: product.category.name,
     categoryId: product.categoryId,

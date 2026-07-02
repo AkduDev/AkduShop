@@ -14,7 +14,7 @@ async function verifyAdminAuth(request: NextRequest): Promise<boolean> {
   try {
     const { payload } = await jwtVerify(token, getSecretKey())
     const user = payload.user as { role: string } | undefined
-    return !!user && user.role === 'admin'
+    return !!user && ['admin', 'editor', 'viewer'].includes(user.role)
   } catch {
     return false
   }

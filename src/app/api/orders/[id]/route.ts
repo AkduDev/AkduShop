@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession, hasPermission } from '@/lib/auth'
 import { orderStatusSchema } from '@/lib/validations'
 import { logger } from '@/lib/logger'
+import { toNumber } from '@/lib/product-utils'
 
 export async function GET(
   _request: Request,
@@ -11,7 +12,7 @@ export async function GET(
   try {
     const session = await getSession()
 
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'read')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -25,7 +26,14 @@ export async function GET(
       return NextResponse.json({ error: 'Orden no encontrada' }, { status: 404 })
     }
 
-    return NextResponse.json(order)
+    return NextResponse.json({
+      ...order,
+      total: toNumber(order.total),
+      items: order.items.map(item => ({
+        ...item,
+        unitPrice: toNumber(item.unitPrice),
+      })),
+    })
   } catch (error) {
     logger.error('Error fetching order', 'orders/[id]', error)
     return NextResponse.json(
@@ -42,7 +50,7 @@ export async function PUT(
   try {
     const session = await getSession()
 
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'write')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -65,7 +73,14 @@ export async function PUT(
       include: { items: true },
     })
 
-    return NextResponse.json(order)
+    return NextResponse.json({
+      ...order,
+      total: toNumber(order.total),
+      items: order.items.map(item => ({
+        ...item,
+        unitPrice: toNumber(item.unitPrice),
+      })),
+    })
   } catch (error) {
     logger.error('Error updating order', 'orders/[id]', error)
     return NextResponse.json(
@@ -82,7 +97,7 @@ export async function DELETE(
   try {
     const session = await getSession()
 
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'delete')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 

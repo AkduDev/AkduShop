@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { hashPassword, getSession } from '@/lib/auth'
+import { hashPassword, getSession, hasPermission } from '@/lib/auth'
 import { DEFAULT_SETTINGS } from '@/types'
 import { logger } from '@/lib/logger'
 
 export async function POST() {
   try {
     const session = await getSession()
-    if (!session || session.role !== 'admin') {
+    if (!session || !hasPermission(session.role, 'write')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
