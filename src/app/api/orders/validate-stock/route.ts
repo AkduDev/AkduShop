@@ -1,18 +1,20 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { validateStockSchema } from '@/lib/validations'
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { items } = body as { items: { productId: string; quantity: number }[] }
+    const parsed = validateStockSchema.safeParse(body)
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'No se proporcionaron productos para validar' },
+        { error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
 
+    const { items } = parsed.data
     const productIds = items.map((i) => i.productId)
     const products = await db.product.findMany({
       where: { id: { in: productIds } },

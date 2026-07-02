@@ -77,3 +77,15 @@ export type OrderStatusInput = z.infer<typeof orderStatusSchema>
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
 export type NewsletterInput = z.infer<typeof newsletterSchema>
 export type ReviewInput = z.infer<typeof reviewSchema>
+
+export const settingsSchema = z.record(z.string(), z.string())
+
+export const validateStockSchema = z.object({
+  items: z.array(z.object({
+    productId: z.string().min(1),
+    quantity: z.coerce.number().int().positive(),
+  })).min(1, 'Debe haber al menos un producto'),
+})
+
+export type SettingsInput = z.infer<typeof settingsSchema>
+export type ValidateStockInput = z.infer<typeof validateStockSchema>

@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { getSettings, invalidateSettingsCache } from '@/lib/settings'
 import { DEFAULT_SETTINGS, SiteSettings } from '@/types'
+import { settingsSchema } from '@/lib/validations'
 import { logger } from '@/lib/logger'
 
 export async function GET() {
@@ -19,10 +20,19 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json()
+    const parsed = settingsSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
+        { status: 400 }
+      )
+    }
+
     const allowedKeys = Object.keys(DEFAULT_SETTINGS) as (keyof SiteSettings)[]
 
     const upserts = allowedKeys.map((key) => {
-      const value = body[key]
+      const value = parsed.data[key]
       if (value === undefined) return null
 
       return db.siteSetting.upsert({
