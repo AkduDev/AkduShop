@@ -44,8 +44,8 @@ export function DashboardWelcome({ stats }: DashboardWelcomeProps) {
           </div>
         </div>
         {stats.lowStockProducts > 0 && (
-          <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30">
-            <h4 className="font-semibold mb-2 flex items-center gap-2 text-red-500">
+          <div className="mt-4 p-4 rounded-lg bg-red-500/10 dark:bg-red-500/15 border border-red-500/30 dark:border-red-500/40">
+            <h4 className="font-semibold mb-2 flex items-center gap-2 text-red-500 dark:text-red-400">
               <AlertTriangle className="h-4 w-4" />
               Alerta de Stock Bajo
             </h4>

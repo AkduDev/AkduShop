@@ -14,12 +14,12 @@ import {
 import { Category } from '@/types'
 
 const categoryColors: Record<string, { bg: string; icon: string; border: string }> = {
-  'Electrónicos': { bg: 'from-blue-500/10 to-blue-600/5', icon: 'text-blue-500', border: 'border-blue-500/20' },
-  'Ropa y Accesorios': { bg: 'from-purple-500/10 to-purple-600/5', icon: 'text-purple-500', border: 'border-purple-500/20' },
-  'Hogar y Decoración': { bg: 'from-amber-500/10 to-amber-600/5', icon: 'text-amber-500', border: 'border-amber-500/20' },
-  'Deportes y Aire Libre': { bg: 'from-green-500/10 to-green-600/5', icon: 'text-green-500', border: 'border-green-500/20' },
-  'Salud y Belleza': { bg: 'from-pink-500/10 to-pink-600/5', icon: 'text-pink-500', border: 'border-pink-500/20' },
-  'Juguetes y Entretenimiento': { bg: 'from-orange-500/10 to-orange-600/5', icon: 'text-orange-500', border: 'border-orange-500/20' },
+  'Electrónicos': { bg: 'from-blue-500/10 to-blue-600/5', icon: 'text-blue-500 dark:text-blue-400', border: 'border-blue-500/20 dark:border-blue-500/30' },
+  'Ropa y Accesorios': { bg: 'from-purple-500/10 to-purple-600/5', icon: 'text-purple-500 dark:text-purple-400', border: 'border-purple-500/20 dark:border-purple-500/30' },
+  'Hogar y Decoración': { bg: 'from-amber-500/10 to-amber-600/5', icon: 'text-amber-500 dark:text-amber-400', border: 'border-amber-500/20 dark:border-amber-500/30' },
+  'Deportes y Aire Libre': { bg: 'from-green-500/10 to-green-600/5', icon: 'text-green-500 dark:text-green-400', border: 'border-green-500/20 dark:border-green-500/30' },
+  'Salud y Belleza': { bg: 'from-pink-500/10 to-pink-600/5', icon: 'text-pink-500 dark:text-pink-400', border: 'border-pink-500/20 dark:border-pink-500/30' },
+  'Juguetes y Entretenimiento': { bg: 'from-orange-500/10 to-orange-600/5', icon: 'text-orange-500 dark:text-orange-400', border: 'border-orange-500/20 dark:border-orange-500/30' },
 }
 
 const defaultColor = { bg: 'from-primary/10 to-primary/5', icon: 'text-primary', border: 'border-primary/20' }
@@ -47,7 +47,7 @@ export function CategoriesCards({ categories, onEdit, onDelete }: CategoriesCard
               <div className={`relative bg-gradient-to-br ${colors.bg} px-4 py-5`}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl bg-white/80 shadow-sm ${colors.icon}`}>
+                    <div className={`p-2.5 rounded-xl bg-white/80 dark:bg-card/80 shadow-sm ${colors.icon}`}>
                       <Folder className="h-5 w-5" />
                     </div>
                     <div>
@@ -71,7 +71,7 @@ export function CategoriesCards({ categories, onEdit, onDelete }: CategoriesCard
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-40">
                       <DropdownMenuItem onClick={() => onEdit(category)}>
-                        <Pencil className="h-4 w-4 mr-2 text-blue-500" />
+                        <Pencil className="h-4 w-4 mr-2 text-blue-500 dark:text-blue-400" />
                         Editar
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />

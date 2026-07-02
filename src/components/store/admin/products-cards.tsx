@@ -64,7 +64,7 @@ export function ProductsCards({ products, onEdit, onDelete, onToggleFeatured }: 
                     <Button
                       variant="secondary"
                       size="icon"
-                      className="h-8 w-8 bg-white/90 hover:bg-white backdrop-blur-sm shadow-md"
+                      className="h-8 w-8 bg-white/90 hover:bg-white dark:bg-black/60 dark:hover:bg-black/80 backdrop-blur-sm shadow-md"
                     >
                       <MoreVertical className="h-4 w-4" />
                     </Button>
@@ -84,7 +84,7 @@ export function ProductsCards({ products, onEdit, onDelete, onToggleFeatured }: 
                       )}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onEdit(product)}>
-                      <Pencil className="h-4 w-4 mr-2 text-blue-500" />
+                      <Pencil className="h-4 w-4 mr-2 text-blue-500 dark:text-blue-400" />
                       Editar
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -136,7 +136,7 @@ export function ProductsCards({ products, onEdit, onDelete, onToggleFeatured }: 
                   variant={product.stock > 0 ? 'default' : 'destructive'}
                   className={`text-[10px] px-2 py-0.5 ${
                     product.stock > 0
-                      ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                      ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20'
                       : ''
                   }`}
                 >
@@ -144,7 +144,7 @@ export function ProductsCards({ products, onEdit, onDelete, onToggleFeatured }: 
                   {product.stock} en stock
                 </Badge>
                 {product.onSale && product.discountPrice != null && (
-                  <Badge className="bg-red-500/10 text-red-600 border-red-500/20 text-[10px] px-2 py-0.5">
+                  <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 text-[10px] px-2 py-0.5">
                     -{Math.round((1 - product.discountPrice / product.price) * 100)}%
                   </Badge>
                 )}

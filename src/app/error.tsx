@@ -19,8 +19,8 @@ export default function Error({
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-background">
       <div className="text-center max-w-md space-y-6">
-        <div className="w-20 h-20 mx-auto rounded-full bg-red-500/10 flex items-center justify-center">
-          <AlertTriangle className="h-10 w-10 text-red-500" />
+        <div className="w-20 h-20 mx-auto rounded-full bg-red-500/10 dark:bg-red-500/15 flex items-center justify-center">
+          <AlertTriangle className="h-10 w-10 text-red-500 dark:text-red-400" />
         </div>
         
         <div className="space-y-2">
@@ -37,7 +37,7 @@ export default function Error({
             <p className="text-sm font-semibold text-foreground mb-2">
               Detalles del error (desarrollo):
             </p>
-            <p className="text-xs font-mono text-red-500 break-all">
+            <p className="text-xs font-mono text-red-500 dark:text-red-400 break-all">
               {error.message}
             </p>
             {error.digest && (

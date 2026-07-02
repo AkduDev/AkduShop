@@ -106,7 +106,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
             />
 
             {isOnSale && (
-              <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-500 text-white font-medium text-xs sm:text-sm">
+              <Badge className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-red-500 dark:bg-red-600 text-white font-medium text-xs sm:text-sm">
                 <Tag className="w-3 h-3 mr-1" />
                 Oferta
               </Badge>
@@ -120,7 +120,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
             )}
 
             {lowStock && (
-              <Badge className={`absolute top-2 left-2 sm:top-4 sm:left-4 ${isOnSale || product.featured ? 'mt-12 sm:mt-20' : ''} bg-amber-500/90 text-white font-medium text-xs sm:text-sm`}>
+              <Badge className={`absolute top-2 left-2 sm:top-4 sm:left-4 ${isOnSale || product.featured ? 'mt-12 sm:mt-20' : ''} bg-amber-500/90 dark:bg-amber-600/90 text-white font-medium text-xs sm:text-sm`}>
                 ¡Solo quedan {product.stock}!
               </Badge>
             )}
@@ -183,7 +183,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
             <div className="flex items-center gap-2 mb-4 sm:mb-6">
               {product.stock > 0 ? (
                 <>
-                    <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${lowStock ? 'bg-amber-500' : 'bg-green-500'}`} />
+                    <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${lowStock ? 'bg-amber-500 dark:bg-amber-400' : 'bg-green-500 dark:bg-green-400'}`} />
                     <span className={`text-xs sm:text-sm font-medium ${lowStock ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'}`}>
                     {lowStock ? `¡Solo quedan ${product.stock}!` : `En Stock (${product.stock} disponibles)`}
                   </span>
@@ -240,7 +240,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
                   </Button>
                   <Button
                     size="lg"
-                    className="flex-1 h-12 rounded-full bg-green-600 hover:bg-green-700 text-white"
+                    className="flex-1 h-12 rounded-full bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-white"
                     onClick={handleViewCart}
                   >
                     <ShoppingCart className="mr-2 h-4 w-4" />
@@ -251,7 +251,7 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
             ) : isOutOfStock ? (
               <div className="space-y-3">
                 {alertSubmitted ? (
-                  <div className="flex items-center justify-center gap-2 text-green-600 font-medium py-3 bg-green-50 dark:bg-green-950/30 rounded-xl">
+                  <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 font-medium py-3 bg-green-50 dark:bg-green-950/40 rounded-xl">
                     <Bell className="h-5 w-5" />
                     Te notificaremos cuando esté disponible
                   </div>

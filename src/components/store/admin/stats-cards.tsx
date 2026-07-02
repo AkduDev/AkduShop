@@ -18,8 +18,8 @@ export function StatsCards({ stats }: StatsCardsProps) {
               <p className="text-xs text-muted-foreground">Productos</p>
               <p className="text-2xl font-bold">{stats.totalProducts}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-              <Package className="h-5 w-5 text-blue-500" />
+            <div className="w-10 h-10 rounded-full bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center">
+              <Package className="h-5 w-5 text-blue-500 dark:text-blue-400" />
             </div>
           </div>
         </CardContent>
@@ -32,8 +32,8 @@ export function StatsCards({ stats }: StatsCardsProps) {
               <p className="text-xs text-muted-foreground">Categorías</p>
               <p className="text-2xl font-bold">{stats.totalCategories}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-              <Folder className="h-5 w-5 text-purple-500" />
+            <div className="w-10 h-10 rounded-full bg-purple-500/10 dark:bg-purple-500/15 flex items-center justify-center">
+              <Folder className="h-5 w-5 text-purple-500 dark:text-purple-400" />
             </div>
           </div>
         </CardContent>
@@ -46,8 +46,8 @@ export function StatsCards({ stats }: StatsCardsProps) {
               <p className="text-xs text-muted-foreground">Stock Total</p>
               <p className="text-2xl font-bold">{stats.totalStock}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-              <ShoppingCart className="h-5 w-5 text-green-500" />
+            <div className="w-10 h-10 rounded-full bg-green-500/10 dark:bg-green-500/15 flex items-center justify-center">
+              <ShoppingCart className="h-5 w-5 text-green-500 dark:text-green-400" />
             </div>
           </div>
         </CardContent>
@@ -58,12 +58,12 @@ export function StatsCards({ stats }: StatsCardsProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Stock Bajo</p>
-              <p className={`text-2xl font-bold ${stats.lowStockProducts > 0 ? 'text-red-500' : ''}`}>
+              <p className={`text-2xl font-bold ${stats.lowStockProducts > 0 ? 'text-red-500 dark:text-red-400' : ''}`}>
                 {stats.lowStockProducts}
               </p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+            <div className="w-10 h-10 rounded-full bg-red-500/10 dark:bg-red-500/15 flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-red-500 dark:text-red-400" />
             </div>
           </div>
         </CardContent>
@@ -76,8 +76,8 @@ export function StatsCards({ stats }: StatsCardsProps) {
               <p className="text-xs text-muted-foreground">Destacados</p>
               <p className="text-2xl font-bold">{stats.featuredProducts}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
-              <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+            <div className="w-10 h-10 rounded-full bg-yellow-500/10 dark:bg-yellow-500/15 flex items-center justify-center">
+              <Star className="h-5 w-5 text-yellow-500 dark:text-yellow-400 fill-yellow-500 dark:fill-yellow-400" />
             </div>
           </div>
         </CardContent>
@@ -88,12 +88,12 @@ export function StatsCards({ stats }: StatsCardsProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">En Oferta</p>
-              <p className={`text-2xl font-bold ${stats.onSaleProducts > 0 ? 'text-red-500' : ''}`}>
+              <p className={`text-2xl font-bold ${stats.onSaleProducts > 0 ? 'text-red-500 dark:text-red-400' : ''}`}>
                 {stats.onSaleProducts}
               </p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-              <Tag className="h-5 w-5 text-red-500" />
+            <div className="w-10 h-10 rounded-full bg-red-500/10 dark:bg-red-500/15 flex items-center justify-center">
+              <Tag className="h-5 w-5 text-red-500 dark:text-red-400" />
             </div>
           </div>
         </CardContent>

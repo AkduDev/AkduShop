@@ -36,7 +36,7 @@ export default function WishlistPage() {
             </Link>
           </Button>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Heart className="h-6 w-6 text-red-500" />
+            <Heart className="h-6 w-6 text-red-500 dark:text-red-400" />
             Mis Favoritos
           </h1>
         </div>
@@ -65,7 +65,7 @@ export default function WishlistPage() {
                   <div className="flex items-center gap-2">
                     {item.discountPrice != null ? (
                       <>
-                        <span className="font-bold text-red-500 text-sm">${item.discountPrice.toFixed(2)}</span>
+                        <span className="font-bold text-red-500 dark:text-red-400 text-sm">${item.discountPrice.toFixed(2)}</span>
                         <span className="text-xs text-muted-foreground line-through">${item.price.toFixed(2)}</span>
                       </>
                     ) : (

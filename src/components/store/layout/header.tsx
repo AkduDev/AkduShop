@@ -157,7 +157,7 @@ export function Header({
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             {!isAdmin && (
               <Link href="/wishlist">
-                <Button variant="outline" size="icon" className="relative rounded-full border-border/50 hover:border-red-500 hover:text-red-500" aria-label="Favoritos">
+                <Button variant="outline" size="icon" className="relative rounded-full border-border/50 hover:border-red-500 hover:text-red-500 dark:hover:border-red-400 dark:hover:text-red-400" aria-label="Favoritos">
                   <Heart className="h-5 w-5" />
                   <WishlistBadge count={wishlistItems.length} />
                 </Button>

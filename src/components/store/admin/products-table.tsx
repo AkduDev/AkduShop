@@ -66,7 +66,7 @@ export function ProductsTable({ products, pagination, onPageChange, onEdit, onDe
                 <TableCell className="text-center">
                   <Badge
                     variant={product.stock > 0 ? 'default' : 'destructive'}
-                    className={product.stock > 0 ? 'bg-green-600 text-xs' : 'text-xs'}
+                    className={product.stock > 0 ? 'bg-green-600 dark:bg-green-700 text-xs' : 'text-xs'}
                   >
                     {product.stock}
                   </Badge>
@@ -79,7 +79,7 @@ export function ProductsTable({ products, pagination, onPageChange, onEdit, onDe
                         Oferta
                       </Badge>
                       {product.discountPrice != null && (
-                        <span className="text-xs font-bold text-green-600">${product.discountPrice.toFixed(2)}</span>
+                        <span className="text-xs font-bold text-green-600 dark:text-green-400">${product.discountPrice.toFixed(2)}</span>
                       )}
                     </div>
                   ) : (
