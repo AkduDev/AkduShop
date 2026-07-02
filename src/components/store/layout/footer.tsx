@@ -73,19 +73,19 @@ export function Footer() {
   }
 
   return (
-    <footer className="bg-primary text-primary-foreground">
+    <footer className="bg-primary text-primary-foreground dark:bg-surface-2 dark:text-foreground">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <h3 className="text-lg font-bold mb-3">{settings.siteName}</h3>
-            <p className="text-sm text-primary-foreground/70 leading-relaxed mb-4">
+            <p className="text-sm text-foreground/70 leading-relaxed mb-4">
               {settings.siteDescription}
             </p>
 
             <div>
-              <h4 className="text-sm font-semibold mb-2 uppercase tracking-wider text-primary-foreground/80">Newsletter</h4>
+              <h4 className="text-sm font-semibold mb-2 uppercase tracking-wider text-foreground/80">Newsletter</h4>
               {subscribed ? (
-                <div className="flex items-center gap-2 text-sm text-primary-foreground/80">
+                <div className="flex items-center gap-2 text-sm text-foreground/80">
                   <Check className="h-4 w-4" />
                   <span>¡Gracias por suscribirte!</span>
                 </div>
@@ -98,14 +98,14 @@ export function Footer() {
                       onChange={(e) => { setEmail(e.target.value); setEmailError('') }}
                       placeholder="Tu email"
                       required
-                      className={`flex-1 px-3 py-2 rounded-full bg-primary-foreground/10 border text-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-foreground/30 ${emailError ? 'border-red-400' : 'border-primary-foreground/20'}`}
+                      className={`flex-1 px-3 py-2 rounded-full bg-foreground/10 border text-sm text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/30 ${emailError ? 'border-red-400' : 'border-foreground/20'}`}
                       aria-label="Email para newsletter"
                       aria-invalid={!!emailError}
                     />
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-3 py-2 rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-colors disabled:opacity-50"
+                      className="px-3 py-2 rounded-full bg-primary-foreground dark:bg-primary text-primary dark:text-primary-foreground hover:bg-primary-foreground/90 dark:hover:bg-primary/90 transition-colors disabled:opacity-50"
                       aria-label="Suscribirse al newsletter"
                     >
                       <Send className="h-4 w-4" />
@@ -118,12 +118,12 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold mb-3 uppercase tracking-wider text-primary-foreground/80">Enlaces</h4>
-            <ul className="space-y-2 text-sm text-primary-foreground/70">
+            <h4 className="text-sm font-semibold mb-3 uppercase tracking-wider text-foreground/80">Enlaces</h4>
+            <ul className="space-y-2 text-sm text-foreground/70">
               <li>
                 <button
                   onClick={() => handleNavClick('#productos', true)}
-                  className="hover:text-primary-foreground transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Productos
                 </button>
@@ -131,23 +131,23 @@ export function Footer() {
               <li>
                 <button
                   onClick={() => handleNavClick('#contacto', true)}
-                  className="hover:text-primary-foreground transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Contacto
                 </button>
               </li>
               <li>
-                <Link href="/profile" className="hover:text-primary-foreground transition-colors">
+                <Link href="/profile" className="hover:text-foreground transition-colors">
                   Mi Cuenta
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-primary-foreground transition-colors">
+                <Link href="/terms" className="hover:text-foreground transition-colors">
                   Términos y Condiciones
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="hover:text-primary-foreground transition-colors">
+                <Link href="/privacy" className="hover:text-foreground transition-colors">
                   Política de Privacidad
                 </Link>
               </li>
@@ -155,8 +155,8 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold mb-3 uppercase tracking-wider text-primary-foreground/80">Contacto</h4>
-            <ul className="space-y-2 text-sm text-primary-foreground/70">
+            <h4 className="text-sm font-semibold mb-3 uppercase tracking-wider text-foreground/80">Contacto</h4>
+            <ul className="space-y-2 text-sm text-foreground/70">
               <li className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>{settings.address}</span>
@@ -166,12 +166,12 @@ export function Footer() {
                 <span>{settings.schedule}</span>
               </li>
               {settings.scheduleNote && (
-                <li className="text-xs text-primary-foreground/50 ml-6">{settings.scheduleNote}</li>
+                <li className="text-xs text-foreground/50 ml-6">{settings.scheduleNote}</li>
               )}
               {settings.legalEmail && (
                 <li className="flex items-center gap-2">
                   <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  <a href={`mailto:${settings.legalEmail}`} className="hover:text-primary-foreground transition-colors">
+                  <a href={`mailto:${settings.legalEmail}`} className="hover:text-foreground transition-colors">
                     {settings.legalEmail}
                   </a>
                 </li>
@@ -180,8 +180,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-primary-foreground/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-primary-foreground/50">
+        <div className="border-t border-primary-foreground/10 dark:border-foreground/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-foreground/50">
             © {new Date().getFullYear()} {settings.siteName}. Todos los derechos reservados.
           </p>
           <div className="flex items-center gap-3">
@@ -189,7 +189,7 @@ export function Footer() {
               href={`https://wa.me/${settings.whatsappNumber}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-colors text-sm font-medium"
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary dark:bg-primary text-primary-foreground dark:text-primary-foreground hover:bg-primary/90 dark:hover:bg-primary/90 transition-colors text-sm font-medium"
               aria-label="Contactar por WhatsApp"
             >
               <MessageCircle className="h-4 w-4" />
