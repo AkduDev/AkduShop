@@ -1,22 +1,42 @@
-interface RateLimitEntry {
-  count: number
-  resetAt: number
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
+
+let redis: Redis | null = null
+let authLimiter: Ratelimit | null = null
+let registerLimiter: Ratelimit | null = null
+
+function getRedis(): Redis {
+  if (!redis) {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
+  }
+  return redis
 }
 
-const store = new Map<string, RateLimitEntry>()
-
-const CLEANUP_INTERVAL = 60_000
-let lastCleanup = Date.now()
-
-function cleanup() {
-  const now = Date.now()
-  if (now - lastCleanup < CLEANUP_INTERVAL) return
-  lastCleanup = now
-  for (const [key, entry] of store) {
-    if (now > entry.resetAt) {
-      store.delete(key)
-    }
+function getAuthLimiter(): Ratelimit {
+  if (!authLimiter) {
+    authLimiter = new Ratelimit({
+      redis: getRedis(),
+      limiter: Ratelimit.slidingWindow(10, '60 s'),
+      analytics: true,
+      prefix: 'ratelimit:auth',
+    })
   }
+  return authLimiter
+}
+
+function getRegisterLimiter(): Ratelimit {
+  if (!registerLimiter) {
+    registerLimiter = new Ratelimit({
+      redis: getRedis(),
+      limiter: Ratelimit.slidingWindow(5, '1 h'),
+      analytics: true,
+      prefix: 'ratelimit:register',
+    })
+  }
+  return registerLimiter
 }
 
 export interface RateLimitConfig {
@@ -24,30 +44,27 @@ export interface RateLimitConfig {
   maxRequests: number
 }
 
-export function rateLimit(
+export interface RateLimitResult {
+  success: boolean
+  remaining: number
+  resetAt: number
+}
+
+export async function rateLimit(
   ip: string,
   config: RateLimitConfig
-): { success: boolean; remaining: number; resetAt: number } {
-  cleanup()
+): Promise<RateLimitResult> {
+  const limiter = config.interval === 60_000
+    ? getAuthLimiter()
+    : getRegisterLimiter()
 
-  const key = ip
-  const now = Date.now()
-  const entry = store.get(key)
+  const { success, remaining, reset } = await limiter.limit(ip)
 
-  if (!entry || now > entry.resetAt) {
-    store.set(key, {
-      count: 1,
-      resetAt: now + config.interval,
-    })
-    return { success: true, remaining: config.maxRequests - 1, resetAt: now + config.interval }
+  return {
+    success,
+    remaining,
+    resetAt: reset,
   }
-
-  if (entry.count >= config.maxRequests) {
-    return { success: false, remaining: 0, resetAt: entry.resetAt }
-  }
-
-  entry.count++
-  return { success: true, remaining: config.maxRequests - entry.count, resetAt: entry.resetAt }
 }
 
 export function getClientIp(request: Request): string {

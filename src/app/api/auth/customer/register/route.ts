@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger'
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIp(request)
-    const limiter = rateLimit(ip, REGISTER_RATE_LIMIT)
+    const limiter = await rateLimit(ip, REGISTER_RATE_LIMIT)
 
     if (!limiter.success) {
       return NextResponse.json(
